@@ -248,3 +248,18 @@ phone_20261015_full_02 工作副本 3.63GB（可由 raw tar 重建）、恢复�
 - **错误输入补测**（`work/delivery_20261016/final/`）：破坏 data5→FAILED_RETAINED（envelope 校验拒绝，其余文件正常，PARTIAL_FAILURES_RETAINED）；空目录→ValueError("No data5 input")；libcompatible.so 位翻转→版本断言拒绝（原件已恢复 79b6ae19…）；缺镜像→FileNotFoundError 含缺失路径。
 - **A/B/C 复核**：条目数、体积、SHA-256 与 package_manifest.json 对账一致；CRC 自检过；B 包 base_master 全量组件与四分表为同数据两种访问形式（既有产物结构，已在清单注明，不重构）。
 - **审查基准**：最终 HEAD 即冻结版本（完整哈希见本轮交付报告与 git log）；测试证据在 `work/delivery_20261016/final/`（含 neg_t1/neg_t2/neg_t4 负向测试产物），媒体与发布清单在 `output/share_bundle/20261016-delivery/`。
+
+## 审查整改记录②（对照 review_20261017_final_delivery，2026-10-17）
+
+依据：`output/20261016-reproducibility-audit/review/review_20261017_final_delivery/README.md`，结论「带明确限制通过，无 P0；1 项 P1＋7 项 P2」。
+
+- **P1-1（用户裁决：细分排除）**：B 包排除 `output/char_roster/icons/**`（2,656 PNG）、`output/char_roster/index.html`、`output/card_images/**` 内 5 个 .unityfs 与 7 个 .png、`output/card_comparison_cid30236/reference.png` 与 `index.html`；保留名册 data/（9,169 cid 合并成品）、全部研究证据 JSON/TXT/bin、README。实现：`scripts/release/build_delivery_bundle.py` 增加 `B_EXCLUDE_PATHS`/`B_EXCLUDE_MEDIA_IN` 与泄漏断言；被排除项逐条登记 package_manifest.json 的 `media_excluded`（含"展示页与媒体本地可用、按 C 清单重建"说明）。base_master 按用户确认**保留两种形式**。
+- **P2-1**：README §4 注明「B1 仅处理 gzip 偏移 6 包装；整目录请直接用 B2（自动识别两种包装并逐文件容错）」。
+- **P2-2**：`decode_data5.py`、`apk_certificate.py` 增加 `--apk`（默认值不变）。实测：`--apk <改名副本>` 解码 charainfo PASS（40b4fa98… 不变）。
+- **P2-3**：`apk_certificate.py` 增加 `--hex`（report.json 与 stdout 输出 1,758 字符 hex）；README §5 补取 hex 命令。
+- **P2-4**：删除 `build_chica_comparison.py:16` 作者机器临时路径常量及刷新行，仅保留 `output/.../reference.png` 兜底断言。
+- **P2-5**：`full_unpack_run.py` 改为定位路径中的 `Bundle` 分量；缺分量时该行记录 `status=error` 与明确原因。实测三种前缀：`Bundle/…` 与 `cache/files/Bundle/…` 均导出到 `objects/Motion/…`，`files/Motion/…`（无 Bundle）记录错误；README §5 注明期望前缀。另修 `full_unpack_finalize.py`：默认清单不存在时 sha 记 null 而非崩溃（README 同步改为显式 `--inventory`）。
+- **P2-6**：HANDOFF「4 个提交待推送」更正为 5；交付 README/A 包清单措辞收紧为「与 HEAD 逐文件内容一致（zip 内 CRLF 行尾）」「与最终 HEAD 除新增打包脚本与交接文档外零差异」；STATUS 历史节 A 包版本更正为 a8e1f02。
+- **P2-7**：media_manifest.json 与 STATUS 各加口径句（903,402/20.24GiB＝目录总量；903,396＝objects/ 文件数；56 类合计 20.18GiB 仅导出媒体）。
+- **复验**：5 个修改脚本 py_compile 通过；decode_data5 --apk、apk_certificate --hex、full_unpack 三种前缀实测通过（证据见上文与 work/review_20261017/、work/delivery_20261016/final/work/prefix_test_shards/）。改后按最终 HEAD 重建 A/B/C 包并核验条目数/体积/SHA-256/CRC（见交付报告）。
+- **未做**（按约束）：不重跑 A—E、不重做全量解包、不覆盖既有成果与审查报告；git push 与对外发布仍等用户授权。

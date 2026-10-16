@@ -65,7 +65,14 @@ def certificates(raw):
 
 
 def main():
-    source = Path("チェンクロ.apk")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--apk", type=Path, default=Path("チェンクロ.apk"),
+                        help="compatible APK to read (default: repo-root name)")
+    parser.add_argument("--hex", action="store_true",
+                        help="include certificate hex in report and stdout (for --cert-hex usage)")
+    args = parser.parse_args()
+    source = args.apk
     raw = source.read_bytes()
     rows, layout = certificates(raw)
     output = Path("output/apk/certificates")
@@ -74,8 +81,10 @@ def main():
     for row in rows:
         destination = output/f"signer_{row['signer_index']}_certificate_{row['certificate_index']}.der"
         destination.write_bytes(row["bytes"])
-        report.append({k:v for k,v in row.items() if k != "bytes"} |
-                      {"size": len(row["bytes"]), "local": str(destination)})
+        entry = {k:v for k,v in row.items() if k != "bytes"} | {"size": len(row["bytes"]), "local": str(destination)}
+        if args.hex:
+            entry["hex"] = row["bytes"].hex()
+        report.append(entry)
     (output/"report.json").write_text(json.dumps({"source_sha256": hashlib.sha256(raw).hexdigest(),
                                                "layout": layout, "certificates": report,
                                                "scope": "Extraction only; APK signature not verified"}, indent=2))

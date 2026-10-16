@@ -51,6 +51,28 @@ B_EXCLUDE_NOTES = [
 ]
 STORE_ONLY = ('.png', '.zip', '.wav', '.jpg', '.jpeg', '.gz')
 
+# P1-1（用户裁决 2026-10-17）：B 包不携带游戏衍生媒体与第三方截图。
+# 结构化数据与研究证据全部保留；被排除项逐条登记在 package_manifest.json。
+B_EXCLUDE_PATHS = (  # 精确文件或目录前缀
+    'output/char_roster/icons/',
+    'output/char_roster/index.html',
+    'output/card_comparison_cid30236/reference.png',
+    'output/card_comparison_cid30236/index.html',
+)
+B_EXCLUDE_MEDIA_IN = {  # 这些目录内按扩展名排除（游戏美术/资源封装）
+    'output/card_images/': {'.png', '.unityfs'},
+}
+
+
+def b_excluded(rel):
+    for prefix in B_EXCLUDE_PATHS:
+        if rel == prefix or rel.startswith(prefix):
+            return True
+    for prefix, exts in B_EXCLUDE_MEDIA_IN.items():
+        if rel.startswith(prefix) and Path(rel).suffix.lower() in exts:
+            return True
+    return False
+
 
 def sha_bytes(data):
     return hashlib.sha256(data).hexdigest()
@@ -76,8 +98,11 @@ def build_tools_zip(dest):
 
 
 def build_research_zip(dest):
-    """B: walk B_INCLUDE; per-file SHA-256; store already-compressed, deflate the rest."""
-    entries = []
+    """B: walk B_INCLUDE; per-file SHA-256; store already-compressed, deflate the rest.
+
+    Returns (entries, excluded): excluded lists media items kept out per P1-1 ruling.
+    """
+    entries, excluded = [], []
     with zipfile.ZipFile(dest, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as zout:
         for item in B_INCLUDE:
             base = ROOT / item
@@ -87,13 +112,16 @@ def build_research_zip(dest):
                 files = sorted(p for p in base.rglob('*') if p.is_file())
             for path in files:
                 rel = path.relative_to(ROOT).as_posix()
+                if b_excluded(rel):
+                    excluded.append({'path': rel, 'bytes': path.stat().st_size})
+                    continue
                 data = path.read_bytes()
                 entries.append({'path': rel, 'bytes': len(data), 'sha256': sha_bytes(data)})
                 if path.suffix.lower() in STORE_ONLY:
                     zout.writestr(zipfile.ZipInfo(rel), data, compress_type=zipfile.ZIP_STORED)
                 else:
                     zout.writestr(rel, data)
-    return entries
+    return entries, excluded
 
 
 def build_media_manifest():
@@ -119,7 +147,8 @@ def build_media_manifest():
         categories[cat_dir.name]['exported_bytes'] = total
     return {
         'package': 'C. 大型媒体资源包（清单＋重建方法；本轮未复制媒体文件）',
-        'source_output': 'output/full_unpack/（本地 20.24 GiB，903,402 个导出文件）',
+        'source_output': 'output/full_unpack/（目录总量 903,402 个文件 / 21,727,783,139 B ≈ 20.24 GiB；'
+                       '其中 objects/ 下 903,396 个导出文件；56 类 exported_bytes 合计 ≈20.18 GiB 仅导出媒体）',
         'input_scope': 'composite_inventory 68,993 个缓存文件中的 68,655 个 bdl（100% 解码展开成功）；'
                        '77 个 data5 在 B 包；261 个其他文件分类排除（理由见 output/full_unpack/ledger.jsonl）',
         'object_stats': coverage['bdl_object_types'],
@@ -152,7 +181,7 @@ def main():
     research_zip = RELEASE / f'CC_delivery_research_{DATE}.zip'
 
     tools_entries, head = build_tools_zip(tools_zip)
-    research_entries = build_research_zip(research_zip)
+    research_entries, media_excluded = build_research_zip(research_zip)
     media = build_media_manifest()
     (RELEASE / 'media_manifest.json').write_text(json.dumps(media, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
@@ -166,6 +195,24 @@ def main():
         checks.append({'zip': zpath.name, 'entries': len(entries), 'count_match': ok_count,
                        'crc_selftest': 'PASS' if bad is None else f'FAIL: {bad}'})
         assert ok_count and bad is None
+    # P1-1 核验：被排除路径不得出现在 B 包
+    leaked = [e['path'] for e in media_excluded if any(e['path'] == x['path'] for x in research_entries)]
+    assert not leaked, f'excluded media leaked into B zip: {leaked[:3]}'
+    excl_summary = {
+        'ruling': 'P1-1 用户裁决（2026-10-17）：B 包不携带游戏衍生媒体与第三方截图；结构化数据与研究证据全部保留',
+        'excluded_files': len(media_excluded),
+        'excluded_bytes': sum(e['bytes'] for e in media_excluded),
+        'items': [
+            {'scope': 'output/char_roster/icons/**（bdl 解包头像 2,656 PNG）与 output/char_roster/index.html（内嵌同批头像的自包含画廊）',
+             'note': '名册 data/（9,169 cid 合并成品）、README（含日期证据链结论）、manifest、verification 已全部保留'},
+            {'scope': 'output/card_images/cid30236/** 中的 5 个 .unityfs 与 7 个 .png（卡面等游戏美术）',
+             'note': 'binding_evidence.json、manifest、反汇编 method_*.txt、followup 研究证据全部保留'},
+            {'scope': 'output/card_comparison_cid30236/reference.png（用户提供的外部数据库截图，权限待确认）与 index.html（内嵌该截图）',
+             'note': '101 项逐描述解释、field_dictionary、comparison/evidence CSV/JSON 全部保留'},
+        ],
+        'rebuild_note': '本地 output/ 完整保留；展示页与可视媒体可按 media_manifest.json 的 C 清单重建媒体后本地重建',
+        'detail': media_excluded,
+    }
 
     manifest = {
         'release_id': '20261016-delivery',
@@ -175,7 +222,7 @@ def main():
             'A_tools': {
                 'file': tools_zip.name, 'bytes': tools_zip.stat().st_size,
                 'sha256': sha_file(tools_zip), 'entries': len(tools_entries),
-                'scope': 'git archive HEAD 全部跟踪文件：scripts/（含 full_unpack 管线与 release/）、docs/、README.md、requirements-lock.txt、AGENTS.md 等',
+                'scope': '与 git HEAD 逐文件内容一致的全部跟踪文件（zip 内为 CRLF 行尾）：scripts/（含 full_unpack 管线与 release/）、docs/、README.md、requirements-lock.txt、AGENTS.md 等',
                 'install': 'Python 3.12 + pip install -r requirements-lock.txt；输入（APK/缓存）用户自备',
                 'files': tools_entries,
             },
@@ -184,21 +231,22 @@ def main():
                 'sha256': sha_file(research_zip), 'entries': len(research_entries),
                 'scope': 'v3 结构化数据（77 data5 完整解码＋39047 记录视图＋字段字典4671项＋13项检查）、APK 内置主表、'
                          '技能数值解释（101 项逐描述＋77 条合并规则＋7 类普通效果＋Boss 必杀/治疗证据）、'
-                         '阶段D样本链、验证报告、独立审查报告、角色名册展示成果、查询所需数据文件',
+                         '阶段D样本链、验证报告、独立审查报告、角色名册结构化成品（data/）、查询所需数据文件',
                 'excluded': B_EXCLUDE_NOTES,
-                'usage': '解压到任意目录；records.jsonl / *.json.raw 可直接被程序读取；查询脚本在 A 包 scripts/query_effect_dictionary.py（--id 43023606 等，需本包 output/card_comparison_cid30236/ 数据文件）',
+                'media_excluded': excl_summary,
+                'usage': '解压到任意目录；records.jsonl / *.json.raw 可直接被程序读取；查询脚本在 A 包 scripts/query_effect_dictionary.py（--id 43023606 等，需本包 output/card_comparison_cid30236/ 数据文件）；展示 HTML 页因内嵌媒体未收录（见 media_excluded）',
                 'files_digest': sha_bytes(json.dumps([e['path'] for e in research_entries], ensure_ascii=False).encode('utf-8')),
                 'files': research_entries,
             },
             'C_media': {
                 'file': 'media_manifest.json',
                 'sha256': sha_file(RELEASE / 'media_manifest.json'),
-                'scope': '20.24 GiB 媒体产物本轮不复制；清单＋重建命令＋可选分包方案',
+                'scope': '媒体产物本轮不复制（目录总量 903,402 文件≈20.24 GiB；objects/ 下 903,396 导出文件；56 类导出媒体合计≈20.18 GiB）；清单＋重建命令＋可选分包方案',
                 'note': '需要现成媒体分包时可运行 scripts/release/build_full_unpack_bundle.py（并行打包任务脚本，默认排除音频 WAV）',
             },
         },
         'verification': {
-            'delivery_isolated_chain': 'work/delivery_20261016/final/：git archive 本 HEAD 独立目录，'
+            'delivery_isolated_chain': 'work/delivery_20261016/final/：git archive 解包链代码（与最终 HEAD 除新增打包脚本与交接文档外零差异）独立目录，'
                                        'A1—A3 前置生成（镜像 SHA256=3fd354b5…）、data5 两包装格式 4 文件、bdl 2 样本、chronicle 主表，'
                                        '全部与既有可靠成果逐字节一致（详见 README 与交接）',
             'zip_checks': checks,

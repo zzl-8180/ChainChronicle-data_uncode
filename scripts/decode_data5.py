@@ -143,12 +143,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, default=Path("work/phone_candidates"))
     parser.add_argument("--output", type=Path, default=Path("output/decoded"))
+    parser.add_argument("--apk", type=Path, default=Path("チェンクロ.apk"),
+                        help="compatible APK supplying the signing certificate (default: repo-root name)")
     args = parser.parse_args()
     sources = sorted(args.input.glob("*.data5")) if args.input.is_dir() else [args.input]
     if not sources:
         raise ValueError("No data5 input")
     args.output.mkdir(parents=True, exist_ok=True)
-    decoder, reports = NativeDecoder(), []
+    decoder, reports = NativeDecoder(apk=args.apk), []
     for source in sources:
         decoded = decoder.decode(source.read_bytes(), source.name)
         (args.output/(source.name+".json")).write_text(json.dumps(decoded["record"],ensure_ascii=False,indent=2),encoding="utf-8")

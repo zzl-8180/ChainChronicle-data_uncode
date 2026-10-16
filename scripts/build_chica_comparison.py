@@ -13,7 +13,6 @@ SOURCE = Path('output/cache_full_20261015_v3/records.jsonl')
 TYPE105 = Path('output/boss_chain/type105')
 TYPE112 = Path('output/boss_chain/type112')
 GUARD_BASIS = Path('output/boss_chain/type13_basis')
-IMAGE = Path('C:/Users/zouzh/AppData/Local/Temp/codex-clipboard-18f7acbf-5359-4aac-ae24-cf5a36c08222.png')
 OUT.mkdir(parents=True, exist_ok=True)
 records = [json.loads(s) for s in SOURCE.open(encoding='utf-8')]
 assert not any(r['table']=='skilllist' and r['raw'].get('skillid')==106001 for r in records)
@@ -216,7 +215,6 @@ with (OUT/'comparison.csv').open('w',encoding='utf-8-sig',newline='') as f:
     w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader()
     for r in rows:w.writerow({k:json.dumps(v,ensure_ascii=False) if isinstance(v,(dict,list)) else v for k,v in r.items()})
 image_path=OUT/'reference.png'
-if IMAGE.exists(): image_path.write_bytes(IMAGE.read_bytes())
 assert image_path.exists(), 'Provide the original screenshot as output/card_comparison_cid30236/reference.png'
 esc=html.escape
 counts=Counter(r['status'] for r in rows)

@@ -294,9 +294,16 @@ def process_chunk(args):
             if rel_path in done_paths:
                 continue
             rel = Path(rel_path)
-            # files/Bundle/<cat>/[sub/]name.bdl -> objects/<cat>/[sub/]name
-            parts = rel.parts  # ('files','Bundle','Card_Icon','x.bdl')
-            out_rel = Path('objects', *parts[2:]).with_suffix('')
+            # 定位路径中的 Bundle 分量：files/Bundle/<cat>/[sub/]name.bdl -> objects/<cat>/[sub/]name
+            parts = rel.parts
+            if 'Bundle' not in parts:
+                rec = {'path': rel_path, 'size': size, 'status': 'error',
+                       'error_or_unknown_reason': "inventory path lacks 'Bundle' component; expected files/Bundle/<category>/... (see README bdl section)"}
+                fh.write(json.dumps(rec, ensure_ascii=False) + '\n')
+                fh.flush()
+                done += 1
+                continue
+            out_rel = Path('objects', *parts[parts.index('Bundle')+1:]).with_suffix('')
             out_dir = OUTPUT / out_rel
             try:
                 rec = export_bundle(work_file, rel_path, size, out_dir)

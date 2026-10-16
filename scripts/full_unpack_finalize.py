@@ -32,7 +32,9 @@ def main():
     from PIL import Image
     import unicorn
     archives = None
+    inv_sha = None
     if args.inventory.is_file():
+        inv_sha = sha(args.inventory)
         seen = {r.get('archive') for r in (json.loads(line) for line in args.inventory.open(encoding='utf-8'))
                 if r.get('archive')}
         archives = sorted(seen) if seen else 'not recorded in inventory (minimal third-party format)'
@@ -41,7 +43,7 @@ def main():
         'created_utc': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'input': {
             'composite_inventory': str(args.inventory),
-            'composite_inventory_sha256': sha(args.inventory),
+            'composite_inventory_sha256': inv_sha,
             'archives': archives,
             'scope': 'files listed in the input inventory; not a whole-game coverage claim',
         },
