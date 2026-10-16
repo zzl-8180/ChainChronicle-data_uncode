@@ -1,0 +1,33 @@
+# 游戏安装包与原始资源
+*.apk
+*.apks
+*.xapk
+*.obb
+/raw/
+
+# 解码中间产物、数据输出及设备日志
+/work/
+/output/
+/logs/
+
+# 本地工具与 Python 环境
+/tools/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# 本地凭据与环境配置
+.env
+.env.*
+!.env.example
+adbkey
+adbkey.pub
+
+# 编辑器及系统临时文件
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+*.tmp
