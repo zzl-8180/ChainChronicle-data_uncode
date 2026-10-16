@@ -49,6 +49,8 @@ def main():
         args.callback_region = True
     heap_size = 0x4000000 if args.library_name == "libil2cpp.so" else 0x1000000
     e, raw, preparatory = prepare_experiment(args.seed, heap_size=heap_size)
+    Path("work/protection").mkdir(parents=True, exist_ok=True)
+    Path("output/protection").mkdir(parents=True, exist_ok=True)
     lz4_model = None
     if args.accelerate_lz4:
         from guest_lz4 import install

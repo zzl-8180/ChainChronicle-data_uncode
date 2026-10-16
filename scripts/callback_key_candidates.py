@@ -36,7 +36,9 @@ def main():
               "target_rva":"0x153200","candidates":candidates,
               "method":"Evidenced first16-byte XOR rule + four-instruction stack prologue constraint; one distinct key",
               "limit":"Runtime selection of the key pointer is UNKNOWN; full native conversion/loader/data5 integrity corroborate candidate"}
-    Path("output/protection/callback_key_candidates.json").write_text(json.dumps(result,indent=2),encoding="utf-8")
+    out = Path("output/protection/callback_key_candidates.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result,indent=2),encoding="utf-8")
     print(json.dumps({"distinct_keys":len(candidates),"occurrences":len(next(iter(candidates.values()))["occurrences"])}))
 
 

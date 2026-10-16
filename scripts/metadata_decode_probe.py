@@ -19,6 +19,7 @@ def main():
     raw = source.read_bytes()
     assert raw[:3] == b"AEI"
     e, _, preparatory = prepare_experiment(heap_size=0x4000000)
+    Path("work/protection").mkdir(parents=True, exist_ok=True)
     lz4_model = None
     if args.accelerate_lz4:
         from guest_lz4 import install

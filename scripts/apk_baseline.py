@@ -40,6 +40,9 @@ def main():
                   "assets/bin/Data/data.unity3d", "lib/arm64-v8a/libil2cpp.so",
                   "lib/arm64-v8a/libChronicleNUtils.so"}
         for name in archive.namelist():
+            if name.startswith("lib/arm64-v8a/") and name.endswith(".so"):
+                # 保护/加载链分析需要的原生库（如 libcompatible.so）一并提取
+                wanted.add(name)
             if name.startswith("assets/bin/Data/") and not name.endswith("/"):
                 wanted.add(name)
             if name.startswith("assets/") and name.endswith((".json", ".xml", ".txt", ".config")):

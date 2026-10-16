@@ -45,6 +45,8 @@ def main():
     if args.segment is not None and (args.segment % 32 or not 0 <= args.segment < 0x300):
         parser.error("segment must be a 32-byte descriptor offset below 0x300")
     experiment, raw, preparatory = prepare_experiment()
+    Path("work/protection").mkdir(parents=True, exist_ok=True)
+    Path("output/protection").mkdir(parents=True, exist_ok=True)
     before = bytes(experiment.uc.mem_read(BASE, 0x200000))
     reached = []
 

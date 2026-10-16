@@ -116,6 +116,7 @@ def main():
                          "No protected instructions, native callbacks or Android code executed",
                          "No data5 or chronicle.dat conversion rule established"]}
     out = Path("output/protection/callback_sample.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps({k: result[k] for k in ("status", "block_bytes", "instruction_count", "experiments")}, indent=2))
 

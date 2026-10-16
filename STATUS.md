@@ -1,8 +1,44 @@
 # 项目状态
 
-更新：2026-10-16。接手入口：[HANDOFF.md](HANDOFF.md)。本轮完成普通ability1008（TargetStageAll）玩家侧提供者/接受者范围、当前地形资格和攻防推广：37记录/111存在字段。前六类型及チーカ101项/五组政策有效，不重跑A—E/核心全量校验/手机，原始资源、v3/E和独立报告不改。
+更新：2026-10-16（审查整改）。接手入口：[HANDOFF.md](HANDOFF.md)；审计与整改全文：[docs/tasks/20261016-reproducibility-audit.md](docs/tasks/20261016-reproducibility-audit.md)；独立审查报告：[output/20261016-reproducibility-audit/review/review_20261016_independent/README.md](output/20261016-reproducibility-audit/review/review_20261016_independent/README.md)。
 
-## 当前交付：TargetStageAll地形条件全体攻防可查
+## 当前交付：可复现性审查整改（2026-10-16）
+
+- **整改依据**：独立审查结论「带明确限制通过、无 P0」；2 项 P1（修复未提交、F3 隔离证据只覆盖 1/3 脚本）与 4 项 P2（--prior-report 不彻底、77 重放口径、同类缺 mkdir、--cert-hex 未实测）。
+- **P2-1**：`decode_cache_snapshot.py` 复用分支改从 `json_file`／--prior-report 所在目录解析（原第 87 行硬编码 `output/decoded`）；默认路径行为不变。三模式复验 PASS：项目侧 77 文件重放 39047 记录归一化后 0 差异、隔离旧报告缺失、隔离自定义报告目录（隐藏 output/decoded 仍正确解析）。
+- **P2-2**：77 重放口径写入审计文档（全部 REUSE_THIS_SNAPSHOT_VERIFIED_DECODE，比较对象 records.jsonl，归一化仅 snapshot_id，非 77 次原生解码）；原生解码抽样补 bossinfo（偏移 6）＋helper（偏移 0 变体），与 v3 逐字节一致。
+- **P1-2**：jni_prefix_probe／metadata_decode_probe 修复版隔离各跑一次，产物（compatible_jni_prefix/conversion.bin、metadata_aei_decoded.bin）与项目既有文件 SHA256 逐字节一致；F3 三脚本至此全部有隔离实测。
+- **P2-3**：protection_sample.py、callback_sample.py、callback_key_candidates.py 入口补 output/protection mkdir；隔离冒烟 PASS（PASS_PROTECTION_SAMPLE／PASS_OFFLINE_BLOCK_MODEL／distinct_keys=1, occurrences=43）。
+- **P2-4**：`full_unpack_run.py --cert-hex` 端到端实测通过——2 个 bdl 迷你清单、运行期隐藏 APK，2/2 ok；objects_index.json 与项目 full_unpack 同名包逐字节一致，decoded_sha256 与 ledger 一致。
+- **P1-1**：待提交清单已列（full_unpack_*.py、build_char_roster、scripts/release/ 两脚本、docs/、AGENTS.md、9 个修复脚本），**等用户授权后显式提交，一律不推送**。
+- **本轮修改**：scripts/decode_cache_snapshot.py、protection_sample.py、callback_sample.py、callback_key_candidates.py 及审计文档、HANDOFF/STATUS；复验全写独立临时目录，未覆盖正式输出；未提交 git、未推送。
+- **下一步**：用户授权后按清单提交（git 补缺）；根 README.md；chronicle（A4+D1）隔离补测；发布清单草案。
+
+更新：2026-10-16（可复现性审计与规范）。接手入口：[HANDOFF.md](HANDOFF.md)；审计全文：[docs/tasks/20261016-reproducibility-audit.md](docs/tasks/20261016-reproducibility-audit.md)。
+
+## 当前交付：可复现性审计与 GitHub 交付规范（2026-10-16）
+
+- **可复现性结论**：data5 解包链第三方可独立复现——git HEAD 原始状态在 APK 原生库提取（apk_baseline 未提取 libcompatible.so）、旧解码报告硬依赖（decode_cache_snapshot 必读 output/decoded/report.json）、`work/protection` 建目录（signal_region_probe 等三脚本）三处必败；本轮均最小修复并在仅含仓库文件＋APK＋2 样本 data5 的隔离目录实测通过。恢复镜像 SHA256＝钉住值＝既有文件；charainfo/skilllist 解码字节一致；77 文件重放与 v3 规范化后 0 差异；bdl 管线脚本已参数化但未入 git（下一阶段最高优先）；export_master／analyze／verify_cache_snapshot 属研究线或本快照专用，第三方不适用已标注。
+- **版本边界**：仅支持 com.sega.chainchronicle 5.6.2/56021；库、镜像、密钥派生均以哈希钉住，不匹配明确报错。
+- **规范调整**：AGENTS.md §7 新增 GitHub 存储策略（≤1GB、遵守单文件限制、继续忽略 raw/work/output/.venv/tools、严禁全目录强制提交、Git LFS 非默认）；§8 重构为 8.1 独立可复现性、8.2 分层发布 A—C、8.3 工具可移植性、8.4 发布清单与发布前隔离验证。
+- **实际修改**：scripts/apk_baseline.py、decode_cache_snapshot.py、signal_region_probe.py、jni_prefix_probe.py、metadata_decode_probe.py 五处最小修复；output/apk/baseline.json 重建（verify_phase_a PASS，44 文件）；AGENTS.md；新增 docs/tasks/20261016-reproducibility-audit.md。
+- **实测**：隔离环境 11 项（3 项失败复现＋8 项通过）；项目侧 verify_phase_a PASS、v3 重放 PASS（0 差异，测试目录已删）。未验证：il2cpp 镜像、native_debug、chronicle、采集链、bdl 全量隔离、全新机器安装、非 Windows 平台。
+- **文件盘点**：output 23.54GB/97.7 万文件（full_unpack 20.24GB 可重建媒体、export 1.40GB、field_guide 0.75GB 等，分类与存放建议见审计文档 §7）；work 4.30GB；raw 3.80GB；.git 仅 1MB。
+- **边界**：未提交 git、未推送、未打包上传、未删除或覆盖既有成果；会话期间并行任务已为 NativeDecoder 补 cert_hex/protection 并新建 scripts/release/ 打包脚本（其范围，未接管）。下一阶段：git 补缺→根 README→cert_hex 实测→chronicle/bdl 隔离补测→发布清单草案。
+
+更新：2026-10-16（完整解包）。本轮完成已取得本地资源完整解包：68655个bdl全部解码展开、834741个对象导出；前轮ability1008及前六类型有效，不重跑A—E/核心全量校验/手机，原始资源、v3/E和独立报告不改。
+
+## 当前交付：本地资源完整解包（full_unpack）
+
+- 入口：[阅读说明](output/full_unpack/README.md)、[输入账本68993行](output/full_unpack/ledger.jsonl)、[覆盖统计](output/full_unpack/coverage.json)、[4项验证PASS](output/full_unpack/validation.json)、[manifest](output/full_unpack/manifest.json)、[cid附加索引6233](output/full_unpack/cid_index.json)。
+- 范围：composite_inventory全部68993文件。68655 bdl经DecodeXorData（每文件前256字节）转UnityFS后UnityPy展开，100%成功、0部分、0失败；77个data5沿用v3已验证解码（补采密文一致）；261个其他文件分类为il2cpp引擎文件4（复用）、UnityShaderCache 206、广告SDK 34、macOS垃圾17，理由逐条在账本。
+- 产物20.24 GiB/903396导出文件：73490 PNG（原尺寸mip0含透明）、17389 WAV（Vorbis→PCM）、50051 OBJ、2845 TXT（BGMTable/Motion/Tips等UTF-8）、759621 JSON（622311个45类typetree+68655包清单+68655包索引）。每包objects_index.json记录对象类型/path_id/导出文件/纹理格式（ETC2_RGBA8 34335、ETC_RGB4 33784等）/音频参数；命名冲突（含大小写）加path_id后缀，全量逐包索引↔磁盘核对0失配。
+- 字节/特殊值约定：typetree字节转__bytes_hex__（>256KB截断记SHA）、非有限浮点转__non_finite_float__；无静默补零。本轮0例typetree失败退存.bin。
+- 已闭合问题：15包大小写命名覆盖+75个旧命名遗留文件清理；纹理格式名UNKNOWN元数据修正（全量重跑14.2分钟）。
+- 实际命令：`full_unpack_run.py --workers 14`（分片续跑，中断自动跳过已完成）→ `full_unpack_merge.py` → `full_unpack_verify.py` → `full_unpack_finalize.py`；现有.venv（UnityPy 1.25.4/Pillow 12.3.0/unicorn），无新依赖，未连手机。
+- 剩余：字段语义解释（另一任务线）、APK内置媒体批量导出（索引已有，可复用本管线）、cid_index仅命名规律非绑定证明、257个非游戏文件未展开（有理由）、全游戏索引不可信不声明100%。详见README剩余问题列表。
+
+## 前轮交付：TargetStageAll地形条件全体攻防可查
 
 - [原对照页](output/card_comparison_cid30236/index.html)含七个独立检索区，1095/1017/2012/3000/99/7/1008分别407/321/406/382/133/64/37条。1008相关逐效果行补param0和对象条件/依据；原101项、截图、33概览状态保留。
 - [77条规则](output/card_comparison_cid30236/field_dictionary.json)：1008两旧攻防规则扩大、新增param0。来源/原值/类型/字节及JSON定位、中文解释、换算、单位/条件、三类确认状态另列；总2684来源记录/6613存在字段，普通子集1723/4947、60规则。未改v3历史字典。

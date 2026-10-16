@@ -57,16 +57,21 @@ def parse_plaintext(plaintext):
 
 
 class NativeDecoder:
-    def __init__(self, image=Path("work/protection/nutils_loader_seed1.bin"), apk=Path("チェンクロ.apk")):
-        native = image.read_bytes()
+    def __init__(self, image=Path("work/protection/nutils_loader_seed1.bin"), apk=Path("チェンクロ.apk"),
+                 cert_hex=None, protection=None):
+        native = Path(image).read_bytes()
         if hashlib.sha256(native).hexdigest() != IMAGE_SHA:
             raise ValueError("Recovered native image differs from verified build")
-        rows, _ = certificates(apk.read_bytes())
-        if len(rows) != 1:
-            raise ValueError("Multiple signer/certificate selection requires explicit evidence")
-        cert = rows[0]["bytes"]
+        if cert_hex is not None:
+            # 便携入口：直接使用预提取的 APK 签名证书（公开信息，随每份 APK 分发）
+            cert = bytes.fromhex(cert_hex.strip())
+        else:
+            rows, _ = certificates(Path(apk).read_bytes())
+            if len(rows) != 1:
+                raise ValueError("Multiple signer/certificate selection requires explicit evidence")
+            cert = rows[0]["bytes"]
         signature = cert.hex().encode("ascii")  # Android Signature.toCharsString
-        protection = SOURCE.read_bytes()
+        protection = Path(protection).read_bytes() if protection is not None else SOURCE.read_bytes()
         if hashlib.sha256(protection).hexdigest() != "79b6ae193625494b5facbc1c7eafa5bb16c4252dd9050fe10caee2393aa8767c":
             raise ValueError("Protection import/relocation model differs from verified build")
         self.e = Experiment(protection, 1)

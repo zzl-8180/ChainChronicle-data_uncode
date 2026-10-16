@@ -49,10 +49,15 @@ def main():
     parser.add_argument('--work',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--reuse-dir',type=Path)
+    parser.add_argument('--prior-report',type=Path,default=Path('output/decoded/report.json'),
+                        help='earlier decode_data5 report for exact-ciphertext reuse; absent in a clean checkout')
     args=parser.parse_args()
     args.output.mkdir(parents=True,exist_ok=False)
     decoded_dir=args.output/'decoded';decoded_dir.mkdir()
-    old_report=json.loads(Path('output/decoded/report.json').read_bytes())
+    if args.prior_report.is_file():
+        old_report=json.loads(args.prior_report.read_bytes())
+    else:
+        old_report={'files':[],'note':f'prior report {args.prior_report} absent; every input decoded natively in this run'}
     old={Path(r['source']).name:r for r in old_report['files']}
     verified={}
     if args.reuse_dir:
@@ -79,7 +84,8 @@ def main():
                     assert sha(plaintext)==meta['json_raw_sha256']
                     document=strict_load(plaintext);row['method']='REUSE_THIS_SNAPSHOT_VERIFIED_DECODE'
                 elif previous and previous['source_sha256']==row['source_sha256']:
-                    plaintext=Path('output/decoded',source.name+'.json.raw').read_bytes()
+                    json_raw=previous.get('json_file') or args.prior_report.parent/(source.name+'.json.raw')
+                    plaintext=Path(json_raw).read_bytes()
                     assert sha(plaintext)==previous['json_raw_sha256']
                     document=strict_load(plaintext);meta=previous
                     row['method']='REUSE_EXACT_CIPHERTEXT_AND_VERIFIED_JSON'

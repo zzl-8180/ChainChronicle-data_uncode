@@ -1,8 +1,14 @@
 # 交接：数据提取与截图对照
 
-更新：2026-10-16。本轮完成普通ability1008（TargetStageAll）的玩家侧提供者/接受者范围、当前地形条件及攻防推广：37记录/111存在字段。可含提供者自身，无本类型接受者职业/距离筛选；存活活动提供者与非活动后备路径分列。前六类型及cid30236五组政策有效；不重做A—E，不改原始资源、v3/E或独立报告，真实安装/后备转写和完整战斗另论。
+更新：2026-10-16（审查整改，本轮）。独立审查结论「带明确限制通过、无 P0」的整改已全部完成：P2-1（--prior-report 复用分支改从报告所在目录解析，三模式复验 PASS、77 重放 0 差异）、P2-2（77 重放口径澄清＋bossinfo/helper 两变体原生解码与 v3 字节一致）、P1-2（jni_prefix_probe／metadata_decode_probe 隔离实测，产物与项目逐字节一致）、P2-3（protection_sample／callback_sample／callback_key_candidates 补 mkdir，隔离冒烟 PASS）、P2-4（--cert-hex 端到端 2 bdl，APK 隐藏运行，产物与 full_unpack 逐字节一致）。P1-1 待提交清单已列在 [审计文档](docs/tasks/20261016-reproducibility-audit.md) 整改记录，等用户授权后显式提交（不推送）。本轮修改：decode_cache_snapshot、protection_sample、callback_sample、callback_key_candidates 四脚本及审计文档；未提交 git、未推送、未覆盖正式输出。前轮各线结论继续有效。
+
+更新：2026-10-16（可复现性审计与规范，本轮）。完成第三方独立解包审计：git HEAD 原始状态在 APK 原生库提取、旧解码报告依赖、`work/protection` 建目录三处必败，均已最小修复并在仅含仓库文件的隔离目录实测通过；恢复镜像 SHA256 与钉住值一致，data5 解码与既有参考字节一致，项目侧 77 文件重放与 v3 规范化后 0 差异。AGENTS.md 新增 §7 GitHub 存储策略、§8 重构（8.1 独立可复现性／8.2 分层发布 A—C／8.4 发布前验证）。审计全文、文件盘点与下一阶段清单见 [可复现性审计](docs/tasks/20261016-reproducibility-audit.md)。本轮未提交 git、未推送、未打包上传；`full_unpack_*.py`、`build_char_roster.py`、`docs/` 仍未跟踪，git 补缺是下一阶段最高优先。前一轮完整解包及以下各线结论继续有效。
+
+更新：2026-10-16（完整解包）。本轮完成已取得本地资源完整解包：全部68655个bdl解码展开成功（0失败），导出834741个对象（73490 PNG/17389 WAV/50051 OBJ/2845 TXT/759621 JSON），输入账本覆盖全部68993个缓存文件；77个data5沿用v3已验证解码；261个其他文件逐项分类排除。前轮ability1008（TargetStageAll）37记录/111字段及前六类型、cid30236五组政策继续有效；不重做A—E，不改原始资源、v3/E或独立报告，真实安装/后备转写和完整战斗另论。
 
 ## 1. 当前有效入口
+
+- **完整解包**：[阅读说明](output/full_unpack/README.md)、[输入账本](output/full_unpack/ledger.jsonl)（68993行，来源/格式/状态/输出/理由）、[对象产物](output/full_unpack/objects/)（56类目录，每包objects_index.json）、[覆盖统计](output/full_unpack/coverage.json)、[4项验证PASS](output/full_unpack/validation.json)、[cid附加索引](output/full_unpack/cid_index.json)（6233个，仅命名规律）。重跑：full_unpack_run.py（分片续跑）→merge→verify→finalize。
 
 - 最新入口：[原对照页](output/card_comparison_cid30236/index.html)，顶部含1095、1017、2012、3000、99、7、1008七个独立检索区，分别按普通技能名称/ID/原文检索407/321/406/382/133/64/37条；原チーカ101项及截图对照保留。无需联网。
 - [1008对象/当前地形/接受者攻防依据](output/ordinary_effects/ability1008/README.md)、[389项本轮局部原生检查](output/ordinary_effects/ability1008/native_checks.json)。查询`query_effect_dictionary.py --id 43023606`看沙漠本项攻击/减伤各12.5%；`--id 102070`看攻击5%、防御原值1；`--id 42011507`看607=7或6。target_conditions列地形，trigger_context列提供者/接受者及后备边界。
@@ -55,7 +61,7 @@
 
 缺数据或覆盖依据：
 - 没有可信全游戏目标资源索引；私有目录、服务端范围未知，不能宣称全游戏100%。
-- bdl虽已采集，尚未整体识别其中结构化目标；这属于已取得但未识别，不是需要重新复制。
+- bdl已整体解码展开（见上完整解包入口）；对象语义未解释属字段解释线，不再是"已取得但未识别"。APK内置媒体未批量导出（索引已有），需要时按同一UnityPy管线补。
 - cid30236卡面资产绑定未建立；不能据此断言文件不存在。获得来源和登场日期按用户补充属于网站添加，不再算提取缺口。
 - 全缓存引用审计还有66处未关联引用（Extra 60、传授pattern 6）；保留未关联项，不删除记录。
 

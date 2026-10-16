@@ -85,6 +85,7 @@ def main():
                          "AES-ECB here does not establish an algorithm for data5 or chronicle.dat",
                          "Instruction recovery is separate from actual Android runtime behavior"]}
     output = Path("output/protection/protection_sample.json")
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps({k: v for k, v in result.items() if k != "record"} |
                      {"record_count": record["count"], "assembled_bytes": record["assembled_bytes"]}, indent=2))
