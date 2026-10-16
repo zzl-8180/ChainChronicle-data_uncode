@@ -1,5 +1,17 @@
 # 项目状态
 
+更新：2026-10-17（最终确认与审查基准）。接手入口：[HANDOFF.md](HANDOFF.md)；交付包：[output/share_bundle/20261016-delivery/README.md](output/share_bundle/20261016-delivery/README.md)。
+
+## 当前交付：最终确认与审查基准（2026-10-17）
+
+- **仓库确认**：124 个跟踪文件（107 脚本＋README/docs/规范/依赖锁/参考 ZIP）；全部解包管线与修复入库；第三方导入（unicorn/capstone/pyelftools/UnityPy/pillow/lz4/pyaxmlparser/asn1crypto）全部被 requirements-lock.txt 覆盖；无游戏资源、大产物、凭据入库（模式扫描为空）；winreg 仅见于 emulator_probe.py（研究探针，非解包链）；工作树干净。
+- **版本绑定**：被测目录 `work/delivery_20261016/final/`（git archive ff664a7）与最终 HEAD 的全部脚本、README.md、requirements-lock.txt、.gitignore 经 `git diff` 确认完全相同（差异仅 HANDOFF/STATUS/审计文档与打包脚本新增），交付测试结论适用于最终版本。
+- **错误输入处理（本轮补测，全在隔离目录）**：破坏 data5（位翻转）→ 该文件 FAILED_RETAINED（"Native envelope digest-size constant or payload boundary invalid"），其余文件正常，报告 PARTIAL_FAILURES_RETAINED；空输入目录 → ValueError("No data5 input")；libcompatible.so 改动 1 字节 → 版本断言拒绝（"Pinned build only"，已恢复原件 79b6ae19…）；缺恢复镜像 → FileNotFoundError 并给出缺失路径。
+- **A/B/C 包核验**：A 1.4MB/129 项（git archive 最终 HEAD）；B 149.7MB/3366 项；C media_manifest.json（56 类统计＋重建命令＋分包方案＋版权边界，不复制 20GB）；zip 条目对账＋CRC 自检全过；B 包内 base_master 全量组件 JSON 与四个分表 JSON 存在同数据两种访问形式（项目既有产物结构，压缩后增量小，已在清单注明，不重构）。
+- **审查基准**：以当前最新提交为冻结版本（哈希见本轮交付报告与 git log）；若审查期间修改交付版本，须重记提交哈希与受影响文件。
+- **待推送差异**：origin/main..HEAD 共 4 个提交（8b91293、ff664a7、e2cc987、ac76029＋本确认提交），未推送；外部发布动作（push、Release 上传）待用户授权。
+- **未验证（如实保留）**：全新机器从零安装 .venv、非 Windows 平台、bdl 全量 68655 在独立目录重跑（项目内既有 100% 验证，不重复）；verify_cache_snapshot/refresh 本快照专用；analyze/export_master 研究线。
+
 更新：2026-10-16（第三阶段交付准备）。接手入口：[HANDOFF.md](HANDOFF.md)；交付包：[output/share_bundle/20261016-delivery/README.md](output/share_bundle/20261016-delivery/README.md)。
 
 ## 当前交付：源码仓库补齐＋交付版本验证＋分层成果包（2026-10-16）

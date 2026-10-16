@@ -240,3 +240,11 @@ phone_20261015_full_02 工作副本 3.63GB（可由 raw tar 重建）、恢复�
 - **交付版本验证**：`work/delivery_20261016/final/`（`git archive ff664a7`＋APK＋4 样本）全链通过：A1—A3（镜像＝钉住值）、B1、B2（两包装格式 4 文件 16719 记录全原生解码）、bdl 2 样本四步管线、chronicle（A4＋D1，6 产物文件），全部与既有成果逐字节一致。此前各轮已通过的测试未重跑。
 - **分层交付**：`output/share_bundle/20261016-delivery/`（A 1.4MB/129 项、B 149.7MB/3366 项、C 仅清单、统一 README＋package_manifest.json，CRC/对账全过）；排除项与版权边界见清单。
 - **待授权**：git push；GitHub Release 上传。其余限制见 STATUS 末节。
+
+## 最终确认记录（2026-10-17）
+
+- **仓库复核**：124 跟踪文件；管线与修复全部入库；第三方导入均被 requirements-lock.txt 覆盖；无资源／凭据／大产物（模式扫描为空）；工作树干净。
+- **版本绑定**：`git diff ff664a7 <最终HEAD> -- scripts/ requirements-lock.txt README.md .gitignore` 为空（仅交接文档与打包脚本差量），交付测试完整适用于最终 HEAD。
+- **错误输入补测**（`work/delivery_20261016/final/`）：破坏 data5→FAILED_RETAINED（envelope 校验拒绝，其余文件正常，PARTIAL_FAILURES_RETAINED）；空目录→ValueError("No data5 input")；libcompatible.so 位翻转→版本断言拒绝（原件已恢复 79b6ae19…）；缺镜像→FileNotFoundError 含缺失路径。
+- **A/B/C 复核**：条目数、体积、SHA-256 与 package_manifest.json 对账一致；CRC 自检过；B 包 base_master 全量组件与四分表为同数据两种访问形式（既有产物结构，已在清单注明，不重构）。
+- **审查基准**：最终 HEAD 即冻结版本（完整哈希见本轮交付报告与 git log）；测试证据在 `work/delivery_20261016/final/`（含 neg_t1/neg_t2/neg_t4 负向测试产物），媒体与发布清单在 `output/share_bundle/20261016-delivery/`。
