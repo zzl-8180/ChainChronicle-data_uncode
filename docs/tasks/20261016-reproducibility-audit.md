@@ -252,7 +252,6 @@ phone_20261015_full_02 工作副本 3.63GB（可由 raw tar 重建）、恢复�
 ## 审查整改记录②（对照 review_20261017_final_delivery，2026-10-17）
 
 依据：`output/20261016-reproducibility-audit/review/review_20261017_final_delivery/README.md`，结论「带明确限制通过，无 P0；1 项 P1＋7 项 P2」。
-
 - **P1-1（用户裁决：细分排除）**：B 包排除 `output/char_roster/icons/**`（2,656 PNG）、`output/char_roster/index.html`、`output/card_images/**` 内 5 个 .unityfs 与 7 个 .png、`output/card_comparison_cid30236/reference.png` 与 `index.html`；保留名册 data/（9,169 cid 合并成品）、全部研究证据 JSON/TXT/bin、README。实现：`scripts/release/build_delivery_bundle.py` 增加 `B_EXCLUDE_PATHS`/`B_EXCLUDE_MEDIA_IN` 与泄漏断言；被排除项逐条登记 package_manifest.json 的 `media_excluded`（含"展示页与媒体本地可用、按 C 清单重建"说明）。base_master 按用户确认**保留两种形式**。
 - **P2-1**：README §4 注明「B1 仅处理 gzip 偏移 6 包装；整目录请直接用 B2（自动识别两种包装并逐文件容错）」。
 - **P2-2**：`decode_data5.py`、`apk_certificate.py` 增加 `--apk`（默认值不变）。实测：`--apk <改名副本>` 解码 charainfo PASS（40b4fa98… 不变）。
@@ -263,3 +262,18 @@ phone_20261015_full_02 工作副本 3.63GB（可由 raw tar 重建）、恢复�
 - **P2-7**：media_manifest.json 与 STATUS 各加口径句（903,402/20.24GiB＝目录总量；903,396＝objects/ 文件数；56 类合计 20.18GiB 仅导出媒体）。
 - **复验**：5 个修改脚本 py_compile 通过；decode_data5 --apk、apk_certificate --hex、full_unpack 三种前缀实测通过（证据见上文与 work/review_20261017/、work/delivery_20261016/final/work/prefix_test_shards/）。改后按最终 HEAD 重建 A/B/C 包并核验条目数/体积/SHA-256/CRC（见交付报告）。
 - **未做**（按约束）：不重跑 A—E、不重做全量解包、不覆盖既有成果与审查报告；git push 与对外发布仍等用户授权。
+
+## 审查整改记录③（对照 review_20261017_rectification_independent，2026-10-17）
+
+依据：`output/20261016-reproducibility-audit/review/review_20261017_rectification_independent/README.md`，结论「通过；R1（P2）未闭合，另 5 项信息性备注」。
+
+- **R1（已闭合）**：`decode_cache_snapshot.py` 增加 `--apk`（type=Path，default `チェンクロ.apk`，help 注明与 decode_data5.py 一致），原生解码分支改为 `NativeDecoder(apk=args.apk)`；`decode_cache_variants.decode_variant` 增加可选 `apk` 并传入（**必需**：偏移 0 的 helper/search 在改名 APK 下也走变体路径，否则验证用例 (a) 无法 6/6 通过）。复用分支（--reuse-dir／--prior-report）不构造 decoder，行为不变。README §2 补上该脚本、§4 B2 命令补 `[--apk <APK路径>]`。
+  - 复验（`work/review_20261017_r1/iso/`，git archive 新 HEAD，A1—A3 自建前置，镜像＝钉住值）：
+    a. 改名 APK（MyApk-5.6.2.apk）＋ `--apk`：6 文件（bossinfo/charainfo/helper/heroicskilllist/skilllist/sympathy_skilllist，偏移 6／0 两种包装）全部 `EXISTING_NATIVE_DECODER`、报告 PASS、17,669 记录；6 份 decoded 与 v3 逐字节一致；记录 `raw` 与 `location` **0 差异**（仅 snapshot_id／original_file 环境字段不同）。
+    b. 默认命名（目录内 `チェンクロ.apk`，不传 --apk）：decoded 与 (a) 逐文件一致，默认行为不变。
+    c. 破坏 helper.data5（位翻转）：该文件 `FAILED_RETAINED`（Native payload SHA1 mismatch），其余 5 正常，报告 `PARTIAL_FAILURES_RETAINED`。
+- **I4（已闭合）**：`.gitignore` 增加 `/其他人的参考/`（用户确认为他人基于本项目的分析成果，不提交；目录内容未做任何改动）。`git check-ignore` 复核生效。
+- **I3（已闭合）**：HANDOFF §6 reference.png 文案改为「需自行提供 output/card_comparison_cid30236/reference.png（B 包不含该截图）」。
+- **I1（已闭合）**：按最终 HEAD 重建交付包，B 包（698 项）已纳入 `review_20261017_rectification/README.md` 与 `review_20261017_rectification_independent/README.md` 两份最新审查报告。
+- **I2/I5/I6（信息性，按约束不改）**：子 manifest 记录本地完整目录状态、MiB/MB 读法、`--shards` 说明低优先；不扩大改动。
+- 受影响包已重建并核验（条目数/体积/SHA-256/CRC、media_excluded 泄漏断言），交付 README 同步；**审查基准＝本文件所在提交（git log -1）**，package_manifest 的 git_head 与之对应。
