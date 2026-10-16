@@ -19,7 +19,7 @@
 |---|---|
 | 系统 | Windows 10/11＋Python 3.12（本项目实测 3.12.14）。Linux/macOS 与其他版本未实测（依赖均跨平台，预期可移植，需自行验证） |
 | 依赖 | `pip install -r requirements-lock.txt`（unicorn、capstone、pyelftools、UnityPy、Pillow、lz4 等 20 个包） |
-| 输入 1 | 兼容版本的 APK 文件（自行准备）。`decode_data5.py`、`apk_certificate.py` 默认读仓库根目录的 `チェンクロ.apk`，其他名称/路径用 `--apk` 指定 |
+| 输入 1 | 兼容版本的 APK 文件（自行准备）。`decode_data5.py`、`decode_cache_snapshot.py`、`apk_certificate.py` 默认读仓库根目录的 `チェンクロ.apk`，其他名称/路径用 `--apk` 指定 |
 | 输入 2 | 游戏外部缓存（`Android/data/com.sega.chainchronicle/files` 下的 data5／bdl；自行采集，见 §6） |
 | 可选 | ADB platform-tools：仅采集缓存需要；离线解包不需要 |
 
@@ -53,7 +53,7 @@ python -m venv .venv
 # B1 解码目录内 data5 → output/decoded/（.json + .json.raw + report.json）
 & .\.venv\Scripts\python.exe -B scripts/decode_data5.py --input <data5目录> --output output/decoded [--apk <APK路径>]
 # B2 导出记录视图 → <新输出目录>/decoded、records.jsonl、tables.csv、decode_report.json
-& .\.venv\Scripts\python.exe -B scripts/decode_cache_snapshot.py --work <含data5的目录> --output <新输出目录>
+& .\.venv\Scripts\python.exe -B scripts/decode_cache_snapshot.py --work <含data5的目录> --output <新输出目录> [--apk <APK路径>]
 ```
 
 - **B1 仅处理 gzip 偏移 6 包装**，遇其他变体（如 helper/search 的偏移 0）即报错中止；处理整目录请直接用 **B2**，自动识别两种包装并逐文件容错（失败文件记录、其余继续）。

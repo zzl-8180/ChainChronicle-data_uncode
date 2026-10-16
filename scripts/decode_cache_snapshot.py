@@ -51,6 +51,8 @@ def main():
     parser.add_argument('--reuse-dir',type=Path)
     parser.add_argument('--prior-report',type=Path,default=Path('output/decoded/report.json'),
                         help='earlier decode_data5 report for exact-ciphertext reuse; absent in a clean checkout')
+    parser.add_argument('--apk',type=Path,default=Path('チェンクロ.apk'),
+                        help='compatible APK supplying the signing certificate (default: repo-root name, same as decode_data5.py)')
     args=parser.parse_args()
     args.output.mkdir(parents=True,exist_ok=False)
     decoded_dir=args.output/'decoded';decoded_dir.mkdir()
@@ -90,11 +92,11 @@ def main():
                     document=strict_load(plaintext);meta=previous
                     row['method']='REUSE_EXACT_CIPHERTEXT_AND_VERIFIED_JSON'
                 else:
-                    decoder=NativeDecoder()
+                    decoder=NativeDecoder(apk=args.apk)
                     try:decoded=decoder.decode(raw,source.name)
                     except ValueError as error:
                         if not any(message in str(error) for message in ('Observed gzip signature','Execution limit')):raise
-                        decoded=decode_variant(raw,source.name)
+                        decoded=decode_variant(raw,source.name,args.apk)
                     plaintext=decoded['json_raw'];document=strict_load(plaintext);meta=decoded['meta']
                     row['method']='EXISTING_NATIVE_DECODER'
                     del decoder

@@ -109,7 +109,7 @@
 ## 6. 重建对照页
 
 从项目根目录运行 `.venv\Scripts\python.exe -B scripts/build_chica_comparison.py`。
-生成器仅标准库，读取当前records.jsonl、Boss旧证据及本目录ordinary_rules/skill_power/timed_support/barrier/critical/movement/lifesteal/field_time/mana_chance/chain_mana/leader_condition/super_counter/wedge_time及barrier_request/difference_sources/chain_dispatch、ordinary_effects/ability1095、ability1017、ability2012、ability3000、ability99、ability7、ability1008已有证据和用户取值政策；图片优先取原临时附件，否则复用输出目录reference.png。请保留该图片。
+生成器仅标准库，读取当前records.jsonl、Boss旧证据及本目录ordinary_rules/skill_power/timed_support/barrier/critical/movement/lifesteal/field_time/mana_chance/chain_mana/leader_condition/super_counter/wedge_time及barrier_request/difference_sources/chain_dispatch、ordinary_effects/ability1095、ability1017、ability2012、ability3000、ability99、ability7、ability1008已有证据和用户取值政策；需自行提供output/card_comparison_cid30236/reference.png（B包不含该截图）。
 主生成器写output/card_comparison_cid30236/，新增1095/1017/2012/3000/99/7/1008证据脚本分别只写output/ordinary_effects/下对应类型目录；不会修改原输入、正式E构建或审查报告。
 页面含101条逐效果表（首批攻防40、其余61）、33项旧概览与54条完整记录；77条限定规则/2684来源记录6613字段均同流程输出，另含407条普通1095、321条普通1017、406条普通2012、382条普通3000、133条普通99、64条普通7与37条普通1008的独立检索区块；CSV/JSON和manifest同步生成。type112视觉对应为推断、type13玩家基数换算有条件，未冒充实机结果。重建后运行 `.venv\Scripts\python.exe -B scripts/verify_chica_comparison.py`。
 既有浏览器file协议安全限制保留，未完成视觉验收；本轮HTML结构、本地链接及搜索脚本DOM夹具已核对。已提供本地HTML文件，可双击打开。

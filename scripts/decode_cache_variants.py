@@ -30,8 +30,8 @@ def parse_variant(plaintext):
     return record,payload,decoded,meta
 
 
-def decode_variant(raw,name):
-    decoder=NativeDecoder()
+def decode_variant(raw,name,apk=None):
+    decoder=NativeDecoder() if apk is None else NativeDecoder(apk=apk)
     start=decoder.e.uc.emu_start
     # The largest acquired input (questdigest) exceeds the original experiment's
     # instruction/time budget. This remains bounded and changes no crypto rule.
