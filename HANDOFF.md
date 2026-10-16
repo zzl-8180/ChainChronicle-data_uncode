@@ -1,5 +1,7 @@
 # 交接：数据提取与截图对照
 
+更新：2026-10-17（Release 暂缓，等项目告一段落）。发布说明草稿已备：[RELEASE_NOTES_draft.md](output/share_bundle/20261016-delivery/RELEASE_NOTES_draft.md)（拟标签 `v2026.10.17`、附件 A/B/C 清单/总清单 4 个）；A/B/C 包与 `e8c5ae4` 代码绑定、核验通过，随时可发。**用户决定暂不发布，待项目告一段落后裁决**；不创建 Release、不上传。`origin/main` 已在 `6240a04`（含全部解包工具与文档）。前轮各线结论继续有效。
+
 更新：2026-10-17（已推送 GitHub）。复审通过后经用户授权，`origin/main` 已从 c027959 快进到 `e8c5ae4`（9 个提交：源码仓库补齐、可复现性修复、R1 闭合、根 README、docs、打包脚本）。GitHub 现含完整解包工具源码与文档；分层交付包（A/B/C）在本地 `output/share_bundle/20261016-delivery/`，**Release 上传仍待授权**。`其他人的参考/` 已忽略不入库；并行分析任务有其未提交文件（AGENTS.md 增改、ref_analysis 脚本与任务卡），本任务未提交、未接管。前轮各线结论继续有效。
 
 更新：2026-10-17（复审 R1 闭合，本轮）。按 review_20261017_rectification_independent 完成闭合：**R1**——`decode_cache_snapshot.py` 增加 `--apk`（默认 `チェンクロ.apk` 不变）并传入 `NativeDecoder(apk=args.apk)`；偏移 0 变体路径 `decode_cache_variants.decode_variant` 同步接受 apk（否则改名 APK 下 helper/search 会失败）；README §2/§4 同步。隔离目录（git archive 新 HEAD＋自建前置）三用例全过：a) 改名 APK＋`--apk`：6 文件（偏移 6／0 两种包装）全部原生 DECODED、报告 PASS、decoded 与 v3 逐字节一致、17,669 记录 raw／字节定位 0 差异（仅 snapshot_id／original_file 环境字段不同）；b) 默认命名不传 --apk：结果与 a 完全一致；c) 破坏 helper.data5：该文件 FAILED_RETAINED（SHA1 mismatch）、其余 5 正常、PARTIAL_FAILURES_RETAINED。**I4**——`.gitignore` 增加 `/其他人的参考/`（他人基于本项目的分析成果，0.9GB，防 `git add .` 误带入；目录内容未动）。**I3**——HANDOFF §6 reference.png 文案与 P2-4 对齐。**I1**——本次重建的 B 包（698 项）已含最新两份审查报告。A/B/C 包按最终 HEAD 重建并核验，交付 README 同步。origin/main..HEAD 有待推送提交（计数随交接文档提交递增，以 `git log origin/main..HEAD` 为准），**未推送、未发布**。前轮各线结论继续有效。

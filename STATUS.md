@@ -1,5 +1,7 @@
 # 项目状态
 
+更新：2026-10-17（Release 暂缓）。发布说明草稿与 A/B/C 包已就绪（`output/share_bundle/20261016-delivery/`，含 RELEASE_NOTES_draft.md），**用户决定待项目告一段落后决定是否发布**；当前不创建 Release、不上传。`origin/main = 6240a04`。接手入口：[HANDOFF.md](HANDOFF.md)。
+
 更新：2026-10-17（已推送 GitHub）。复审通过后经用户授权，`origin/main` 已快进到 `e8c5ae4`（9 个提交含完整解包工具、修复、README、docs、打包脚本）；A/B/C 交付包在本地 `output/share_bundle/20261016-delivery/`，Release 上传待授权。接手入口：[HANDOFF.md](HANDOFF.md)。
 
 更新：2026-10-17（复审 R1 闭合）。接手入口：[HANDOFF.md](HANDOFF.md)；整改记录③：[docs/tasks/20261016-reproducibility-audit.md](docs/tasks/20261016-reproducibility-audit.md)。
