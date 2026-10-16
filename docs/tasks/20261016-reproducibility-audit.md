@@ -231,3 +231,12 @@ phone_20261015_full_02 工作副本 3.63GB（可由 raw tar 重建）、恢复�
 
 - 复验命令主要在 Windows PowerShell 5.1 下执行，遇到并已绕过：`-AsByteStream` 缺失、GBK 控制台乱码、`Out-File -Encoding ascii` 破坏中文路径、`WriteAllLines` 数组合并单行、robocopy 本地化输出；收尾阶段已切换 pwsh 7.6.6。项目 .venv 的 Python 环境不受 shell 版本影响。
 - 隔离目录 `work/repro_20261016/isolated/scripts/` 当前为「git archive HEAD 摘要＋工作目录修复版覆盖」：apk_baseline、decode_cache_snapshot、signal_region_probe、jni_prefix_probe、metadata_decode_probe、decode_data5（并行任务 cert_hex 版）、full_unpack_run 及 P2-3 三脚本。
+
+---
+
+## 第三阶段交付记录（2026-10-16 晚）
+
+- **Git**：`8b91293`（26 文件补缺＋README）、`ff664a7`（full_unpack merge/finalize 容忍第三方最小清单）、`e2cc987`（scripts/release/build_delivery_bundle.py）；本地提交，未推送。
+- **交付版本验证**：`work/delivery_20261016/final/`（`git archive ff664a7`＋APK＋4 样本）全链通过：A1—A3（镜像＝钉住值）、B1、B2（两包装格式 4 文件 16719 记录全原生解码）、bdl 2 样本四步管线、chronicle（A4＋D1，6 产物文件），全部与既有成果逐字节一致。此前各轮已通过的测试未重跑。
+- **分层交付**：`output/share_bundle/20261016-delivery/`（A 1.4MB/129 项、B 149.7MB/3366 项、C 仅清单、统一 README＋package_manifest.json，CRC/对账全过）；排除项与版权边界见清单。
+- **待授权**：git push；GitHub Release 上传。其余限制见 STATUS 末节。

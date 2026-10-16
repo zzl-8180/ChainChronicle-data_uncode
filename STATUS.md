@@ -1,5 +1,17 @@
 # 项目状态
 
+更新：2026-10-16（第三阶段交付准备）。接手入口：[HANDOFF.md](HANDOFF.md)；交付包：[output/share_bundle/20261016-delivery/README.md](output/share_bundle/20261016-delivery/README.md)。
+
+## 当前交付：源码仓库补齐＋交付版本验证＋分层成果包（2026-10-16）
+
+- **Git 提交（未推送）**：`8b91293` 26 文件（根 README.md、docs/ 全部、full_unpack 五脚本、build_char_roster、scripts/release 两脚本、9 个修复脚本、AGENTS/HANDOFF/STATUS）；`ff664a7` full_unpack merge/finalize 容忍第三方最小清单（archive 等来源字段可选、finalize 加 --inventory）；`e2cc987` 分层交付打包脚本。提交前确认并行打包任务无新改动，未覆盖他人文件；工作树干净，无 output/work/raw 入库。
+- **交付版本验证（任务二）**：`work/delivery_20261016/final/`＝`git archive ff664a7`＋APK＋4 样本 data5，全链实测：A1 apk_baseline 44 文件→A2 重定位 2855→A3 镜像 SHA256＝3fd354b5…钉住值；B1 decode_data5 2 文件、B2 四文件（charainfo/skilllist 偏移 6、bossinfo/helper 偏移 0 变体）16719 记录全部原生解码；**全部与既有参考逐字节一致**。bdl：2 样本 run→merge→verify→finalize，objects_index.json 与项目 full_unpack 逐字节一致。**chronicle**：A4 native_debug＋D1 decode_chronicle，ChronicleArchiveData.json/.bin 及四表与 output/base_master 逐字节一致（7800 角色/21008 技能唯一 ID）。
+- **真实验证状态**：data5【已验证·独立目录·两包装格式】；BDL【已验证·独立目录小样本；全量 68655 为项目内既有验证】；chronicle【已验证·独立目录】。未验证：全新机器从零安装、非 Windows 平台。
+- **分层交付包（任务三）**：`output/share_bundle/20261016-delivery/`——A 工具包 1.4MB/129 项（git archive e2cc987）；B 研究成果包 149.7MB/3366 项（v3 全部、base_master、card_comparison、ordinary_effects、boss_chain/boss_heal、sample、phase_d、validation、双审查报告、card_images、char_roster、structured、两个 latest 指针）；C `media_manifest.json`（20.24GiB/903402 文件逐类统计＋重建命令＋分包方案，**不复制媒体**）；统一 README＋package_manifest.json（git HEAD、SHA-256、排除项、用法、版权边界）；zip 条目对账＋CRC 自检全过。有意排除：export 旧构建（被 v3+base_master 覆盖）、field_guide 旧快照字典、可重建中间产物、历史版本。
+- **README**：根 README.md 完成（版本硬边界、环境、安装、data5/bdl/chronicle 命令、采集、结果查看、已知限制、仓库结构）。
+- **待授权**：git push origin main；GitHub Release 上传 A/B 包（及如需 C 媒体分包，先确认音频与版权范围）；均属外部发布动作，未执行。
+- **不影响交付的限制**：verify_cache_snapshot/refresh 为本快照专用；analyze/export_master 研究线依赖历史证据；bdl 全量独立重跑未做（无必要重复）；pwsh 已切 7.6.6。
+
 更新：2026-10-16（审查整改）。接手入口：[HANDOFF.md](HANDOFF.md)；审计与整改全文：[docs/tasks/20261016-reproducibility-audit.md](docs/tasks/20261016-reproducibility-audit.md)；独立审查报告：[output/20261016-reproducibility-audit/review/review_20261016_independent/README.md](output/20261016-reproducibility-audit/review/review_20261016_independent/README.md)。
 
 ## 当前交付：可复现性审查整改（2026-10-16）
