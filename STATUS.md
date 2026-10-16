@@ -6,7 +6,7 @@
 
 - **R1**：`decode_cache_snapshot.py --apk`（默认不变）＋变体路径 `decode_cache_variants` 同步传 apk（偏移 0 必需）；README 同步。隔离三用例全过：改名 APK＋--apk 6/6 原生解码（raw／字节定位与 v3 0 差异）、默认命名结果一致、破坏文件 FAILED_RETAINED。
 - **I4**：`.gitignore` 增 `/其他人的参考/`（用户确认他人分析成果，不提交；内容未动）。**I3**：HANDOFF reference.png 文案对齐。**I1**：B 包（698 项）已含两份最新审查报告。
-- **基准**：审查基准＝当前最新提交；origin/main..HEAD 共 7 个提交，未推送；对外发布待授权。
+- **基准**：审查基准＝当前最新提交；origin/main..HEAD 有待推送提交（计数随交接文档提交递增，以 `git log origin/main..HEAD` 为准），未推送；对外发布待授权。
 
 更新：2026-10-17（最终确认与审查基准）。接手入口：[HANDOFF.md](HANDOFF.md)；交付包：[output/share_bundle/20261016-delivery/README.md](output/share_bundle/20261016-delivery/README.md)。
 
