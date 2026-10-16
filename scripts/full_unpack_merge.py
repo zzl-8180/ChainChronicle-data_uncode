@@ -76,13 +76,13 @@ def main():
         path = row['path']
         entry = {
             'path': path,
-            'source_snapshot': row['archive'].split('/')[1] if '/' in row['archive'] else row['archive'],
-            'archive': row['archive'],
-            'archive_member': row['archive_member'],
+            'source_snapshot': row['archive'].split('/')[1] if '/' in row.get('archive', '') else row.get('archive'),
+            'archive': row.get('archive'),
+            'archive_member': row.get('archive_member'),
             'local_path': row['work_file'],
             'size': row['bytes'],
-            'phone_mtime': row['phone_mtime'],
-            'basis': row['basis'],
+            'phone_mtime': row.get('phone_mtime'),
+            'basis': row.get('basis'),
         }
         if path.endswith('.data5'):
             name = path.rsplit('/', 1)[-1]

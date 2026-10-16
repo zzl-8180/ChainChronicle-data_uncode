@@ -22,6 +22,8 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=OUTPUT)
+    parser.add_argument('--inventory', type=Path,
+                        default=Path('output/cache_refresh_20261015/composite_inventory.jsonl'))
     args = parser.parse_args()
     out_dir = args.output
     coverage = json.loads((out_dir / 'coverage.json').read_text(encoding='utf-8'))
@@ -29,15 +31,19 @@ def main():
     import UnityPy
     from PIL import Image
     import unicorn
+    archives = None
+    if args.inventory.is_file():
+        seen = {r.get('archive') for r in (json.loads(line) for line in args.inventory.open(encoding='utf-8'))
+                if r.get('archive')}
+        archives = sorted(seen) if seen else 'not recorded in inventory (minimal third-party format)'
     manifest = {
         'task': 'full_unpack_20261016',
         'created_utc': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'input': {
-            'composite_inventory': 'output/cache_refresh_20261015/composite_inventory.jsonl',
-            'composite_inventory_sha256': sha('output/cache_refresh_20261015/composite_inventory.jsonl'),
-            'archives': ['raw/phone_20261015_full_02/external_cache.tar',
-                         'raw/phone_20261015_refresh_02/external_cache.tar'],
-            'scope': '68993 files listed on phone external cache at refresh time; not a whole-game coverage claim',
+            'composite_inventory': str(args.inventory),
+            'composite_inventory_sha256': sha(args.inventory),
+            'archives': archives,
+            'scope': 'files listed in the input inventory; not a whole-game coverage claim',
         },
         'code_versions': {s: sha(s) for s in SCRIPTS},
         'dependencies': {'UnityPy': UnityPy.__version__, 'Pillow': Image.__version__,
