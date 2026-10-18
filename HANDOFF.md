@@ -20,6 +20,198 @@
 
 ## 1. 当前有效入口
 
+- **角色技能解读（P1 首批 ＋ P2 第 1／2／3／4／5／6／7／8／9／10 批）**：[产物说明](output/character_skills/README.md)、
+  [逐角色查询页](output/character_skills/profiles/index.html)（约 100 MB 自包含，按 cid／名称查询；也可用
+  `query.py --cid 30236`）、[缺口队列](output/character_skills/gaps/gap_queue.json)、
+  审查交接 [P2-1](output/character_skills/P2R_HANDOFF.md)／[P2-2](output/character_skills/P2B2_HANDOFF.md)／
+  [P2-3](output/character_skills/P3_HANDOFF.md)／[P2-4](output/character_skills/P4_HANDOFF.md)／
+  [P2-5](output/character_skills/P5_HANDOFF.md)／[P2-6](output/character_skills/P6_HANDOFF.md)／
+  [P2-7](output/character_skills/P7_HANDOFF.md)／[P2-8](output/character_skills/P8_HANDOFF.md)／
+  [P2-9](output/character_skills/P9_HANDOFF.md)／[P2-10](output/character_skills/P10_HANDOFF.md)、实施记录
+  [docs/tasks/20261018-character-skills-p7.md](docs/tasks/20261018-character-skills-p7.md)／
+  [docs/tasks/20261018-character-skills-p8.md](docs/tasks/20261018-character-skills-p8.md)／
+  [docs/tasks/20261018-character-skills-p9.md](docs/tasks/20261018-character-skills-p9.md)／
+  [docs/tasks/20261018-character-skills-p10.md](docs/tasks/20261018-character-skills-p10.md)
+  （P1／P2-1／P2-2／P2-3／P2-4／P2-5／P2-6 见同目录同前缀的 `-p1.md`／`-p2.md`／`-p2b2.md`／`-p3.md`／`-p4.md`／`-p5.md`／`-p6.md`）。
+  P1（R1＋R2 复验）与 P2 第 1—8 批均已过审查（各 `review/p2b*_2026101*_thirdparty/`，通过或带限制通过）；
+  P2 第 8 批审查 3 处文字问题已在本批第 0 项整改；P2 第 9 批已过审查并完成整改；
+  **P2 第 10 批（`Exec_HEAL` 家族与其余类型；里程碑 A 收官）已完成 → p2b10 审查「需修正」（F1–F4）→ **整改完成、待复验**。
+  当前数字：角色 2236、部分 **2231**／仅未知 **5**／完整 0；引用 48555＝已解析 48552＋断链 3；记录 15973；
+  规则答案 **81500**（唯一 **80659**，已逐条评审 10095／按类型套用 71258）；未解释参数槽 **428551**；缺口字段级 **5571**；
+  十批累计新增：P2-1 `charainfo` 参数 **522**、P2-2 skilllist 8／26 **6209 页／2869 唯一**、
+  P2-3 暴击双路径 **1179／1085／881**、P2-4 同叶四类 **999／963／672**、
+  P2-5 复合分支 67／80／96 **8979／8979／6305**、P2-6 条件语义三件套 **9112／9112／7959**、
+  P2-7 denju 传授必杀技 **3236 页／3236 记录级／210 新增唯一键**、
+  P2-8 攻击系类型族 **14132 页／10000 新增唯一键**、
+  **P2-9 执行侧裁决后的 F0 答案 1727 页／1727 唯一（全部 charainfo）**、
+  **P2-10 heal 族与其余类型 5452 页／4050 唯一（80 条新规则，36 个类型）**（页／记录级／去重行）；
+  状态累计迁移 **908**（268／173／97／1／1／39／**187**／**142**）。
+  暴击双路径已并入派发索引（路径 3 → **5**，夹紧 rate [0,0.5]／dmg [-1,2]；2012／3000／1008／1095
+  经核实不在其上，登记 `read_elsewhere`）；`type8 param4` 的依据是「**无按类型分派的**读取路径」。索引侧现有
+  两项常驻防回归检查：**双路核对**（Unicorn 仿真 vs 纯静态解码，5 路径 × 3001 type 0 差异）与
+  **复合分支的路径重算**（规则槽必须是该分支真读的槽且抵达累加器）。
+  **P2 第 5 批（复合分支 67／80／96／1036）已实施并过审查**：67／80／96 在同一条路径上被编译合并进同一 worker，
+  改用**函数内可达性遍历**逐段定位换算链（20 条分支体与逐段地址写在 `composite_chains.json`），规则由该遍历重算后才产出。
+  67 = 命中角色数 ≥ `param0` 时乘 `paramN`（计数＝`CalcCharaNum(cType, 职业位图=iParam0, 武器位图=_flag 低 32 位,
+  出身=int(param8), 成员列表)`，含等于）；80 = 当前玛那满足 `isCurrentManaJob_or/and`（`param6` 选 or/and）时乘
+  `paramN`；96 = 按 `min(玛那计数, param1)` 计入、系数在 `param4/5/6/7`；1036 = `paramN × hyperGauge ÷ 1000`
+  （`hyperGauge` ＝ `BattleParam.get_hyperGauge` ＝ `[this+0x328]`，本快照无该类型记录）。
+  **P2 第 6 批（条件语义三件套）已实施，第 6 批闭合了第 5 批留下的两处缺证**：
+  ① **96 攻击路径的 `[sp+0x18]` 标志＝调用方实参 `damageType == eDamageType.Skill(1)`**——Skill 时读
+  `param3`（攻击 ×(1+`param3`×计数)），其余伤害类型读 `param2`；两个调用方（`CharaBehavior.Attack` 透传当次
+  伤害类型；`BattleParam.UpdateParam` 固定传 0）已核实。
+  ② **筛选位字典**：`iParam0` 职业位图（位 i ＝ JOB_TYPE i）、`flag` 武器位图（`_flag` 低 32 位，bit ＝ 22 +
+  `WeaponKind`，掩码 `0x7fc00000`）、`param8`／`param9` 出身筛选值（两位十进制分组查游戏主表 `homelist`）；
+  67／80／96 的这三类槽各自出可读答案，67／80 的阈值答案升级为逐值可读（只改文本）。**67 的三项筛选是「同时」
+  满足，1059 是「任一」满足**——最易抄错处。
+  ③ **type 1059 UnionCount 闭环**：门控＝`IsEnableAbility` case 1059（`GetAllCharaList` 逐角色、任一命中、
+  计数 ≥ `int(param0)`）；数值＝五个 `PlayerManager.GetAbility*` 按静态 rank 表（rank=121／offset `0xf2`）
+  取本类型 flag index 后应用 `param1..param5`（队伍范围，固定倍率不随人数缩放）；另有周期回复
+  `int(param6×目标最大HP)`（间隔 `param7` 秒，目标按 `iParam1`／`flag1`／`param9` 筛选）。
+  新增 **9112 页／9112 记录级／7959 去重行**，可达角色 67→513／80→166／96→52／1059→432（去重 919），
+  **1 个角色由「仅未知」变为「部分」**；相对 P5 终态快照 **0 键丢失、0 raw／kind／unit／status 变化**
+  （1414 条只改条件文本且首个数值 0 变化）；重跑全链 16 份关键产物 SHA-256 逐字节相同。
+  **P2 第 6 批已过第三方审查**（`review/p2b6_20261018_thirdparty/`，结论「通过」＋5 条文字注记）；
+  5 条注记已在本批第 0 项整改（交接地址笔误、`--cid 2205`、门控特例实为 ≤0、玩家侧 ParamN 极值选择补注、
+  武器跳转表表项为字节），只改文字、不动数据与规则。
+  **P2 第 7 批（denju 传授必杀技，1500 角色）已实施，待针对性审查**：
+  ① **结构结论：denju 行没有参数槽**——1504 行的键集是 `denju_id`／`develop_only`／`scost`／`sname`／`stext`／
+  `timestamp`／`patternid0..5`，**没有 `skillparamN`**；效果类型与数值在 `denju.patternidN → bosspattern → bossskill`
+  链上（946 行有 patternid／995 个引用字段：缓存 231＋APK 758 可解析；6 个字段两源都缺，逐条列出）。交叉证据：`denju.sname` ＝
+  所指 pattern 的 `sname` 950 个引用字段一致、`denju.stext` ＝ 该 pattern `sinfo` 820 个一致
+  （按 995 个 `patternidN` 引用字段计，不是按行）。
+  ② **原生链路**（`denju_skills/native_checks.json` 17/17 复读）：`BattleParam.CreatePlayer` →
+  `BtlCharaUtil.GetBattleDenju`（门控 `EnableDenjuSkill`：接收方 `isDenjuFrom`＋传授方 `isDenjuTo`＋同 `jobtype`＋
+  `daLimitBreakDenju.GetDenju≠null`）→ `BattleParam.InitlizeDenjuSkill`（`_denju@0xa20`／`_denjuSkill@0xa10`／
+  `_denjuListPattern@0xa18`）→ `BtlCharaUtil.GetDenjuSkill`（＝`CharaParamToBossSkill` 出参 `_denjuSkill` ＋
+  `GetDenjuPattern`（`daLimitBreakDenju`，即 `denju_lblist`）出参 pattern 列表）；战斗执行时
+  `BtlCharaUtil.GetExecSkillInfo` 用 `_denju` 取名字/费用、以 `_denjuListPattern` 调 `bhExAttack.think_attack`
+  ⇒ **攻防数值来自 denju 链的 pattern→bossskill**，与 `CharaParamToBossSkill`（传授者自身角色参数）是两个不同来源。
+  ③ **应用与增量**：`denju.patternidN` 走与 `charainfo.patternN` **同一个** `resolve_pattern` 助手，把该 pattern 的
+  bossskill 挂成 denju 记录的 `boss_skill_refs`（＋`boss_skill.s_ability` 交叉引用），类型/数值按已确认 boss 规则出答案。
+  新增 **3236 页／3236 记录级／210 新增唯一键**（按类型页和：13→2296、2012(SA)→456、105→184、112→147、27→100、
+  66→29、16→24）；可达角色 **579**；**1 个角色（cid 12021）由「仅未知」变为「部分」**；未解释参数槽
+  417790 → 449862（＋32072 全落在新挂上的子记录，既有记录未解释键 0 减少）；断链 0 → **3**（denju patternid 两源缺口，
+  非关联错误）。**零破坏**：既有答案键 0 丢失、raw／kind／unit／status／scope 0 变化；457 条文本变化全部来自第 0 项
+  注记 3（1059 `/param0` 特例句改 ≤0），首个数值 0 变化。
+  区分性样本：**148 行传授版本与被传授者自身必杀技数值不同**（如 cid 253：链上 `skillparam1`＝0.3 而角色自身＝6.5，
+  页面显示链上值）＋102 行类型不在自身链上——这类行**只按 ID 关联、不拿角色自身 skillparam 替换**；
+  `denju_id ≠` 角色 `skillname` 的 224 行在 `link_status` 注明「只按 ID 关联，不按名称推断」。
+  ④ 顺带修正**传授突破**（`denju_lblist`）子记录此前 5 个条目共用键 `cid` 导致 2—5 号条目内容不可见：
+  改为逐条键 `cid#i`（＋44 条记录，0 答案丢失），并把每个条目的 pattern 技能一并挂出。
+  验证：`verify_p1.py` **149/149**、`crosscheck_raw.py` **A–M overall_ok**（M 区 2600 条 denju 页答案＋519 条 SA
+  从原始表重算）、`denju_skills.py` 原生自检 **17/17**、`skilllist_types.py` **53/53**；
+  默认 GBK（`PYTHONUTF8=0`）**11 个入口 exit 0 且 stderr 0 字节**；重跑全链 **25 份关键产物 SHA-256 逐字节相同**。
+  **P2 第 8 批（攻击系 boss 技能类型族：伤害基数定位与逐槽规则）已实施，待针对性审查**。
+  · **伤害基值定位**：`bhSkill.Exec_ATTACK_*` 家族的伤害输入一律是 `floor/clamp(float32(B × skillparamN))`，
+  `B = bhSkillUtil.getBasicSkillAttack(true)`（`0x1182ed8`，入参 `w1=1`），整数化 `0x14374bc`
+  （`frintm`/`fcvtms` **向下取整**后夹到 int32；`+inf` → int32 最小值）——与 type105／type112 是同一条函数、同一个助手。
+  · **P2-1 的「全局技能表」候选被否**：`[[0x29e9000+0x6e8]]+0xb8` 的三浮点被 `skillparam4` 缩放后**加到施法者位置上**，
+  作为 `BattleManager.FindNearPosition` 的搜索中心（攻击起点偏移表），不是伤害表。
+  · **逐槽规则 35 条**（与既有字典零重叠）：type0 `sp1`/`sp3`；type1 `sp1`/`sp2` 间隔秒/`sp3` 次数（推力**硬编码 0**）；
+  type2 `sp1`/`sp2` 突进位移/`sp3`；type3 `sp1`/`sp2` 范围长度/`sp3`/`sp4` 起点偏移缩放；type4 `sp1`/`sp3`；
+  type5 `sp1`/`sp3`（×Chain 后进 `Bullet._pushPower`）/`sp4` 子弹半径；type22 `sp1`/`sp2`/`sp3`/`sp4`；
+  type47 **`sp0`** 才是伤害倍率（`sp1` 是爆炸类型、`sp2`·`sp3` 是爆炸半径、`sp4` 推力、`sp5` 第二段伤害）；
+  type105 `sp4`/`sp5`（`sp1`·`sp6` 既有）；type110 `sp1`/`sp2`/`sp3`/`sp4`/`sp5`/`sp6`。
+  · **证据强度分两层**：`伤害倍率`与`推力`由**分支可达体重算**（沿调用图回溯 `fmul` 操作数到 `_skillparamN` 装载点，
+  且只允许从该 type 的 handler 可达的调用点，避免 type0／type1 共用 `AttackList_Common` 时串槽）；其余槽由
+  **钉死 RVA＋重读指令字节**核对；数据侧另有 `0.001` 哨兵交叉印证（只在推力槽密集出现）。
+  · **受控执行**：Unicorn 跑真实字节执行 `0x14374bc`（`12.7→12`、`-0.5→-1`、`inf→-2147483648`）并对每个 type 的
+  `fmul` 复算一次；`boss_attack_types.py` 自检 **85/85**。
+  · **应用与增量**：新增答案 **14132 页／10000 新增唯一键**（`records.jsonl` 行实例 14124）；规则答案 60189 → **74321**；
+  未解释 449862 → **435730**；可达角色 **846**；**39 个角色由「仅未知」变「部分」**（部分 1863→1902、仅未知 373→334），
+  其中 21 人经 `charainfo` 等价门控，其余经自身 pattern 可达的 boss 技能与／或传授链（逐人归属见
+  `boss_attack_types/p8_increment.json` 的 `unknown_reachability`）。
+  · **脱贫上限的诚实说明**：其余 334 个未知角色多数是 `NOT_AMONG_OWN_PATTERN_TYPES`（`skillid[0]` 不在自身 pattern
+  的类型集合内，没有可对齐的 boss 记录）与 X1，**等价门控不通过**——不是缺规则而是缺等价前提。
+  · **零破坏**：既有答案键 0 丢失、raw／kind／unit／status／scope 与文本 0 变化；`bossskill|105|/skillparam1` 仍由既有字典定义。
+  · **验证**：`verify_p1.py` **163/163**、`crosscheck_raw.py` **A–N overall_ok**（N 区 14124 条新规则答案从原始表重算，0 失配）、
+  `denju_skills.py` 17/17、`charainfo_types.py` 37/37、`skilllist_types.py` 53/53；默认 GBK **14 个入口 exit 0 且 stderr 0 字节**；
+  全链重跑 **67 份产物 SHA-256 逐字节相同**。
+  · **第 0 项**：p2b7 审查 4 处文档修正已整改（§5.2 缺证框架、§4 样本 type 13、§1① 补 `weaponChange`、§5.6 补 148 行口径），
+  只改文字；同批把 `denju_skills.py` 的两处 note／检查名与 `charainfo_types.py` 的头部类型说明改为与本批结论一致。
+  · **口径注记**：`charainfo_params/`（522 → 3131 → 4858）与 `denju_skills/p7_increment.json`（3236 → 6177）由生成脚本按
+  **当前规则集**重算，各批交接记录的是该批闭合口径，`verify_p1.py` 已把相关数值断言改为从产物重算的结构式断言。
+  **P2 第 8 批已过第三方审查**（`review/p2b8_20261018_thirdparty/`，「带明确限制通过」，3 处文字级问题＋2 条口径备注），
+  3 处文字问题已在第 9 批第 0 项整改（见 §3.9）。
+
+  **P2 第 9 批（必杀技执行侧裁决：X1／NOT_AMONG／F0）已实施，待针对性审查**。
+  · **问题**：第 8 批把 334 个「仅未知」的主因归为「等价前提缺失」（NOT_AMONG 无可对齐 boss 记录／X1 两侧数值不同）。
+  本批改为从**执行侧**回答「游戏到底跑哪一份」：`output/character_skills/cp_paths/path_evidence.json`（自检 18/18）。
+  · **路径 A（自身 pattern 可解析）**：`OnClickSpSkill`／`CheckEntry` → `bhSkill.CreateExecSkillList` →
+  `FindPatternCtrl` 命中 → `_CreateExecSkillList` 的 pattern 分支 → `pattern.getListBattleBossSkill()`
+  （`BattleBossPattern.makeListBattleBossSkill` → `daBattleBossParameter.getBosSkill` = **boss 主表**）→ `Mission_execSkillPattern`。
+  · **路径 B（自身 pattern 无可达技能 = F0，929 角色）**：`CharaParamToBossSkill(0x13aa390)` 读 `BattleParam`
+  （`_atvSkillID`←`charainfo.skillid[0]`、`_skillparam0..9`←`CreateByID` 复制的 `charaParameter.skillparamN`）构造
+  `BattleBossSkill` → `_CreateExecSkillList` 的 `pattern==0` 分支 → `Mission_execSkill`；`CheckEntry` 取列表第 0 项 →
+  `SetExecSkill` → `bhSkillUtil.initialize_ExAttack`（把该 skill 的 `skillparamN`／`skillflag` 复制进 util）→
+  `Execute` → `ExecSkill(w2=skillid0)` ⇒ **本记录原值就是执行值**。
+  · **关键更正**：`BattleParam` 侧**不是** boss 主表侧（`CreateByID` 从角色记录复制），因此 **X1 的裁决是「执行取 pattern 侧」**、
+  charainfo 副本不是执行值；区分性样本 cid 2315／6058／8139 的正文回数只与 boss 侧一致（无反向样本）。
+  · **门控变化**：`equivalence.classify` 新增 `F0_NO_PATTERN_FALLBACK`（929）；`NOT_AMONG_OWN_PATTERN_TYPES` 收窄为
+  「自身 pattern 存在但类型集合不含 skillid[0]」的 **20** 人（逐个定性见 `cp_paths/notamong_exceptions.jsonl`）。
+  · **增量**：新增 **1727** 条答案（页求和＝唯一键，落在 **535** 个角色上）；**187 个角色脱贫**（部分 1902→2089、
+  仅未知 334→**147**）；未解释 435730→**434003**。**剩余 147 人的原因变了**：不再是缺等价前提，而是**缺类型规则**
+  （F0 134／E0 9／X1 3／NOT_AMONG 1；F0 桶 heal 族 `Exec_HEAL` 53、`Exec_FALL_AREA`＋`FALL_AREA2` 11、type23 14、type6 11、type7 11…）。
+  · **数据侧印证**：F0 角色正文回数 51/51 与 `trunc(sp6)`（105／110）／`trunc(sp3)+1`（type1）一致；据此把 type1
+  `sp3` 文案改为「追加回数；总攻击次数＝该值+1」（数值/kind 不变）。
+  · **零破坏**：0 键丢失、0 raw／kind／unit／status／scope 变化；value 文本按整改项有意变更（见下）。
+  **p2b9 审查整改（结论「需修正」，阻塞项 F1）已完成、待复验**：F1 把 type1 `sp3` 的**答案渲染层**改为
+  「追加回数；总攻击次数 = trunc(sp3) + 1」（`rules.py` 新增按 `(type, kind)` 的模板分派；99 条实例，
+  kind／unit／status 未变）、F2 type110 `sp6` 答案去掉「范围外也消耗预算」（820 条）、
+  F3 type47 `sp4` 补 `SpreadBullet` 中转注记（45 条）、F4 16 条 F0 `/skillflag0_1` 补人读「证据路径」注记
+  （1727/1727 全覆盖）、F5 订正交接散文的 147 归因数字（F0 134／E0 9／X1 3／NOT_AMONG 1；F0 桶 heal 族 53、
+  `Exec_FALL_AREA`＋`FALL_AREA2` 11）。复查：`verify_p1.py` **174/174**、`crosscheck_raw.py` **A–O overall_ok**
+  （新增 O 区逐条钉死答案措辞与 F0 注记）；实例级对账（`p9_increment.json` 的 `rectification_accounting`）
+  lost 0／new 0、文本变更 964、只补注记 16、raw／kind／unit／status 0 变化。
+  默认 GBK **17 个入口调用 exit 0 且 stderr 0 字节**；两轮全链重跑 **76 份产物字节无漂移**。
+
+  **下一批建议**：① **剩余 5 个孤儿类型**：24（`Exec_LOCKED_CURSE`）、56（`Exec_TARGET_CURSE`）、
+  68（`Exec_MANA_CYCLE`＋`common_Exec_MANA_CYCLE`）、73（`Exec_MODE_LAUNCHER`）——都是「非伤害／支援」型，
+  需追各自的 work 对象；② `AirAreaStrike`（0x118380C）工作对象的 update（type 33/103 的伤害）与
+  `AirStrike` 协程（34/50/64/72/76/86 的消费点）；③ 23 的 `0x118B0C8` helper 内三个浮点、87 的 sp0/sp5..sp9、
+  43 的 sp7、84 的基值槽、19 的运行时整数语义；④ 运行时判定「该次必杀由传授链／英雄技承担」的优先级；
+  ⑤ `AbilityTypeCachedFlagIndex` 的 rank↔type 表与 `charaParameter.get_home` 缺省；
+  ⑥ 片段↔字段代码级绑定（「完整」长期为 0 的主因）、bosspattern（1307）与 extra_ability_info（494）。
+
+  **P2 第 10 批（`Exec_HEAL` 家族与其余类型；里程碑 A 收官）已实施，待针对性审查**。
+  · **问题**：第 9 批把 147 个「仅未知」归因到**缺类型规则**（不是缺等价前提）。
+  · **`Exec_HEAL` 家族＝一个 handler ＋ 两个模式实参**：`bhSkill.Exec_HEAL(0x1299C74)` 的 `w2`＝对象选择、
+  `w3`＝动作选择、`w4`＝类型 → `bhSkillUtil.Exec_HEAL(0x1187C80)`（第一跳转表 0x206DE44，4 项）→
+  `Exec_HEAL_common(0x1188194)`（第二跳转表 0x206DE48，9 项）。动作→类型：0 回复(10/11/28)、1 支援(12/13/14)、
+  2 支援(26)、3 护盾(15/16)、4 回复+支援(31)、5 回复+支援(32)、6 回复+支援+载荷(46)；
+  对象→类型：0 自身(10/12/15)、1 同 `_type` 且职业位命中 `iParam0` 的存活成员(11/13/16/26/31/32/46)、
+  2 再随机取 1 人(14)、3 再取 HP 比例最低者(28)。
+  · **回复量**＝`floor/clamp(float32(B × skillparam1))`，`B=getBasicSkillAttack(true)`（0x1182ED8；与第 8 批
+  攻击族同一函数），整数化 `0x14374BC`，交 `CharaBehavior.Heal`（0x1541158）的 healValue；
+  **超上限（HP 上限）比率**＝`max(HealSkill_HealFlag(0x1182B4C) 的位表档位, 附加槽)`，
+  附加槽 10/11→sp2、28→sp5、31/32→sp4、46 无（位表复用 `output/boss_heal/constants.json`）。
+  · **支援块实参序取自 `SetSupport_noCheckTime`(0x17765F0) 自身的存储点**——该方法（与
+  `BtEffect_LineExec_ContSupport..ctor` 一样）的**元数据 `parameters` 顺序与原生实参序不一致**，
+  照元数据读会把防御系数答成标志位、攻速答成移动；12/13/14/26 乘 `_skillChainRate`，
+  28/31/32/46 不乘（本批用不同 answer_kind 区分并逐条钉死）。
+  · **FALL_AREA（33/103）**：sp3＝落点 X 偏移（`_type==0` 取负＋夹到地面范围）、sp6（仅 33）＝选择码；
+  **伤害在 `AirAreaStrike`(0x118380C) 建立的工作对象里结算**（对象 +0x40 持有 util），未追进其 update → 伤害槽不给数值。
+  · **其余类型**：6／7／19／23／29／34／36／43／44／49／50／51／55／64／67／69／72／74／75／76／80／82／86／87／114
+  共 80 条规则（36 个类型）；34/50/64/72/76/86 的「技能基值×槽→整数化」已确认但**消费点未定位** → 答案写「消费点未定」。
+  · **增量**：新增 **5452** 条答案（页求和）／**4050** 唯一键；**仅未知 147 → 5**（脱贫 **142**；
+  部分 2089→**2231**）；规则答案 76048→**81500**；唯一记录 75207→**80659**；未解释 434003→**428551**；
+  缺口字段级 5679→**5571**。仍未脱贫 5 人：cid 4009(24)／4049·8116(56)／10018(68)（F0）与 8151(73)（E0），
+  原因是这 4 个类型未解出可交付槽位语义，**不是缺等价前提**。
+  · **零破坏**：0 键丢失、0 raw／kind／unit／status／scope 变化、0 value 文本变化（独立复算
+  `work/p10_paths/zerobreak.py`：75191→80642 实例）。
+  · **验证**：`boss_heal_types.py` 219/219、`verify_p1.py` **189/189**、`crosscheck_raw.py` **A–P overall_ok**  （新增 P 区）、`charainfo_types.py` 37/37（`handler_slots_agree_with_confirmed_rules` 增加「由逐字节钉死的
+  读取点覆盖」一路并说明扫描是下界）、P8 的增量恒等式改为结构式并注释原因；默认 GBK **19 个入口调用
+  exit 0、stderr 0 字节**；两轮全链重跑 **82 份产物字节无漂移**；HTML 夹具 p1 **8/8**、p2 **25/25**。
+
+  · **F1–F4 整改**（p2b10 审查，只有文本与一条漏规则）：F1 type46 的 sp5 实为超上限附加档位（与 type28
+  共用 0x11882AC，按 ARM64 标志位语义读分支）→ 补 `bossskill|46|/skillparam5`（**147** 条实例，
+  页答案 5305→**5452**、唯一 3953→**4050**）；F2 类型数 39→**36**；F3 DOM 夹具计数改 p1 **8/8**、
+  p2 **25/25**（原先把 `ALL DOM CHECKS PASSED` 汇总行也计了）；F4 去掉答案里与模板重复的注记句并新增
+  `p10.answers_have_no_repeated_clause`（覆盖 80 条规则、重复 0）。整改后：`boss_heal_types.py`
+  **219/219**、`verify_p1.py` **189/189**、`crosscheck_raw.py` **A–P overall_ok**（P 区 `type46_sp5`＝147）、
+  零破坏 lost 0／文本 0 变化、默认 GBK 19 入口 exit 0、两轮 82 份产物无漂移、DOM 8/8＋25/25。
+
 - **完整解包**：[阅读说明](output/full_unpack/README.md)、[输入账本](output/full_unpack/ledger.jsonl)（68993行，来源/格式/状态/输出/理由）、[对象产物](output/full_unpack/objects/)（56类目录，每包objects_index.json）、[覆盖统计](output/full_unpack/coverage.json)、[4项验证PASS](output/full_unpack/validation.json)、[cid附加索引](output/full_unpack/cid_index.json)（6233个，仅命名规律）。重跑：full_unpack_run.py（分片续跑）→merge→verify→finalize。
 
 - 最新入口：[原对照页](output/card_comparison_cid30236/index.html)，顶部含1095、1017、2012、3000、99、7、1008七个独立检索区，分别按普通技能名称/ID/原文检索407/321/406/382/133/64/37条；原チーカ101项及截图对照保留。无需联网。
