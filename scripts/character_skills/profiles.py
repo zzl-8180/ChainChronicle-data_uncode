@@ -28,6 +28,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import common as C  # noqa: E402
 import equivalence as EQ  # noqa: E402
 import rules as R  # noqa: E402
+import description_bindings as DB  # noqa: E402
+import batch_bindings as BB  # noqa: E402
+import p3b7_bindings as B7  # noqa: E402
+import p3b8_bindings as B8  # noqa: E402
+import p3b9_bindings as B9  # noqa: E402
+import p3b10_bindings as B10  # noqa: E402
 
 LINKS = C.ROOT / "output" / "character_skills" / "links" / "character_skills.jsonl"
 OUT = C.ROOT / "output" / "character_skills" / "profiles"
@@ -235,7 +241,10 @@ def collect_answers(rec: dict, table: str, effect_type, record_id=None):
             path_note = ("证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → "
                          "CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 "
                          "BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准")
-            item["note"] = (item["note"] + "；" + path_note) if item.get("note") else path_note
+            if rule.get('answer_kind') == 'remaining_five':
+                item['note'] = path_note + ('；' + item['note'] if item.get('note') else '')
+            else:
+                item["note"] = (item["note"] + "；" + path_note) if item.get("note") else path_note
         answers.append(item)
     return answers, unexplained
 
@@ -319,7 +328,49 @@ def build_record(entry: dict, base_by_record: dict, sub_effect_refs=None) -> str
             status = "INFERRED_KEYWORD_HINT"
         else:
             status = "UNEXPLAINED_FRAGMENT"
-        fragments.append({"t": frag, "status": status, "cands": uniq})
+        item = {"t": frag, "status": status, "cands": uniq}
+        if table == "skilllist" and etype == 8 and not base_hits:
+            binding, rejection = DB.bind_type8(entry, frag, answers, children)
+            if binding:
+                item.update(status=DB.STATUS, binding=binding, cands=binding["fields"])
+            else:
+                item["binding_rejection"] = rejection
+        if table == "skilllist" and etype == 26 and not base_hits:
+            from type26_mana import bind_type26
+            binding, rejection = bind_type26(entry, frag, answers, children)
+            if binding:
+                item.update(status=DB.STATUS, binding=binding, cands=binding["fields"])
+            else:
+                item["binding_rejection"] = rejection
+        # P3B6's queue is separate from the old editorial decisions. A queue
+        # membership check only selects the structural recogniser; its native,
+        # grammar, source, subtree and all-reference guards still have to pass.
+        if not base_hits and not item.get("binding") and f"{table}|{entry.get('reference_id')}" in BB.scope()['records']:
+            binding, rejection = BB.bind(entry, frag, answers, children)
+            if binding:
+                item.update(status=DB.STATUS, binding=binding, cands=binding['fields'])
+                item.pop('binding_rejection', None)
+        if not base_hits and not item.get("binding") and f"{table}|{entry.get('reference_id')}" in B7.scope()['records']:
+            binding, rejection = B7.bind(entry, frag, answers, children)
+            if binding:
+                item.update(status=DB.STATUS, binding=binding, cands=binding['fields'])
+                item.pop('binding_rejection', None)
+        if not base_hits and not item.get("binding") and f"{table}|{entry.get('reference_id')}" in B8.scope()['records']:
+            binding, rejection = B8.bind(entry, frag, answers, children)
+            if binding:
+                item.update(status=DB.STATUS, binding=binding, cands=binding['fields'])
+                item.pop('binding_rejection', None)
+        if not base_hits and not item.get("binding") and f"{table}|{entry.get('reference_id')}" in B9.scope()['records']:
+            binding, rejection = B9.bind(entry, frag, answers, children)
+            if binding:
+                item.update(status=DB.STATUS, binding=binding, cands=binding['fields'])
+                item.pop('binding_rejection', None)
+        if not base_hits and not item.get("binding") and f"{table}|{entry.get('reference_id')}" in B10.scope()['records']:
+            binding, rejection = B10.bind(entry, frag, answers, children)
+            if binding:
+                item.update(status=DB.STATUS, binding=binding, cands=binding['fields'])
+                item.pop('binding_rejection', None)
+        fragments.append(item)
 
     RECORD_STORE[rkey] = {
         "rec_key": rkey,
@@ -379,7 +430,7 @@ def build_character(row: dict) -> dict:
     groups_out = []
     char_answers = char_unexpl = char_ans_view = 0
     frag_total = frag_attr = frag_hint = frag_base = frag_internal = 0
-    frag_confirmed = 0
+    frag_confirmed = frag_reviewed = 0
     frag_unique = set()
 
     for g in row["groups"]:
@@ -402,6 +453,10 @@ def build_character(row: dict) -> dict:
                     frag_attr += 1
                     frag_base += 1
                     frag_confirmed += 1
+                elif f["status"] == DB.STATUS:
+                    frag_attr += 1
+                    frag_confirmed += 1
+                    frag_reviewed += 1
                 elif f["status"] == "INFERRED_KEYWORD_HINT":
                     frag_attr += 1
                     frag_hint += 1
@@ -456,6 +511,7 @@ def build_character(row: dict) -> dict:
             "descriptions_attributed": frag_attr,
             "descriptions_with_hint": frag_hint,
             "descriptions_from_baseline": frag_base,
+            "descriptions_reviewed_bindings": frag_reviewed,
             "descriptions_unexplained": frag_total - frag_attr,
             "descriptions_per_page_unique": len(frag_unique),
             "descriptions_global_unique": None,
@@ -498,7 +554,7 @@ table{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0 0}
 th,td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}
 th{background:#161b23;color:var(--dim);font-weight:600}
 .raw{color:var(--dim);font-family:Consolas,monospace;font-size:12px}
-.st-CONFIRMED_NUMERIC,.st-BASELINE_DESCRIPTION_ANSWER{color:var(--ok)}
+.st-CONFIRMED_NUMERIC,.st-BASELINE_DESCRIPTION_ANSWER,.st-REVIEWED_DESCRIPTION_BINDING{color:var(--ok)}
 .st-CONFIRMED_FORMULA_ONLY,.st-INFERRED_KEYWORD_HINT{color:var(--warn)}
 .st-UNEXPLAINED_FIELD,.st-UNEXPLAINED_FRAGMENT{color:var(--bad)}
 details{margin:6px 0}
@@ -510,7 +566,7 @@ ul.nav li a{color:var(--acc);text-decoration:none;border:1px solid var(--line);b
 footer{color:var(--dim);font-size:12px;padding:10px 16px 40px;text-align:center}
 </style></head><body>
 <header>
-<h1>《锁链战记》角色技能档案 —— 已确认规则范围内（P1＋P2 累积）</h1>
+<h1>《锁链战记》角色技能档案 —— 已确认规则范围内（P1＋P2＋P3 试点）</h1>
 <div>
 <input id="q" placeholder="输入 cid 或角色名，如 30236 / チーカ" autocomplete="off">
 <button onclick="go()">查询</button>
@@ -531,7 +587,8 @@ const byCid=new Map(),byName=new Map();
 CHARS.forEach(d=>{byCid.set(String(d.cid),d);if(d.name){const a=byName.get(d.name)||[];a.push(d);byName.set(d.name,a);}});
 const STAT_ZH={'CONFIRMED_NUMERIC':'已确认数值','CONFIRMED_FORMULA_ONLY':'已确认公式（数值另含运行时因子）',
  'UNEXPLAINED_FIELD':'未解释字段','UNEXPLAINED_FRAGMENT':'未解释片段（本批无规则）',
- 'INFERRED_KEYWORD_HINT':'仅关键词提示（推断归属，非代码确认）','BASELINE_DESCRIPTION_ANSWER':'已有逐描述答案（cid30236 基线）'};
+ 'INFERRED_KEYWORD_HINT':'仅关键词提示（推断归属，非代码确认）','BASELINE_DESCRIPTION_ANSWER':'已有逐描述答案（cid30236 基线）',
+ 'REVIEWED_DESCRIPTION_BINDING':'已审定描述对应（原值／原生效果规则支持）'};
 const SCOPE_ZH={'IN_REVIEWED_VIEW':'该字段已在既有证据视图中被逐条评审',
  'BY_TYPE_EXTRAPOLATED':'按类型套用（该记录本身未被逐条评审）'};
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
@@ -570,7 +627,11 @@ function fragHtml(list){
   if(!list||!list.length)return '';
   let h='<details><summary>描述片段（'+list.length+'）</summary><table><tr><th>原文片段</th><th>片段归属</th><th>候选答案</th></tr>';
   list.forEach(f=>{const c=(f.cands||[]).map(x=>esc(x.value)+' <span class="raw">'+esc(x.f)+(x.from_baseline?' (已有答案)':'')+'</span>').join('<br>')||'<span class="miss">未解释</span>';
-    h+='<tr><td>'+esc(f.t)+'</td><td class="st-'+esc(f.status)+'">'+esc(STAT_ZH[f.status]||f.status)+'</td><td>'+c+'</td></tr>';});
+    const b=f.binding;
+    const detail=b?('<br><span class="raw">'+esc(b.strength)+'<br>对象：'+esc(b.target)+'；条件：'+esc(b.condition)+'；时间：'+esc(b.duration)+
+      '<br>模板：'+esc(b.template_id)+'；来源：'+esc((b.source||{}).record_key)+'；'+esc(b.limits)+'</span>'):'';
+    h+='<tr><td>'+esc(f.t)+'</td><td class="st-'+esc(f.status)+'">'+esc(STAT_ZH[f.status]||f.status)+
+      (f.binding_rejection?('<br><span class="raw">试点未绑定：'+esc(f.binding_rejection)+'</span>'):'')+'</td><td>'+c+detail+'</td></tr>';});
   return h+'</table></details>';
 }
 function renderChar(d){
@@ -582,7 +643,7 @@ function renderChar(d){
      '<span class="tag">技能记录 '+c.records+'</span><span class="tag">规则答案 '+c.answers+'（已逐条评审 '+c.answers_in_reviewed_view+'／按类型套用 '+c.answers_by_type_extrapolated+'）</span>'+
      (c.baseline_answers?('<span class="tag">已有逐描述答案 '+c.baseline_answers+'</span>'):'')+
      '<span class="tag">描述片段 '+c.descriptions+'（本页求和；去重 '+c.descriptions_unique+'，其中记录内部标签 '+c.descriptions_internal_label+'）</span>'+
-     '<span class="tag">有归属 '+c.descriptions_attributed+' ＝已有答案 '+c.descriptions_from_baseline+' ＋仅关键词提示 '+c.descriptions_with_hint+'／未解释 '+c.descriptions_unexplained+'</span>'+
+     '<span class="tag">有归属 '+c.descriptions_attributed+' ＝已有答案 '+c.descriptions_from_baseline+' ＋审定对应 '+c.descriptions_reviewed_bindings+' ＋仅关键词提示 '+c.descriptions_with_hint+'／未解释 '+c.descriptions_unexplained+'</span>'+
      '<span class="tag">必杀技类型标注 '+c.annotations+'</span>'+
      '<span class="tag">未解释字段 '+c.unexplained_fields+'</span><span class="tag">断链 '+c.broken_links+'</span></div>';
   if(d.baseline&&d.baseline.length){
@@ -715,7 +776,8 @@ def main():
     C.write_csv(OUT / "answers.csv", ans_header, ans_rows)
 
     desc_header = ["cid", "name", "group", "table", "record_id", "fragment_ja",
-                   "attribution_status", "candidate_count", "candidates"]
+                   "attribution_status", "candidate_count", "candidates", "binding_strength",
+                   "binding_json", "binding_rejection"]
     desc_rows = []
     for p in profiles:
         for g in p["groups"]:
@@ -724,14 +786,17 @@ def main():
                 for f in r["fragments"]:
                     desc_rows.append([p["cid"], p["name"], g["label"], r.get("table"),
                                       r.get("record_id"), f["t"], f["status"], len(f["cands"]),
-                                      " | ".join(f"{c['f']}={c['value']}" for c in f["cands"])])
+                                      " | ".join(f"{c['f']}={c['value']}" for c in f["cands"]),
+                                      (f.get("binding") or {}).get("strength"),
+                                      json.dumps(f["binding"], ensure_ascii=False) if f.get("binding") else "",
+                                      f.get("binding_rejection")])
     C.write_csv(OUT / "descriptions.csv", desc_header, desc_rows)
 
     char_header = ["cid", "name", "title", "rarity", "job_name", "charainfo_layer", "status",
                    "records", "answers", "answers_in_reviewed_view", "answers_by_type_extrapolated",
                    "baseline_answers", "unexplained_fields", "annotations", "descriptions",
                    "descriptions_unique", "descriptions_internal_label", "fragments_attributed",
-                   "descriptions_with_hint", "descriptions_from_baseline",
+                   "descriptions_with_hint", "descriptions_from_baseline", "descriptions_reviewed_bindings",
                    "descriptions_unexplained", "fragments_attributed_confirmed",
                    "fragments_attributed_hint_only", "broken_links", "sub_effect_refs"]
     char_rows = []
@@ -743,7 +808,7 @@ def main():
                           c["baseline_answers"], c["unexplained_fields"], c["annotations"],
                           c["descriptions"], c["descriptions_unique"], c["descriptions_internal_label"],
                           c["fragments_attributed"], c["descriptions_with_hint"],
-                          c["descriptions_from_baseline"], c["descriptions_unexplained"],
+                          c["descriptions_from_baseline"], c["descriptions_reviewed_bindings"], c["descriptions_unexplained"],
                           c["fragments_attributed_confirmed"], c["fragments_attributed_hint_only"],
                           c["broken_links"], c["sub_effect_refs"]])
     C.write_csv(OUT / "characters.csv", char_header, char_rows)
@@ -760,6 +825,8 @@ def main():
     # C3/C4 denominators: unique-record answer rows and the per-page/global fragment split
     uniq_answer_rows = sum(len(r["answers"]) + sum(len(ch["answers"]) for ch in r["children"])
                            for r in RECORD_STORE.values())
+    parent_holder_keys = {(r["rec_key"], h["table"], h["record_id"], a["rule_key"], a["f"])
+                          for r in RECORD_STORE.values() for h in [r] + r["children"] for a in h["answers"]}
     per_char_answers = sum(p["coverage"]["answers"] for p in profiles)
     seen_refs = collections.Counter()
     for p in profiles:
@@ -787,7 +854,7 @@ def main():
         "status_counts": dict(status_count),
         "status_definition": {
             "完整": ("本批已确认规则范围内：每条描述片段都有**真实答案**（关键词提示不算归属）"
-                     "且无断链；本批只有 cid30236 有基线答案，故仍为 0"),
+                     "且无断链；真实答案包括基线、逐记录审定及冻结队列结构规则对应，不放宽未知片段要求"),
             "部分": "有规则答案，但存在未解释片段或断链",
             "仅未知": "该角色在已确认规则与本批已有答案范围内没有任何答案，全部字段与描述显示为未解释",
             "注意": "状态是「本批规则范围」口径，不等于全部战斗机制已解释；每页显式列出未解释片段、未解释字段与断链",
@@ -797,6 +864,9 @@ def main():
             "rule_answers_in_reviewed_view": sum(p["coverage"]["answers_in_reviewed_view"] for p in profiles),
             "rule_answers_by_type_extrapolated": sum(p["coverage"]["answers_by_type_extrapolated"] for p in profiles),
             "rule_answers_unique_records": uniq_answer_rows,
+            "rule_answers_parent_holder_keys": len(parent_holder_keys),
+            "rule_answers_duplicate_rows_in_records": uniq_answer_rows - len(parent_holder_keys),
+            "rule_answers_parent_holder_key_definition": "(父记录rec_key, 答案所属表, 所属记录ID, rule_key, 字段)去重；不含角色cid，不能称页求和或归一记录行求和",
             "rule_answers_shared_duplication": per_char_answers - uniq_answer_rows,
             "rule_answers_key": ("rule_answers 为按角色页引用求和；rule_answers_unique_records 为按唯一记录求和。"
                                  "差额来自被多角色共享、且带答案的记录被重复引用"),
@@ -817,6 +887,7 @@ def main():
             "descriptions_attributed": sum(p["coverage"]["descriptions_attributed"] for p in profiles),
             "descriptions_with_hint": sum(p["coverage"]["descriptions_with_hint"] for p in profiles),
             "descriptions_from_baseline": sum(p["coverage"]["descriptions_from_baseline"] for p in profiles),
+            "descriptions_reviewed_bindings": sum(p["coverage"]["descriptions_reviewed_bindings"] for p in profiles),
             "descriptions_unexplained": sum(p["coverage"]["descriptions_unexplained"] for p in profiles),
             "fragments_attributed_confirmed": sum(p["coverage"]["fragments_attributed_confirmed"] for p in profiles),
             "fragments_attributed_hint_only": sum(p["coverage"]["fragments_attributed_hint_only"] for p in profiles),

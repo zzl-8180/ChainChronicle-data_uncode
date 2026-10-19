@@ -1,0 +1,3524 @@
+{
+ "snapshot": "cache_full_20261015_v3",
+ "native_sha256": "562a6975fe722d39842a3c7daa3982785c04beaf503c4fe1cc6fbbec3cd047c1",
+ "metadata_sha256": "07d582df6318e128424e41b93a8a6e86b238b9be14832756a780e47fb70443b1",
+ "native_evidence_sha256": "f7747e1fbfb10a9632ad8e686be1ce307e51ecd044c78d8f63b75a26f73e3185",
+ "reference_scope_identity": {
+  "playable_count": 2236,
+  "playable_cids_sha256": "0c2a61d94768404bf96f7df383a8f91ee43465ddc8e43325cad24d20862676e1",
+  "profiles_cids_sha256": "0c2a61d94768404bf96f7df383a8f91ee43465ddc8e43325cad24d20862676e1",
+  "links_cids_sha256": "0c2a61d94768404bf96f7df383a8f91ee43465ddc8e43325cad24d20862676e1",
+  "playable_roster_sha256": "79ca6c3d820d25c2327cf28bc49c16ca8a6650bc70d7dd11396b0dfe4e0e6f39",
+  "other_roster_sha256": "750a8da58b49bf38b414ca63f5f4cf5be7957fb08ebed599d42d557ec82e6433"
+ },
+ "scope_kind": "主持批准type5 22及type11 15；有限结构/原值/原生对应，不推广同句或名单",
+ "records": {
+  "charainfo|5": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/4",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/4",
+    "raw_record_sha256": "fa7a848d0a6cc02a55e95e144a30d4bcdcb01bc971143f5fbd5464805ff4b162",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "2fc4ab63d6d68261519f9cf5915d168a4b0ef5d0259d99de7c85c75e345f6a21",
+   "raw_sha256": "fa7a848d0a6cc02a55e95e144a30d4bcdcb01bc971143f5fbd5464805ff4b162",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 6.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 6))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 5,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 5,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/4",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/4",
+       "raw_record_sha256": "fa7a848d0a6cc02a55e95e144a30d4bcdcb01bc971143f5fbd5464805ff4b162",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "2fc4ab63d6d68261519f9cf5915d168a4b0ef5d0259d99de7c85c75e345f6a21"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 5,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 5,
+         "develop_only": 0,
+         "scost": 1,
+         "sname": "破邪の牙",
+         "stext": "直線範囲上にいる敵１体に中ダメージを与える。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/3",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/3",
+         "byte_begin": 935,
+         "byte_end_exclusive": 1182,
+         "raw_record_sha256": "a63823d244a5a143d487e6e8676164789427f0208cb08eff38f3e64e3d2cb228"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/4",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/4",
+     "raw_record_sha256": "fa7a848d0a6cc02a55e95e144a30d4bcdcb01bc971143f5fbd5464805ff4b162",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "fa7a848d0a6cc02a55e95e144a30d4bcdcb01bc971143f5fbd5464805ff4b162",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "fa7a848d0a6cc02a55e95e144a30d4bcdcb01bc971143f5fbd5464805ff4b162"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 5,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/3",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/3",
+       "byte_begin": 935,
+       "byte_end_exclusive": 1182,
+       "raw_record_sha256": "a63823d244a5a143d487e6e8676164789427f0208cb08eff38f3e64e3d2cb228"
+      },
+      "raw_sha256": "9939022048fd66c51392716c74a2bf6b1e5b29d92a95183f4c63b948ab2973ec"
+     }
+    ]
+   }
+  },
+  "charainfo|21": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/19",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/19",
+    "raw_record_sha256": "47aac4ab69e290ea1583d03b50f25c53f132f1edb0c060ee838ee37be60e6561",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "3d4e26ca7644468c96c7dcc0f0d9fc612c86e3436c9ad7da245ac691b14dd169",
+   "raw_sha256": "47aac4ab69e290ea1583d03b50f25c53f132f1edb0c060ee838ee37be60e6561",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 11.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 11))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 21,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 21,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/19",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/19",
+       "raw_record_sha256": "47aac4ab69e290ea1583d03b50f25c53f132f1edb0c060ee838ee37be60e6561",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "3d4e26ca7644468c96c7dcc0f0d9fc612c86e3436c9ad7da245ac691b14dd169"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/19",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/19",
+     "raw_record_sha256": "47aac4ab69e290ea1583d03b50f25c53f132f1edb0c060ee838ee37be60e6561",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "47aac4ab69e290ea1583d03b50f25c53f132f1edb0c060ee838ee37be60e6561",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "47aac4ab69e290ea1583d03b50f25c53f132f1edb0c060ee838ee37be60e6561"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|34": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/32",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/32",
+    "raw_record_sha256": "9845489548a4a22f3bfd4ec0fc3b5b6e8661ab176b8b817d0cf2082d325efbb4",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "d1f66b0fe0f5ee385b9ffea7f050fae2e5fc1c7f5e9d9281f9ac45f61343b994",
+   "raw_sha256": "9845489548a4a22f3bfd4ec0fc3b5b6e8661ab176b8b817d0cf2082d325efbb4",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 5.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 34,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 34,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/32",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/32",
+       "raw_record_sha256": "9845489548a4a22f3bfd4ec0fc3b5b6e8661ab176b8b817d0cf2082d325efbb4",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "d1f66b0fe0f5ee385b9ffea7f050fae2e5fc1c7f5e9d9281f9ac45f61343b994"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/32",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/32",
+     "raw_record_sha256": "9845489548a4a22f3bfd4ec0fc3b5b6e8661ab176b8b817d0cf2082d325efbb4",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "9845489548a4a22f3bfd4ec0fc3b5b6e8661ab176b8b817d0cf2082d325efbb4",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "9845489548a4a22f3bfd4ec0fc3b5b6e8661ab176b8b817d0cf2082d325efbb4"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|36": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/34",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/34",
+    "raw_record_sha256": "e94d84476497ddf89d0006df65e963b2b1496a491e029bd5830d91381222e386",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "d1f66b0fe0f5ee385b9ffea7f050fae2e5fc1c7f5e9d9281f9ac45f61343b994",
+   "raw_sha256": "e94d84476497ddf89d0006df65e963b2b1496a491e029bd5830d91381222e386",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 5.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 36,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 36,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/34",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/34",
+       "raw_record_sha256": "e94d84476497ddf89d0006df65e963b2b1496a491e029bd5830d91381222e386",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "d1f66b0fe0f5ee385b9ffea7f050fae2e5fc1c7f5e9d9281f9ac45f61343b994"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/34",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/34",
+     "raw_record_sha256": "e94d84476497ddf89d0006df65e963b2b1496a491e029bd5830d91381222e386",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "e94d84476497ddf89d0006df65e963b2b1496a491e029bd5830d91381222e386",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "e94d84476497ddf89d0006df65e963b2b1496a491e029bd5830d91381222e386"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|39": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/37",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/37",
+    "raw_record_sha256": "3809e9197943b9159af497d5413ade2ff76398ed5c1917faddf84be654dea812",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "2776e3654b4c12f1bab4c7c3e667c94cec9700c1cb3097b21a47f9d52a58ddec",
+   "raw_sha256": "3809e9197943b9159af497d5413ade2ff76398ed5c1917faddf84be654dea812",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 12.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 12))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 39,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 39,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/37",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/37",
+       "raw_record_sha256": "3809e9197943b9159af497d5413ade2ff76398ed5c1917faddf84be654dea812",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "2776e3654b4c12f1bab4c7c3e667c94cec9700c1cb3097b21a47f9d52a58ddec"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 39,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 39,
+         "develop_only": 0,
+         "scost": 2,
+         "sname": "ハイヒール",
+         "stext": "味方全体のＨＰを中回復する。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/11",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/11",
+         "byte_begin": 3328,
+         "byte_end_exclusive": 3534,
+         "raw_record_sha256": "529d84d348287b42648e12762b1246f2e0406b8a3c4640ef7baea5762b2ea018"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/37",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/37",
+     "raw_record_sha256": "3809e9197943b9159af497d5413ade2ff76398ed5c1917faddf84be654dea812",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "3809e9197943b9159af497d5413ade2ff76398ed5c1917faddf84be654dea812",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "3809e9197943b9159af497d5413ade2ff76398ed5c1917faddf84be654dea812"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 39,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/11",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/11",
+       "byte_begin": 3328,
+       "byte_end_exclusive": 3534,
+       "raw_record_sha256": "529d84d348287b42648e12762b1246f2e0406b8a3c4640ef7baea5762b2ea018"
+      },
+      "raw_sha256": "b92e81d226840e0bf321c3a95d03b345b8f929ecdee1746fb17ea6891a015d82"
+     }
+    ]
+   }
+  },
+  "charainfo|41": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/39",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/39",
+    "raw_record_sha256": "d0a07ecad668f4ffb319d77ee3ab28fc127b2e542bfbad6a49207b52e50d01c0",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "9c46b5dc8a949a1fa0aee4b9f4c869ad2499510152358ec65369fb4facacdb6d",
+   "raw_sha256": "d0a07ecad668f4ffb319d77ee3ab28fc127b2e542bfbad6a49207b52e50d01c0",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 5.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 41,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 41,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/39",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/39",
+       "raw_record_sha256": "d0a07ecad668f4ffb319d77ee3ab28fc127b2e542bfbad6a49207b52e50d01c0",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "9c46b5dc8a949a1fa0aee4b9f4c869ad2499510152358ec65369fb4facacdb6d"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/39",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/39",
+     "raw_record_sha256": "d0a07ecad668f4ffb319d77ee3ab28fc127b2e542bfbad6a49207b52e50d01c0",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "d0a07ecad668f4ffb319d77ee3ab28fc127b2e542bfbad6a49207b52e50d01c0",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "d0a07ecad668f4ffb319d77ee3ab28fc127b2e542bfbad6a49207b52e50d01c0"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|45": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/43",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/43",
+    "raw_record_sha256": "cffe060b280f7761f15a690a1cf9807c476bf5cc70aac5c989d3376c0199e496",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "cf5df3e6530fe00eeb11b0764e8c794b710298838179c3378815dc6bd944274a",
+   "raw_sha256": "cffe060b280f7761f15a690a1cf9807c476bf5cc70aac5c989d3376c0199e496",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 6.5,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 6.5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 45,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 45,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/43",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/43",
+       "raw_record_sha256": "cffe060b280f7761f15a690a1cf9807c476bf5cc70aac5c989d3376c0199e496",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "cf5df3e6530fe00eeb11b0764e8c794b710298838179c3378815dc6bd944274a"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 45,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 45,
+         "develop_only": 0,
+         "scost": 1,
+         "sname": "エンジェルヒール",
+         "stext": "味方全体のＨＰを小回復する。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/14",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/14",
+         "byte_begin": 4064,
+         "byte_end_exclusive": 4288,
+         "raw_record_sha256": "9df50f705e05750705e5caad21066f52846e187a1d196f638658b5c3ebc97213"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/43",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/43",
+     "raw_record_sha256": "cffe060b280f7761f15a690a1cf9807c476bf5cc70aac5c989d3376c0199e496",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "cffe060b280f7761f15a690a1cf9807c476bf5cc70aac5c989d3376c0199e496",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "cffe060b280f7761f15a690a1cf9807c476bf5cc70aac5c989d3376c0199e496"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 45,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/14",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/14",
+       "byte_begin": 4064,
+       "byte_end_exclusive": 4288,
+       "raw_record_sha256": "9df50f705e05750705e5caad21066f52846e187a1d196f638658b5c3ebc97213"
+      },
+      "raw_sha256": "a04febe36554936c0d4a5bb3288a93fdfcddd23a0ed6d3ca0f8bf121868fe979"
+     }
+    ]
+   }
+  },
+  "charainfo|63": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/59",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/59",
+    "raw_record_sha256": "b8a426b15e5660beee1d8bc3425de3d08f120ab8fc98f8a3a9d9e9c63aaecc78",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "68e2a583914f171d3cfac5bd078ed7621831274ae9f6fd21fcaeff3a9bac3de7",
+   "raw_sha256": "b8a426b15e5660beee1d8bc3425de3d08f120ab8fc98f8a3a9d9e9c63aaecc78",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 9.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 9))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 63,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 63,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/59",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/59",
+       "raw_record_sha256": "b8a426b15e5660beee1d8bc3425de3d08f120ab8fc98f8a3a9d9e9c63aaecc78",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "68e2a583914f171d3cfac5bd078ed7621831274ae9f6fd21fcaeff3a9bac3de7"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 63,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 63,
+         "develop_only": 0,
+         "scost": 2,
+         "sname": "オーラショット",
+         "stext": "直線範囲上にいる敵１体に中ダメージを与える。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/27",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/27",
+         "byte_begin": 7950,
+         "byte_end_exclusive": 8216,
+         "raw_record_sha256": "04df17a387d91efe4e34cf49d7b0206d8a9d91cc192a28e015d7f0f9b70e6817"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/59",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/59",
+     "raw_record_sha256": "b8a426b15e5660beee1d8bc3425de3d08f120ab8fc98f8a3a9d9e9c63aaecc78",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "b8a426b15e5660beee1d8bc3425de3d08f120ab8fc98f8a3a9d9e9c63aaecc78",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "b8a426b15e5660beee1d8bc3425de3d08f120ab8fc98f8a3a9d9e9c63aaecc78"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 63,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/27",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/27",
+       "byte_begin": 7950,
+       "byte_end_exclusive": 8216,
+       "raw_record_sha256": "04df17a387d91efe4e34cf49d7b0206d8a9d91cc192a28e015d7f0f9b70e6817"
+      },
+      "raw_sha256": "0e2fd76059655ddb1f8d2790057f556dfedf2dbd131da9b2d7c5f96e5c3322ca"
+     }
+    ]
+   }
+  },
+  "charainfo|1021": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/184",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/184",
+    "raw_record_sha256": "8eca6ad06f02d475fc87664ffe079d83c559fc2242556c576d03b1c94a981b23",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "2776e3654b4c12f1bab4c7c3e667c94cec9700c1cb3097b21a47f9d52a58ddec",
+   "raw_sha256": "8eca6ad06f02d475fc87664ffe079d83c559fc2242556c576d03b1c94a981b23",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 12.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 12))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 1021,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 1021,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/184",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/184",
+       "raw_record_sha256": "8eca6ad06f02d475fc87664ffe079d83c559fc2242556c576d03b1c94a981b23",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "2776e3654b4c12f1bab4c7c3e667c94cec9700c1cb3097b21a47f9d52a58ddec"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 1021,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 1021,
+         "develop_only": 0,
+         "scost": 2,
+         "sname": "ハイヒール",
+         "stext": "味方全体のＨＰを中回復する。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/52",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/52",
+         "byte_begin": 17649,
+         "byte_end_exclusive": 17857,
+         "raw_record_sha256": "401d226783cc1a830804282a8a1584dfb1bc9489f5c900fbbc4aa1a369e86ae0"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/184",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/184",
+     "raw_record_sha256": "8eca6ad06f02d475fc87664ffe079d83c559fc2242556c576d03b1c94a981b23",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "8eca6ad06f02d475fc87664ffe079d83c559fc2242556c576d03b1c94a981b23",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "8eca6ad06f02d475fc87664ffe079d83c559fc2242556c576d03b1c94a981b23"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 1021,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/52",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/52",
+       "byte_begin": 17649,
+       "byte_end_exclusive": 17857,
+       "raw_record_sha256": "401d226783cc1a830804282a8a1584dfb1bc9489f5c900fbbc4aa1a369e86ae0"
+      },
+      "raw_sha256": "830dd4dad4ddfd2b34bbce9f9290d96b6092b6b8239f5e29d7e35602c7c71622"
+     }
+    ]
+   }
+  },
+  "charainfo|1058": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/213",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/213",
+    "raw_record_sha256": "e2c804a1861459dfadd39f693fc8c5679a6ebf615144a86da9aa57d3f4f8b6a8",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "210264928179c89abd32f34f0ec4322bf29433f3359d60719d5c59ed0a700c64",
+   "raw_sha256": "e2c804a1861459dfadd39f693fc8c5679a6ebf615144a86da9aa57d3f4f8b6a8",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 13.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 13))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 1058,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 1058,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/213",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/213",
+       "raw_record_sha256": "e2c804a1861459dfadd39f693fc8c5679a6ebf615144a86da9aa57d3f4f8b6a8",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "210264928179c89abd32f34f0ec4322bf29433f3359d60719d5c59ed0a700c64"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 1058,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 1058,
+         "develop_only": 0,
+         "scost": 3,
+         "sname": "アーティライト",
+         "stext": "直線範囲上にいる敵１体に大ダメージを与える。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/144",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/144",
+         "byte_begin": 67411,
+         "byte_end_exclusive": 67679,
+         "raw_record_sha256": "396deb1d77ac8acc83648f27faf21015cbecc7a42f0da23733aec7d39cc1028b"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/213",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/213",
+     "raw_record_sha256": "e2c804a1861459dfadd39f693fc8c5679a6ebf615144a86da9aa57d3f4f8b6a8",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "e2c804a1861459dfadd39f693fc8c5679a6ebf615144a86da9aa57d3f4f8b6a8",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "e2c804a1861459dfadd39f693fc8c5679a6ebf615144a86da9aa57d3f4f8b6a8"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 1058,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/144",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/144",
+       "byte_begin": 67411,
+       "byte_end_exclusive": 67679,
+       "raw_record_sha256": "396deb1d77ac8acc83648f27faf21015cbecc7a42f0da23733aec7d39cc1028b"
+      },
+      "raw_sha256": "a09daa593534cd78c9bd867dc91c6b3a962f8835548d5d9821a96049a20c1535"
+     }
+    ]
+   }
+  },
+  "charainfo|2006": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/280",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/280",
+    "raw_record_sha256": "0200d4a3b3f8327108841c5377394719f7afea7ca4c71390daff5f69b2459cb5",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "9f113e2250b69a210bf6ac1d37dac842cbe63b9c2781e1dfa626b7847ad3d417",
+   "raw_sha256": "0200d4a3b3f8327108841c5377394719f7afea7ca4c71390daff5f69b2459cb5",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 3.5,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 3.5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 2006,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 2006,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/280",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/280",
+       "raw_record_sha256": "0200d4a3b3f8327108841c5377394719f7afea7ca4c71390daff5f69b2459cb5",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "9f113e2250b69a210bf6ac1d37dac842cbe63b9c2781e1dfa626b7847ad3d417"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/280",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/280",
+     "raw_record_sha256": "0200d4a3b3f8327108841c5377394719f7afea7ca4c71390daff5f69b2459cb5",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "0200d4a3b3f8327108841c5377394719f7afea7ca4c71390daff5f69b2459cb5",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "0200d4a3b3f8327108841c5377394719f7afea7ca4c71390daff5f69b2459cb5"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|2009": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/282",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/282",
+    "raw_record_sha256": "f67fa871166e613647c76255d630b40171a295352635e784539c7f99ecc083cd",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "35bbf847ba3de38992ce72be077aa69da94e0756bdb9be80f2cd6b15648f2675",
+   "raw_sha256": "f67fa871166e613647c76255d630b40171a295352635e784539c7f99ecc083cd",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 3.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 3))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 2009,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 2009,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/282",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/282",
+       "raw_record_sha256": "f67fa871166e613647c76255d630b40171a295352635e784539c7f99ecc083cd",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "35bbf847ba3de38992ce72be077aa69da94e0756bdb9be80f2cd6b15648f2675"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/282",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/282",
+     "raw_record_sha256": "f67fa871166e613647c76255d630b40171a295352635e784539c7f99ecc083cd",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "f67fa871166e613647c76255d630b40171a295352635e784539c7f99ecc083cd",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "f67fa871166e613647c76255d630b40171a295352635e784539c7f99ecc083cd"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|2020": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/293",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/293",
+    "raw_record_sha256": "730568aff76ef49d79869d6a311991e6a4ad72d5df0056f3accbe1ef95c1dadf",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "ce4c1bf7b939a1c288caf4a066705a53f6f7a16ea5afc8bbdeb2940ebac4f1d6",
+   "raw_sha256": "730568aff76ef49d79869d6a311991e6a4ad72d5df0056f3accbe1ef95c1dadf",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 5.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 2020,
+      "path": "/groups/1/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 2020,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/293",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/293",
+       "raw_record_sha256": "730568aff76ef49d79869d6a311991e6a4ad72d5df0056f3accbe1ef95c1dadf",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "ce4c1bf7b939a1c288caf4a066705a53f6f7a16ea5afc8bbdeb2940ebac4f1d6"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/293",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/293",
+     "raw_record_sha256": "730568aff76ef49d79869d6a311991e6a4ad72d5df0056f3accbe1ef95c1dadf",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "730568aff76ef49d79869d6a311991e6a4ad72d5df0056f3accbe1ef95c1dadf",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "730568aff76ef49d79869d6a311991e6a4ad72d5df0056f3accbe1ef95c1dadf"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|4220": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/520",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/520",
+    "raw_record_sha256": "af3034ef3c0507f8d0c9a323d10378c4d3e77d11a62de4a6db2084beed3841b9",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "9a9496765d02ba0d5cec90a0d1d77cca2d8d4331c6cb140ef3eb4b465ef92c90",
+   "raw_sha256": "af3034ef3c0507f8d0c9a323d10378c4d3e77d11a62de4a6db2084beed3841b9",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 4.5,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 4.5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 4220,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 4220,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/520",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/520",
+       "raw_record_sha256": "af3034ef3c0507f8d0c9a323d10378c4d3e77d11a62de4a6db2084beed3841b9",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "9a9496765d02ba0d5cec90a0d1d77cca2d8d4331c6cb140ef3eb4b465ef92c90"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/520",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/520",
+     "raw_record_sha256": "af3034ef3c0507f8d0c9a323d10378c4d3e77d11a62de4a6db2084beed3841b9",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "af3034ef3c0507f8d0c9a323d10378c4d3e77d11a62de4a6db2084beed3841b9",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "af3034ef3c0507f8d0c9a323d10378c4d3e77d11a62de4a6db2084beed3841b9"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|4277": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/542",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/542",
+    "raw_record_sha256": "02a3be89ee2eeb32fe123988f220f4c77c0d0674aea84a5aa9fb4ce18467b207",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "8edd916c9febd01f9f0aa8fc012ad429fbe96492aa32dafa51ad56dd70bc9469",
+   "raw_sha256": "02a3be89ee2eeb32fe123988f220f4c77c0d0674aea84a5aa9fb4ce18467b207",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 20.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 20))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 4277,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 4277,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/542",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/542",
+       "raw_record_sha256": "02a3be89ee2eeb32fe123988f220f4c77c0d0674aea84a5aa9fb4ce18467b207",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "8edd916c9febd01f9f0aa8fc012ad429fbe96492aa32dafa51ad56dd70bc9469"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/542",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/542",
+     "raw_record_sha256": "02a3be89ee2eeb32fe123988f220f4c77c0d0674aea84a5aa9fb4ce18467b207",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "02a3be89ee2eeb32fe123988f220f4c77c0d0674aea84a5aa9fb4ce18467b207",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "02a3be89ee2eeb32fe123988f220f4c77c0d0674aea84a5aa9fb4ce18467b207"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|5023": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/583",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/583",
+    "raw_record_sha256": "a7dc0910e7a5b9f1968a5bfd090e0a8422371dc54456ab596d94848ee225f979",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "2776e3654b4c12f1bab4c7c3e667c94cec9700c1cb3097b21a47f9d52a58ddec",
+   "raw_sha256": "a7dc0910e7a5b9f1968a5bfd090e0a8422371dc54456ab596d94848ee225f979",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 12.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 12))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 5023,
+      "path": "/groups/1/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 5023,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/583",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/583",
+       "raw_record_sha256": "a7dc0910e7a5b9f1968a5bfd090e0a8422371dc54456ab596d94848ee225f979",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "2776e3654b4c12f1bab4c7c3e667c94cec9700c1cb3097b21a47f9d52a58ddec"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/583",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/583",
+     "raw_record_sha256": "a7dc0910e7a5b9f1968a5bfd090e0a8422371dc54456ab596d94848ee225f979",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "a7dc0910e7a5b9f1968a5bfd090e0a8422371dc54456ab596d94848ee225f979",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "a7dc0910e7a5b9f1968a5bfd090e0a8422371dc54456ab596d94848ee225f979"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|5028": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/588",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/588",
+    "raw_record_sha256": "5cec2967fd76f516cc324496b07c1282fd9526e905d7075d87b1a47f507962b1",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "04c53a25cae0219caa5330e2892c8e26a13f12c015fe5abf29fb14f983f74060",
+   "raw_sha256": "5cec2967fd76f516cc324496b07c1282fd9526e905d7075d87b1a47f507962b1",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 8.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 8))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 5028,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 5028,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/588",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/588",
+       "raw_record_sha256": "5cec2967fd76f516cc324496b07c1282fd9526e905d7075d87b1a47f507962b1",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "04c53a25cae0219caa5330e2892c8e26a13f12c015fe5abf29fb14f983f74060"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/588",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/588",
+     "raw_record_sha256": "5cec2967fd76f516cc324496b07c1282fd9526e905d7075d87b1a47f507962b1",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "5cec2967fd76f516cc324496b07c1282fd9526e905d7075d87b1a47f507962b1",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "5cec2967fd76f516cc324496b07c1282fd9526e905d7075d87b1a47f507962b1"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|5042": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/600",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/600",
+    "raw_record_sha256": "ebc57c78948174014f5450778221b57d4fbbc556d365bc1d88e9476443e722dc",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "28eed089769e0720b956bdea0b023c1437a23425114667ee3ea74e5f4beb6cc8",
+   "raw_sha256": "ebc57c78948174014f5450778221b57d4fbbc556d365bc1d88e9476443e722dc",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 11.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 11))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 5042,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 5042,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/600",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/600",
+       "raw_record_sha256": "ebc57c78948174014f5450778221b57d4fbbc556d365bc1d88e9476443e722dc",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "28eed089769e0720b956bdea0b023c1437a23425114667ee3ea74e5f4beb6cc8"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 5042,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 5042,
+         "develop_only": 0,
+         "scost": 2,
+         "sname": "ホワイトインパクト",
+         "stext": "直線範囲上にいる敵１体に中ダメージを与える",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/414",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/414",
+         "byte_begin": 205648,
+         "byte_end_exclusive": 205922,
+         "raw_record_sha256": "73c376eedef07318583c72ac88ae90591e6ef6baafda6d7e93ca30f77a92f643"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/600",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/600",
+     "raw_record_sha256": "ebc57c78948174014f5450778221b57d4fbbc556d365bc1d88e9476443e722dc",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "ebc57c78948174014f5450778221b57d4fbbc556d365bc1d88e9476443e722dc",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "ebc57c78948174014f5450778221b57d4fbbc556d365bc1d88e9476443e722dc"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 5042,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/414",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/414",
+       "byte_begin": 205648,
+       "byte_end_exclusive": 205922,
+       "raw_record_sha256": "73c376eedef07318583c72ac88ae90591e6ef6baafda6d7e93ca30f77a92f643"
+      },
+      "raw_sha256": "1fd5839f233f31fa119da4406243d761028da5fbf217ea8d792368295be27905"
+     }
+    ]
+   }
+  },
+  "charainfo|5232": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/653",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/653",
+    "raw_record_sha256": "94f23971096e33dd0a94c77c488baa95ee8f6a5c9d144ad60f9c3812efb5fb80",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "24618cd696fec95d31cff399308234d22aaa04da9700a79e78066ab510a5b071",
+   "raw_sha256": "94f23971096e33dd0a94c77c488baa95ee8f6a5c9d144ad60f9c3812efb5fb80",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 12.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 12))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 5232,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 5232,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/653",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/653",
+       "raw_record_sha256": "94f23971096e33dd0a94c77c488baa95ee8f6a5c9d144ad60f9c3812efb5fb80",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "24618cd696fec95d31cff399308234d22aaa04da9700a79e78066ab510a5b071"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/653",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/653",
+     "raw_record_sha256": "94f23971096e33dd0a94c77c488baa95ee8f6a5c9d144ad60f9c3812efb5fb80",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "94f23971096e33dd0a94c77c488baa95ee8f6a5c9d144ad60f9c3812efb5fb80",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "94f23971096e33dd0a94c77c488baa95ee8f6a5c9d144ad60f9c3812efb5fb80"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|6005": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/702",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/702",
+    "raw_record_sha256": "3d66f7d1d84e4be3495e95f116618782075eab79f45819d703d19790a52310d5",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "10323da44e5df092b59dae9ef22f609d87da6f356a72763b2ac30e38e2f2b0bf",
+   "raw_sha256": "3d66f7d1d84e4be3495e95f116618782075eab79f45819d703d19790a52310d5",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 7.699999809265137,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 7.7))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 6005,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 6005,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/702",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/702",
+       "raw_record_sha256": "3d66f7d1d84e4be3495e95f116618782075eab79f45819d703d19790a52310d5",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "10323da44e5df092b59dae9ef22f609d87da6f356a72763b2ac30e38e2f2b0bf"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 6005,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 6005,
+         "develop_only": 0,
+         "scost": 2,
+         "sname": "桜花爛漫",
+         "stext": "直線範囲上にいる全ての敵に中ダメージを与える。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/479",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/479",
+         "byte_begin": 236077,
+         "byte_end_exclusive": 236333,
+         "raw_record_sha256": "896a8b566deb91f71b6461779be542f373c64076e786255c549653aead2f6f88"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/702",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/702",
+     "raw_record_sha256": "3d66f7d1d84e4be3495e95f116618782075eab79f45819d703d19790a52310d5",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "3d66f7d1d84e4be3495e95f116618782075eab79f45819d703d19790a52310d5",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "3d66f7d1d84e4be3495e95f116618782075eab79f45819d703d19790a52310d5"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 6005,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/479",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/479",
+       "byte_begin": 236077,
+       "byte_end_exclusive": 236333,
+       "raw_record_sha256": "896a8b566deb91f71b6461779be542f373c64076e786255c549653aead2f6f88"
+      },
+      "raw_sha256": "90125129ccac4ac14aa686b01675e739c67b36e73e6f288c7c0dcb1253fcda87"
+     }
+    ]
+   }
+  },
+  "charainfo|6026": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/720",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/720",
+    "raw_record_sha256": "571cb6c8a2b1a849aecaf110f48a9267b95e55cafcf6713f427d95c0907d9b58",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "8c4a86a0d4ac5a4bd19f35068a7cc0e441dcc32b9b0675f495cb05d6409cc93f",
+   "raw_sha256": "571cb6c8a2b1a849aecaf110f48a9267b95e55cafcf6713f427d95c0907d9b58",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 5.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 6026,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 6026,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/720",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/720",
+       "raw_record_sha256": "571cb6c8a2b1a849aecaf110f48a9267b95e55cafcf6713f427d95c0907d9b58",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "8c4a86a0d4ac5a4bd19f35068a7cc0e441dcc32b9b0675f495cb05d6409cc93f"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 6026,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 6026,
+         "develop_only": 0,
+         "scost": 1,
+         "sname": "抜刀術・鬼閃",
+         "stext": "直線範囲上にいる敵１体に小ダメージを与える。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/488",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/488",
+         "byte_begin": 239002,
+         "byte_end_exclusive": 239264,
+         "raw_record_sha256": "4609fd23a7b46fcb66d9a2426f31924e5712fb94b01bd118820a7815421d1a12"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/720",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/720",
+     "raw_record_sha256": "571cb6c8a2b1a849aecaf110f48a9267b95e55cafcf6713f427d95c0907d9b58",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "571cb6c8a2b1a849aecaf110f48a9267b95e55cafcf6713f427d95c0907d9b58",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "571cb6c8a2b1a849aecaf110f48a9267b95e55cafcf6713f427d95c0907d9b58"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 6026,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/488",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/488",
+       "byte_begin": 239002,
+       "byte_end_exclusive": 239264,
+       "raw_record_sha256": "4609fd23a7b46fcb66d9a2426f31924e5712fb94b01bd118820a7815421d1a12"
+      },
+      "raw_sha256": "0b4ce74dfaf4cdfcf1d4773681f4187825ca5485402575c4574c974a1398171b"
+     }
+    ]
+   }
+  },
+  "charainfo|7037": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/851",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/851",
+    "raw_record_sha256": "987350c7bb95421d95d543f7a5bb74ffee8f5edcf7558ba5c6bd660e7cc3d1f2",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "ffed724f4497b19f781e70c348b612dafee57354386161d4e7303e6f92538a62",
+   "raw_sha256": "987350c7bb95421d95d543f7a5bb74ffee8f5edcf7558ba5c6bd660e7cc3d1f2",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 6.5,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 6.5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 7037,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 7037,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/851",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/851",
+       "raw_record_sha256": "987350c7bb95421d95d543f7a5bb74ffee8f5edcf7558ba5c6bd660e7cc3d1f2",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "ffed724f4497b19f781e70c348b612dafee57354386161d4e7303e6f92538a62"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/851",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/851",
+     "raw_record_sha256": "987350c7bb95421d95d543f7a5bb74ffee8f5edcf7558ba5c6bd660e7cc3d1f2",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "987350c7bb95421d95d543f7a5bb74ffee8f5edcf7558ba5c6bd660e7cc3d1f2",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "987350c7bb95421d95d543f7a5bb74ffee8f5edcf7558ba5c6bd660e7cc3d1f2"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|7048": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/860",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/860",
+    "raw_record_sha256": "42ed662b9a6bb0cf2191493595cb4373a2b163bca06fed166fa5c431027235a3",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "d1f66b0fe0f5ee385b9ffea7f050fae2e5fc1c7f5e9d9281f9ac45f61343b994",
+   "raw_sha256": "42ed662b9a6bb0cf2191493595cb4373a2b163bca06fed166fa5c431027235a3",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 5.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 7048,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 7048,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/860",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/860",
+       "raw_record_sha256": "42ed662b9a6bb0cf2191493595cb4373a2b163bca06fed166fa5c431027235a3",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "d1f66b0fe0f5ee385b9ffea7f050fae2e5fc1c7f5e9d9281f9ac45f61343b994"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/860",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/860",
+     "raw_record_sha256": "42ed662b9a6bb0cf2191493595cb4373a2b163bca06fed166fa5c431027235a3",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "42ed662b9a6bb0cf2191493595cb4373a2b163bca06fed166fa5c431027235a3",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "42ed662b9a6bb0cf2191493595cb4373a2b163bca06fed166fa5c431027235a3"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|7050": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/862",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/862",
+    "raw_record_sha256": "399ff38c1bb678abd25ad1ccf04f267f4e444e5937757631485f3cac91201364",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "2776e3654b4c12f1bab4c7c3e667c94cec9700c1cb3097b21a47f9d52a58ddec",
+   "raw_sha256": "399ff38c1bb678abd25ad1ccf04f267f4e444e5937757631485f3cac91201364",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 12.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 12))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 7050,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 7050,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/862",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/862",
+       "raw_record_sha256": "399ff38c1bb678abd25ad1ccf04f267f4e444e5937757631485f3cac91201364",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "2776e3654b4c12f1bab4c7c3e667c94cec9700c1cb3097b21a47f9d52a58ddec"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/862",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/862",
+     "raw_record_sha256": "399ff38c1bb678abd25ad1ccf04f267f4e444e5937757631485f3cac91201364",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "399ff38c1bb678abd25ad1ccf04f267f4e444e5937757631485f3cac91201364",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "399ff38c1bb678abd25ad1ccf04f267f4e444e5937757631485f3cac91201364"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|7059": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/871",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/871",
+    "raw_record_sha256": "57b194a2b303ff7cce5101f44b20fb136932c1150de3d517d957fbbb122c2dae",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "8ca21aa42b9cdd953a75d27fb16280a9d07e278e359ed177daa97ea453f29f69",
+   "raw_sha256": "57b194a2b303ff7cce5101f44b20fb136932c1150de3d517d957fbbb122c2dae",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 8.5,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 8.5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 7059,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 7059,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/871",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/871",
+       "raw_record_sha256": "57b194a2b303ff7cce5101f44b20fb136932c1150de3d517d957fbbb122c2dae",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "8ca21aa42b9cdd953a75d27fb16280a9d07e278e359ed177daa97ea453f29f69"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/871",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/871",
+     "raw_record_sha256": "57b194a2b303ff7cce5101f44b20fb136932c1150de3d517d957fbbb122c2dae",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "57b194a2b303ff7cce5101f44b20fb136932c1150de3d517d957fbbb122c2dae",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "57b194a2b303ff7cce5101f44b20fb136932c1150de3d517d957fbbb122c2dae"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|7513": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/930",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/930",
+    "raw_record_sha256": "5c9397f8d224fe31472ad552c46d518b9af6952540e73f71be69a1535bdf31ae",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "8a4c3c4242d7c3848d5cf825e1d2cca0dd3a530bd668d81bfdf2aae1eb06b2cf",
+   "raw_sha256": "5c9397f8d224fe31472ad552c46d518b9af6952540e73f71be69a1535bdf31ae",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 15.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 15))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 7513,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 7513,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/930",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/930",
+       "raw_record_sha256": "5c9397f8d224fe31472ad552c46d518b9af6952540e73f71be69a1535bdf31ae",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "8a4c3c4242d7c3848d5cf825e1d2cca0dd3a530bd668d81bfdf2aae1eb06b2cf"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 7513,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 7513,
+         "develop_only": 0,
+         "scost": 3,
+         "sname": "ブルーレンブリッツ",
+         "stext": "直線範囲上にいる敵１体に大ダメージを与える。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/632",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/632",
+         "byte_begin": 310938,
+         "byte_end_exclusive": 311218,
+         "raw_record_sha256": "6365b5ac874d764eed632ccca10e15496868fa329b2e20bd1e74de63be5d0f64"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/930",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/930",
+     "raw_record_sha256": "5c9397f8d224fe31472ad552c46d518b9af6952540e73f71be69a1535bdf31ae",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "5c9397f8d224fe31472ad552c46d518b9af6952540e73f71be69a1535bdf31ae",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "5c9397f8d224fe31472ad552c46d518b9af6952540e73f71be69a1535bdf31ae"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 7513,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/632",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/632",
+       "byte_begin": 310938,
+       "byte_end_exclusive": 311218,
+       "raw_record_sha256": "6365b5ac874d764eed632ccca10e15496868fa329b2e20bd1e74de63be5d0f64"
+      },
+      "raw_sha256": "98d100e4cb57bc50c0beeaeb19341a6e8dea76280fc0fec1dbd636f5ef627cee"
+     }
+    ]
+   }
+  },
+  "charainfo|7559": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/954",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/954",
+    "raw_record_sha256": "8bf6ee906bcbf70f8ca062d22d73f351a36898790cbcaf3995983a80c910e97c",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "b924c6c8d775342a64fd821beb0a69d8ad3d994211f993cfd0b0d9402746b1c5",
+   "raw_sha256": "8bf6ee906bcbf70f8ca062d22d73f351a36898790cbcaf3995983a80c910e97c",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 11.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 11))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 7559,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 7559,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/954",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/954",
+       "raw_record_sha256": "8bf6ee906bcbf70f8ca062d22d73f351a36898790cbcaf3995983a80c910e97c",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "b924c6c8d775342a64fd821beb0a69d8ad3d994211f993cfd0b0d9402746b1c5"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/954",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/954",
+     "raw_record_sha256": "8bf6ee906bcbf70f8ca062d22d73f351a36898790cbcaf3995983a80c910e97c",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "8bf6ee906bcbf70f8ca062d22d73f351a36898790cbcaf3995983a80c910e97c",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "8bf6ee906bcbf70f8ca062d22d73f351a36898790cbcaf3995983a80c910e97c"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|8005": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1036",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1036",
+    "raw_record_sha256": "e37ead2415491301adc2e9867939b794763e699c5e00d66441747b494f038d88",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "73008f39ab485a2418faaf37a2c939ea38518e9c0c67294a7db4b325d016a245",
+   "raw_sha256": "e37ead2415491301adc2e9867939b794763e699c5e00d66441747b494f038d88",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 6.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 6))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 8005,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 8005,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/1036",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/1036",
+       "raw_record_sha256": "e37ead2415491301adc2e9867939b794763e699c5e00d66441747b494f038d88",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "73008f39ab485a2418faaf37a2c939ea38518e9c0c67294a7db4b325d016a245"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/1036",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/1036",
+     "raw_record_sha256": "e37ead2415491301adc2e9867939b794763e699c5e00d66441747b494f038d88",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "e37ead2415491301adc2e9867939b794763e699c5e00d66441747b494f038d88",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "e37ead2415491301adc2e9867939b794763e699c5e00d66441747b494f038d88"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|8026": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1057",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1057",
+    "raw_record_sha256": "17e12de5e61abf95c73e9e704192f3affc9aea4be1762873fa43b354385c61fc",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "31e27f38a7e6aae2869b633cbab25ffb34b9ac060b3d381b3f6052652f39fe40",
+   "raw_sha256": "17e12de5e61abf95c73e9e704192f3affc9aea4be1762873fa43b354385c61fc",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 5.5,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 5.5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 8026,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 8026,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/1057",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/1057",
+       "raw_record_sha256": "17e12de5e61abf95c73e9e704192f3affc9aea4be1762873fa43b354385c61fc",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "31e27f38a7e6aae2869b633cbab25ffb34b9ac060b3d381b3f6052652f39fe40"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 8026,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 8026,
+         "develop_only": 0,
+         "scost": 1,
+         "sname": "オーロラヒール",
+         "stext": "味方全体のＨＰを小回復する。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/728",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/728",
+         "byte_begin": 356267,
+         "byte_end_exclusive": 356487,
+         "raw_record_sha256": "7cdfaf09e6ab70ea71bc9865f6ea64723daf22d47c3deb619e9def1cc4a55aef"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/1057",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/1057",
+     "raw_record_sha256": "17e12de5e61abf95c73e9e704192f3affc9aea4be1762873fa43b354385c61fc",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "17e12de5e61abf95c73e9e704192f3affc9aea4be1762873fa43b354385c61fc",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "17e12de5e61abf95c73e9e704192f3affc9aea4be1762873fa43b354385c61fc"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 8026,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/728",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/728",
+       "byte_begin": 356267,
+       "byte_end_exclusive": 356487,
+       "raw_record_sha256": "7cdfaf09e6ab70ea71bc9865f6ea64723daf22d47c3deb619e9def1cc4a55aef"
+      },
+      "raw_sha256": "cc765db61ef791cda56c5b47522ad4c7feea177a8994c5b3d69d9944298d538c"
+     }
+    ]
+   }
+  },
+  "charainfo|8038": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1068",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1068",
+    "raw_record_sha256": "652bf23854d6428346aa621c41378263239f427a80d212c8cd80e4008a0e2a6b",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "d5f563ca1d1d1ebc76b254d1c0750fb2d62b69f640a0bfdbfbbe86c1a69fb9d3",
+   "raw_sha256": "652bf23854d6428346aa621c41378263239f427a80d212c8cd80e4008a0e2a6b",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 8.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 8))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 8038,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 8038,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/1068",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/1068",
+       "raw_record_sha256": "652bf23854d6428346aa621c41378263239f427a80d212c8cd80e4008a0e2a6b",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "d5f563ca1d1d1ebc76b254d1c0750fb2d62b69f640a0bfdbfbbe86c1a69fb9d3"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/1068",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/1068",
+     "raw_record_sha256": "652bf23854d6428346aa621c41378263239f427a80d212c8cd80e4008a0e2a6b",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "652bf23854d6428346aa621c41378263239f427a80d212c8cd80e4008a0e2a6b",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "652bf23854d6428346aa621c41378263239f427a80d212c8cd80e4008a0e2a6b"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|8062": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1092",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1092",
+    "raw_record_sha256": "360c296f3e654240e8d539b7c629408f3e01a96c3afbc58d4bc76bc8094fcbda",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "8ae25e6e977dc90f19a829109e09e7b37a070e1d3b7673999a79692e71c594b6",
+   "raw_sha256": "360c296f3e654240e8d539b7c629408f3e01a96c3afbc58d4bc76bc8094fcbda",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 4.5,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 4.5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 8062,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 8062,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/1092",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/1092",
+       "raw_record_sha256": "360c296f3e654240e8d539b7c629408f3e01a96c3afbc58d4bc76bc8094fcbda",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "8ae25e6e977dc90f19a829109e09e7b37a070e1d3b7673999a79692e71c594b6"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 8062,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 8062,
+         "develop_only": 0,
+         "scost": 1,
+         "sname": "レインボーショット",
+         "stext": "直線範囲上にいる全ての敵に小ダメージを与える。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/746",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/746",
+         "byte_begin": 362822,
+         "byte_end_exclusive": 363108,
+         "raw_record_sha256": "f7d9900dc2a4256b326a095d5f92dfafaa99b1a8d1ea4e521564b624bcf37f80"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/1092",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/1092",
+     "raw_record_sha256": "360c296f3e654240e8d539b7c629408f3e01a96c3afbc58d4bc76bc8094fcbda",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "360c296f3e654240e8d539b7c629408f3e01a96c3afbc58d4bc76bc8094fcbda",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "360c296f3e654240e8d539b7c629408f3e01a96c3afbc58d4bc76bc8094fcbda"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 8062,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/746",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/746",
+       "byte_begin": 362822,
+       "byte_end_exclusive": 363108,
+       "raw_record_sha256": "f7d9900dc2a4256b326a095d5f92dfafaa99b1a8d1ea4e521564b624bcf37f80"
+      },
+      "raw_sha256": "c4de1737608b9f02ca821ebf9896edbce28da0a34e6df4d1c00d8e0429bc838a"
+     }
+    ]
+   }
+  },
+  "charainfo|9005": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1435",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1435",
+    "raw_record_sha256": "366c15de86831ec205b896b99834bbc4df092d928381ea981df45a2b190120f8",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "7d437186f23c051e4f436f775c568eca2badfdd120ee4d10d4488a15974e2ad2",
+   "raw_sha256": "366c15de86831ec205b896b99834bbc4df092d928381ea981df45a2b190120f8",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 18.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 18))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 9005,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 9005,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/1435",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/1435",
+       "raw_record_sha256": "366c15de86831ec205b896b99834bbc4df092d928381ea981df45a2b190120f8",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "7d437186f23c051e4f436f775c568eca2badfdd120ee4d10d4488a15974e2ad2"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/1435",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/1435",
+     "raw_record_sha256": "366c15de86831ec205b896b99834bbc4df092d928381ea981df45a2b190120f8",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "366c15de86831ec205b896b99834bbc4df092d928381ea981df45a2b190120f8",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "366c15de86831ec205b896b99834bbc4df092d928381ea981df45a2b190120f8"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|10011": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1497",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1497",
+    "raw_record_sha256": "9ceb52d4acc509ad8c9d1f85a37ecd2c177eca8888832ee481e626b2ed4b7564",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "fe187aa33eb27171453a93292b36156c40f2716047d0c45c9f2f59f8a0489dea",
+   "raw_sha256": "9ceb52d4acc509ad8c9d1f85a37ecd2c177eca8888832ee481e626b2ed4b7564",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 16.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 16))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 10011,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 10011,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/1497",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/1497",
+       "raw_record_sha256": "9ceb52d4acc509ad8c9d1f85a37ecd2c177eca8888832ee481e626b2ed4b7564",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "fe187aa33eb27171453a93292b36156c40f2716047d0c45c9f2f59f8a0489dea"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/1497",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/1497",
+     "raw_record_sha256": "9ceb52d4acc509ad8c9d1f85a37ecd2c177eca8888832ee481e626b2ed4b7564",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "9ceb52d4acc509ad8c9d1f85a37ecd2c177eca8888832ee481e626b2ed4b7564",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "9ceb52d4acc509ad8c9d1f85a37ecd2c177eca8888832ee481e626b2ed4b7564"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|11021": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1544",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1544",
+    "raw_record_sha256": "6c81ab69979b97d5ce031ee833614a931a92e29ffcc780affe93949c5de7b505",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "eac24868908514b1c7d6d78b683120cb0115c1ac1e6f4899053e944826631152",
+   "raw_sha256": "6c81ab69979b97d5ce031ee833614a931a92e29ffcc780affe93949c5de7b505",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 11.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 11))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 11021,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 11021,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/1544",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/1544",
+       "raw_record_sha256": "6c81ab69979b97d5ce031ee833614a931a92e29ffcc780affe93949c5de7b505",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "eac24868908514b1c7d6d78b683120cb0115c1ac1e6f4899053e944826631152"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/1544",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/1544",
+     "raw_record_sha256": "6c81ab69979b97d5ce031ee833614a931a92e29ffcc780affe93949c5de7b505",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "6c81ab69979b97d5ce031ee833614a931a92e29ffcc780affe93949c5de7b505",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "6c81ab69979b97d5ce031ee833614a931a92e29ffcc780affe93949c5de7b505"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|13019": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1655",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1655",
+    "raw_record_sha256": "8517d183a1d7b119db51ca7a8cbb85125d5729cda1bf7a5a7dcef4af5e25cf36",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "d14d20ac6b35029a71607856593f38b10faf10228eb251b29e514bee93429bd2",
+   "raw_sha256": "8517d183a1d7b119db51ca7a8cbb85125d5729cda1bf7a5a7dcef4af5e25cf36",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 6.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 6))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 13019,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 13019,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/1655",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/1655",
+       "raw_record_sha256": "8517d183a1d7b119db51ca7a8cbb85125d5729cda1bf7a5a7dcef4af5e25cf36",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "d14d20ac6b35029a71607856593f38b10faf10228eb251b29e514bee93429bd2"
+     }
+    ],
+    "related_groups": [
+     {
+      "group": "denju",
+      "label": "传授必杀技(denju)",
+      "records": [
+       {
+        "resolved": true,
+        "table": "denju",
+        "namespace": "传授必杀技",
+        "reference_field": "denju.denju_id == cid",
+        "reference_id": 13019,
+        "layer": "CACHE",
+        "refers_to": "传授必杀技（sname/stext/scost ± patternid0..5）",
+        "link_status": "按 denju_id==cid 关联（该行 sname 与角色 skillname 一致）",
+        "name_matches_charainfo_skillname": true,
+        "record": {
+         "denju_id": 13019,
+         "develop_only": 0,
+         "scost": 1,
+         "sname": "ブレスヒール",
+         "stext": "味方全体のHPを小回復する。",
+         "timestamp": "1791941184937"
+        },
+        "source": {
+         "record_key": "CACHE/denju.data5.json.raw#/denju/1173",
+         "source_key": "CACHE/denju.data5.json.raw",
+         "layer": "CACHE",
+         "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+         "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+         "json_pointer": "/denju/1173",
+         "byte_begin": 576095,
+         "byte_end_exclusive": 576300,
+         "raw_record_sha256": "bb8976dca8d2160ee6b7450783c682132fce15ed63bd2c9fe285a58adae7e10e"
+        },
+        "denju_pattern_refs": [],
+        "boss_skill_refs": [],
+        "sa_ability_refs": []
+       }
+      ],
+      "unresolved": [],
+      "namespace_notes": [],
+      "annotations": []
+     }
+    ]
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/1655",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/1655",
+     "raw_record_sha256": "8517d183a1d7b119db51ca7a8cbb85125d5729cda1bf7a5a7dcef4af5e25cf36",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "8517d183a1d7b119db51ca7a8cbb85125d5729cda1bf7a5a7dcef4af5e25cf36",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "8517d183a1d7b119db51ca7a8cbb85125d5729cda1bf7a5a7dcef4af5e25cf36"
+     }
+    ],
+    "related_records": [
+     {
+      "table": "denju",
+      "record_id": 13019,
+      "relation": "denju.denju_id==cid",
+      "layer": "CACHE",
+      "source": {
+       "record_key": "CACHE/denju.data5.json.raw#/denju/1173",
+       "source_key": "CACHE/denju.data5.json.raw",
+       "layer": "CACHE",
+       "original_file": "work\\phone_20261015_full_02\\files\\denju.data5",
+       "source_sha256": "cf9c4219b43145b93e2e5d25573611b6c2cc0b70f52a8a14e69735700bbeabb9",
+       "json_pointer": "/denju/1173",
+       "byte_begin": 576095,
+       "byte_end_exclusive": 576300,
+       "raw_record_sha256": "bb8976dca8d2160ee6b7450783c682132fce15ed63bd2c9fe285a58adae7e10e"
+      },
+      "raw_sha256": "b27799075272443a6c48460148996e2e629bee545202a09c09b1ca80830a7994"
+     }
+    ]
+   }
+  },
+  "charainfo|58006": {
+   "family": "type5_line",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1880",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1880",
+    "raw_record_sha256": "6a90c46ab2ab685d04d2b0e378c7e5218708fe8967360c73a2e3f7651030e8c6",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "ba75dbf14edf0095b5c18020a7879069eebed3ae8951d58809f4a9b0b2f51115",
+   "raw_sha256": "6a90c46ab2ab685d04d2b0e378c7e5218708fe8967360c73a2e3f7651030e8c6",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 5.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 58006,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 58006,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/1880",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/1880",
+       "raw_record_sha256": "6a90c46ab2ab685d04d2b0e378c7e5218708fe8967360c73a2e3f7651030e8c6",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "ba75dbf14edf0095b5c18020a7879069eebed3ae8951d58809f4a9b0b2f51115"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/1880",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/1880",
+     "raw_record_sha256": "6a90c46ab2ab685d04d2b0e378c7e5218708fe8967360c73a2e3f7651030e8c6",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "6a90c46ab2ab685d04d2b0e378c7e5218708fe8967360c73a2e3f7651030e8c6",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "6a90c46ab2ab685d04d2b0e378c7e5218708fe8967360c73a2e3f7651030e8c6"
+     }
+    ],
+    "related_records": []
+   }
+  },
+  "charainfo|59002": {
+   "family": "type11_heal",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1905",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1905",
+    "raw_record_sha256": "d695732b484fcaeac789ef9d30f56b3bbf6bfcc9ebdc86facc42e44b572845d9",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "406ac67c0b9e227e4066f5b656468b436c6563d7b54e81a2ee38fd4189751f47",
+   "raw_sha256": "d695732b484fcaeac789ef9d30f56b3bbf6bfcc9ebdc86facc42e44b572845d9",
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 5.0,
+    "rule_key": "bossskill|11|/skillparam1",
+    "value": "回复量输入 = floor/clamp(float32(B × 5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32；+inf → int32 最小值）；该整数作为 CharaBehavior.Heal（0x1541158）的 healValue 施加；对象：BattleManager.GetMemberList(_type, onlyActive=1, onlyAlive=1) → BtlCharaUtil.CheckJobFlag(list, iParam0)（iParam0==0 不筛选职业）；边界：给出的是处理器交给 CharaBehavior.Heal 的回复输入，不是最终回血量（Heal 内部还按接受者的回复反转／削减等处理）；不含等级成长",
+    "kind": "单次回复量的技能基值系数",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   },
+   "contexts": {
+    "own_charainfo": [
+     {
+      "cid": 59002,
+      "path": "/groups/2/records/0",
+      "reference_field": "skilltext",
+      "reference_id": 59002,
+      "layer": "APK",
+      "source": {
+       "record_key": "APK/_mdCharacter.json#/charainfo/1905",
+       "source_key": "APK/_mdCharacter.json",
+       "layer": "APK",
+       "original_file": "output/base_master/_mdCharacter.json",
+       "json_pointer": "/charainfo/1905",
+       "raw_record_sha256": "d695732b484fcaeac789ef9d30f56b3bbf6bfcc9ebdc86facc42e44b572845d9",
+       "master_source": "work\\apk\\assets\\chronicle.dat",
+       "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+       "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+      },
+      "record_sha256": "406ac67c0b9e227e4066f5b656468b436c6563d7b54e81a2ee38fd4189751f47"
+     }
+    ],
+    "related_groups": []
+   },
+   "raw_audit": {
+    "selected_source": {
+     "record_key": "APK/_mdCharacter.json#/charainfo/1905",
+     "source_key": "APK/_mdCharacter.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdCharacter.json",
+     "json_pointer": "/charainfo/1905",
+     "raw_record_sha256": "d695732b484fcaeac789ef9d30f56b3bbf6bfcc9ebdc86facc42e44b572845d9",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    },
+    "selected_raw_sha256": "d695732b484fcaeac789ef9d30f56b3bbf6bfcc9ebdc86facc42e44b572845d9",
+    "all_original_rows": [
+     {
+      "layer": "APK",
+      "selected": true,
+      "raw_sha256": "d695732b484fcaeac789ef9d30f56b3bbf6bfcc9ebdc86facc42e44b572845d9"
+     }
+    ],
+    "related_records": []
+   }
+  }
+ }
+}

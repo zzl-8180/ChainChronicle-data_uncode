@@ -492,6 +492,18 @@ def main():
             if raw.get(field) != a["raw"]:
                 h_bad.append({"rec_key": rkey, "field": field, "stored": a["raw"],
                               "raw_source": raw.get(field)})
+            if r["effect_type"] == 26 and field == "param0":
+                # Independent raw derivation; does not import the new converter.
+                v = struct.unpack('<f', struct.pack('<f', raw[field]))[0]
+                n = max(0, int(v))  # declared source inventory contains only finite 0..3
+                expected = (f"战斗开始时按持有者职业授予 {n} 个基础玛那（param0产线）" if n else
+                            f"原值 {raw[field]} → 原生整数化 {int(v)} < 1：param0这条基础产线不授予玛那")
+                if (a.get('value') != expected or a.get('kind') != '开局基础玛那数量（持有者职业）'
+                        or a.get('scope') != 'BY_TYPE_EXTRAPOLATED'
+                        or '非继续战斗' not in a.get('note', '')
+                        or 'isHero=false' not in a.get('note', '')):
+                    h_bad.append({'rec_key': rkey, 'why': 'type26 param0 count/caliber/gate mismatch',
+                                  'expected': expected, 'answer': a})
             if r["effect_type"] == 26 and field == "param4":
                 if not (a.get("value") or "").startswith(
                         f"战斗开始时追加 {int(a['raw'])} 个玛那") and int(a["raw"]) >= 1:
@@ -521,7 +533,7 @@ def main():
         "damage_increase_text_records": h_dir, "direction_failures": h_dir_bad[:5],
         "scope": "顶层记录＋内嵌子效果记录，按（表,记录,层,字段）去重",
         "note": ("逐条重读原始 skilllist 记录：答案原值必须等于原始 param 值；"
-                 "type26 param4 必须按 int 截断成『追加 N 个玛那』；"
+                 "type26 param0 另按float32→int重算持有者职业基础玛那，并核查scope/开局门槛；param4 必须按 int 截断成『追加 N 个玛那』；"
                  "type8 正文写「受けるダメージも増加」的记录 param3 必须 >1 且答成增伤")}
     ok_all &= (not h_bad) and (not h_dir_bad)
 
@@ -1402,9 +1414,26 @@ def main():
         if total == 0:
             unknown_cids.append(cid)
     p_stats["remaining_unknown"] = len(unknown_cids)
-    if len(unknown_cids) != 5:
-        p_bad.append({"why": "仅未知角色数与本批声明不符", "count": len(unknown_cids),
-                      "cids": sorted(unknown_cids)[:10]})
+    # Independently mask current holders to the actual frozen P10 terminal rule
+    # dictionary. New rules may retire old unknowns but cannot rewrite that result.
+    p10_frozen = ROOT / 'work/character_skills_p3b1/before'
+    historical_keys = set(jload(p10_frozen / 'rules.json'))
+    historical_counts = {}
+    for r in jl(BASE / 'profiles/records.jsonl'):
+        historical_counts[r['rec_key']] = sum(a['rule_key'] in historical_keys
+            for h in [r] + r['children'] for a in h.get('answers', []))
+    historical_unknown = []
+    for p in jl(BASE / 'profiles/profiles.jsonl'):
+        total = len(p.get('baseline', [])) + sum(historical_counts[ref['rec_key']]
+            for g in p['groups'] for ref in g['records'])
+        if not total: historical_unknown.append(p['cid'])
+    frozen_unknown = {p['cid'] for p in jl(p10_frozen / 'profiles.jsonl')
+                      if p['status'] == '仅未知'}
+    p_stats['p10_frozen_scope_remaining_unknown'] = len(historical_unknown)
+    if (set(historical_unknown) != frozen_unknown or frozen_unknown != {4009,4049,8116,8151,10018}
+            or not set(unknown_cids) <= frozen_unknown):
+        p_bad.append({'why': 'P10冻结规则范围或后续状态迁移不符',
+                      'historical_cids': historical_unknown, 'current_cids': unknown_cids})
     report["checks"]["P_p2b10_new_rule_answers_and_remaining_unknown"] = {
         "ok": not p_bad, "counts": dict(p_stats),
         "heal_targets": dict(p_heal_targets),
@@ -1413,7 +1442,7 @@ def main():
         "scope": ("直读 bossinfo/charainfo 原始表与 profiles 产物：新规则答案的 raw 必须等于原始字段；"
                   "回复量的基值/消费点/对象/边界与超上限位表必须逐条出现在文本里；"
                   "乘/不乘 _skillChainRate 的支援槽必须按类型分别渲染；type43 的回数写 +1；"
-                  "落点偏移写夹紧；新键不得与既有字典重叠；仅未知角色数必须等于本批声明"),
+                  "落点偏移写夹紧；新键不得与既有字典重叠；冻结P10规则视角仍仅未知5人，当前状态另算"),
         "note": "本区不重算原生语义，只独立核对产物与原始表的一致性",
     }
     ok_all &= not p_bad

@@ -1,0 +1,451 @@
+{
+ "snapshot": "cache_full_20261015_v3",
+ "native_sha256": "562a6975fe722d39842a3c7daa3982785c04beaf503c4fe1cc6fbbec3cd047c1",
+ "scope_kind": "冻结候选集合；结构规则逐条件审定，独立审查前不自动扩展",
+ "records": {
+  "charainfo|29": {
+   "family": "type5_line_damage",
+   "record_id": 29,
+   "table": "charainfo",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/27",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/27",
+    "raw_record_sha256": "b98ead481e9a82661a6482f1793e47c0a4768f684f5f90f7b55b942ab07ec1f4",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "8a8ec6338cc6659bdbd7c4cc4697e16355f67ec7b947b22863ed445c08e6120f",
+   "contexts": [
+    {
+     "cid": 29,
+     "link_path": "/groups/2/records/0",
+     "reference_field": "skilltext",
+     "layer": "APK",
+     "character_source": {
+      "record_key": "APK/_mdCharacter.json#/charainfo/27",
+      "source_key": "APK/_mdCharacter.json",
+      "layer": "APK",
+      "original_file": "output/base_master/_mdCharacter.json",
+      "json_pointer": "/charainfo/27",
+      "raw_record_sha256": "b98ead481e9a82661a6482f1793e47c0a4768f684f5f90f7b55b942ab07ec1f4",
+      "master_source": "work\\apk\\assets\\chronicle.dat",
+      "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+      "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+     }
+    }
+   ],
+   "sub_sources": [],
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 4.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 4))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   }
+  },
+  "skilllist|30123300": {
+   "family": "type26_start_mana",
+   "record_id": 30123300,
+   "table": "skilllist",
+   "source": {
+    "record_key": "APK/_mdSkill.json#/skilllist/4078",
+    "source_key": "APK/_mdSkill.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdSkill.json",
+    "json_pointer": "/skilllist/4078",
+    "raw_record_sha256": "05e24d02224c8c52b05127b9b323509bb07c83000a0edf114ee3c3ea187daeca",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "05e24d02224c8c52b05127b9b323509bb07c83000a0edf114ee3c3ea187daeca",
+   "contexts": [
+    {
+     "cid": 1233,
+     "link_path": "/groups/1/records/0",
+     "reference_field": "skillid[1]",
+     "layer": "APK",
+     "character_source": {
+      "record_key": "APK/_mdCharacter.json#/charainfo/226",
+      "source_key": "APK/_mdCharacter.json",
+      "layer": "APK",
+      "original_file": "output/base_master/_mdCharacter.json",
+      "json_pointer": "/charainfo/226",
+      "raw_record_sha256": "cb1bd27e0580e80d98222c42beefcc86d65d5ba83a0bd58fce5e0204c04af3d6",
+      "master_source": "work\\apk\\assets\\chronicle.dat",
+      "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+      "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+     }
+    }
+   ],
+   "sub_sources": [],
+   "local_answer": {
+    "f": "/param0",
+    "raw": 1.0,
+    "rule_key": "skilllist|26|/param0",
+    "value": "战斗开始时按持有者职业授予 1 个基础玛那（param0产线）",
+    "kind": "开局基础玛那数量（持有者职业）",
+    "unit": "个（float32→有符号int32向零截断；小于1不授予）",
+    "status": "CONFIRMED_NUMERIC",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "PartyAbilityInit 的非继续战斗路径：传入列表中的存活角色、BattleParam.isHero=false、已装载的普通type26能力；param6整数码=1，或=0且CharaBehavior._isActive非0，或=2且_isActive为0。其他码跳过；有效PanelManaGage为授予对象；isBoost=(param5==1)；仅param0这条基础产线的授予调用数，不是队伍开局玛那总数，也不计其他能力/其他产线；不证明当前账号装载或最终玛那库存；没有实机验证。_isActive字段名已由元数据确认，不据此推断前后备的完整业务状态"
+   }
+  },
+  "charainfo|2045": {
+   "family": "type5_line_damage",
+   "record_id": 2045,
+   "table": "charainfo",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/315",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/315",
+    "raw_record_sha256": "cee6f1d27b466e423881aa8aa4c35108df729012e10e4c93b85d04476cdbe8ce",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "44e7d9652d477d9333125441a043cf1b3f011f635e662edee4ff9a477ba52c1d",
+   "contexts": [
+    {
+     "cid": 2045,
+     "link_path": "/groups/2/records/0",
+     "reference_field": "skilltext",
+     "layer": "APK",
+     "character_source": {
+      "record_key": "APK/_mdCharacter.json#/charainfo/315",
+      "source_key": "APK/_mdCharacter.json",
+      "layer": "APK",
+      "original_file": "output/base_master/_mdCharacter.json",
+      "json_pointer": "/charainfo/315",
+      "raw_record_sha256": "cee6f1d27b466e423881aa8aa4c35108df729012e10e4c93b85d04476cdbe8ce",
+      "master_source": "work\\apk\\assets\\chronicle.dat",
+      "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+      "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+     }
+    }
+   ],
+   "sub_sources": [],
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 2.799999952316284,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 2.8))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   }
+  },
+  "charainfo|2058": {
+   "family": "type5_line_damage",
+   "record_id": 2058,
+   "table": "charainfo",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/322",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/322",
+    "raw_record_sha256": "188c3fb091ea9e8e1981b4602877113328cd3e8c06cb64b81303f251038d0aa1",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "d4250a99dab10f9a9b2313feca7b66c89571b684915ee25bc63abfe61a2e4f6d",
+   "contexts": [
+    {
+     "cid": 2058,
+     "link_path": "/groups/2/records/0",
+     "reference_field": "skilltext",
+     "layer": "APK",
+     "character_source": {
+      "record_key": "APK/_mdCharacter.json#/charainfo/322",
+      "source_key": "APK/_mdCharacter.json",
+      "layer": "APK",
+      "original_file": "output/base_master/_mdCharacter.json",
+      "json_pointer": "/charainfo/322",
+      "raw_record_sha256": "188c3fb091ea9e8e1981b4602877113328cd3e8c06cb64b81303f251038d0aa1",
+      "master_source": "work\\apk\\assets\\chronicle.dat",
+      "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+      "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+     }
+    }
+   ],
+   "sub_sources": [],
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 4.5,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 4.5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   }
+  },
+  "charainfo|5052": {
+   "family": "type5_line_damage",
+   "record_id": 5052,
+   "table": "charainfo",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/609",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/609",
+    "raw_record_sha256": "2e926c1a7d918e3cdb2ea437ff4ec04a6e711be9ebe474f9bd684a1ba3fd5d7c",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "2d6abc34329001c471f265953eb41779ad000bb8b8913e8563c617c85ecc667f",
+   "contexts": [
+    {
+     "cid": 5052,
+     "link_path": "/groups/2/records/0",
+     "reference_field": "skilltext",
+     "layer": "APK",
+     "character_source": {
+      "record_key": "APK/_mdCharacter.json#/charainfo/609",
+      "source_key": "APK/_mdCharacter.json",
+      "layer": "APK",
+      "original_file": "output/base_master/_mdCharacter.json",
+      "json_pointer": "/charainfo/609",
+      "raw_record_sha256": "2e926c1a7d918e3cdb2ea437ff4ec04a6e711be9ebe474f9bd684a1ba3fd5d7c",
+      "master_source": "work\\apk\\assets\\chronicle.dat",
+      "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+      "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+     }
+    }
+   ],
+   "sub_sources": [],
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 4.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 4))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   }
+  },
+  "skilllist|3112": {
+   "family": "type26_start_mana",
+   "record_id": 3112,
+   "table": "skilllist",
+   "source": {
+    "record_key": "APK/_mdSkill.json#/skilllist/1372",
+    "source_key": "APK/_mdSkill.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdSkill.json",
+    "json_pointer": "/skilllist/1372",
+    "raw_record_sha256": "9eb063bfcf2324ea21aed6b8ffd22e415bfa0bb09e9a162dc4f84fc51b1cce65",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "9eb063bfcf2324ea21aed6b8ffd22e415bfa0bb09e9a162dc4f84fc51b1cce65",
+   "contexts": [
+    {
+     "cid": 8031,
+     "link_path": "/groups/1/records/0",
+     "reference_field": "skillid[1]",
+     "layer": "APK",
+     "character_source": {
+      "record_key": "APK/_mdCharacter.json#/charainfo/1062",
+      "source_key": "APK/_mdCharacter.json",
+      "layer": "APK",
+      "original_file": "output/base_master/_mdCharacter.json",
+      "json_pointer": "/charainfo/1062",
+      "raw_record_sha256": "9b8f0413088cfb75ee98bcd97912d0eba0244e98ff9906806d0864de5688fb40",
+      "master_source": "work\\apk\\assets\\chronicle.dat",
+      "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+      "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+     }
+    }
+   ],
+   "sub_sources": [],
+   "local_answer": {
+    "f": "/param0",
+    "raw": 1.0,
+    "rule_key": "skilllist|26|/param0",
+    "value": "战斗开始时按持有者职业授予 1 个基础玛那（param0产线）",
+    "kind": "开局基础玛那数量（持有者职业）",
+    "unit": "个（float32→有符号int32向零截断；小于1不授予）",
+    "status": "CONFIRMED_NUMERIC",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "PartyAbilityInit 的非继续战斗路径：传入列表中的存活角色、BattleParam.isHero=false、已装载的普通type26能力；param6整数码=1，或=0且CharaBehavior._isActive非0，或=2且_isActive为0。其他码跳过；有效PanelManaGage为授予对象；isBoost=(param5==1)；仅param0这条基础产线的授予调用数，不是队伍开局玛那总数，也不计其他能力/其他产线；不证明当前账号装载或最终玛那库存；没有实机验证。_isActive字段名已由元数据确认，不据此推断前后备的完整业务状态"
+   }
+  },
+  "skilllist|3255": {
+   "family": "type26_start_mana",
+   "record_id": 3255,
+   "table": "skilllist",
+   "source": {
+    "record_key": "APK/_mdSkill.json#/skilllist/1479",
+    "source_key": "APK/_mdSkill.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdSkill.json",
+    "json_pointer": "/skilllist/1479",
+    "raw_record_sha256": "5c45dcf0502686df99b681ef1baeeb462d45c19e9bc512cc10674d27dd8b4ea2",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "5c45dcf0502686df99b681ef1baeeb462d45c19e9bc512cc10674d27dd8b4ea2",
+   "contexts": [
+    {
+     "cid": 10032,
+     "link_path": "/groups/1/records/0",
+     "reference_field": "skillid[1]",
+     "layer": "APK",
+     "character_source": {
+      "record_key": "APK/_mdCharacter.json#/charainfo/1513",
+      "source_key": "APK/_mdCharacter.json",
+      "layer": "APK",
+      "original_file": "output/base_master/_mdCharacter.json",
+      "json_pointer": "/charainfo/1513",
+      "raw_record_sha256": "10d8c3dc0f99cabb74f99ca3e4515d4270c6439ef69365a9217168cb37086741",
+      "master_source": "work\\apk\\assets\\chronicle.dat",
+      "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+      "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+     }
+    }
+   ],
+   "sub_sources": [
+    {
+     "record_key": "APK/_mdSkill.json#/skilllist/1480",
+     "source_key": "APK/_mdSkill.json",
+     "layer": "APK",
+     "original_file": "output/base_master/_mdSkill.json",
+     "json_pointer": "/skilllist/1480",
+     "raw_record_sha256": "fbdc8db855857059d1b838a0d91a0e7fd19634fe0ffbd51891bb3f287cc9d04b",
+     "master_source": "work\\apk\\assets\\chronicle.dat",
+     "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+     "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+    }
+   ],
+   "local_answer": {
+    "f": "/param0",
+    "raw": 1.0,
+    "rule_key": "skilllist|26|/param0",
+    "value": "战斗开始时按持有者职业授予 1 个基础玛那（param0产线）",
+    "kind": "开局基础玛那数量（持有者职业）",
+    "unit": "个（float32→有符号int32向零截断；小于1不授予）",
+    "status": "CONFIRMED_NUMERIC",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "PartyAbilityInit 的非继续战斗路径：传入列表中的存活角色、BattleParam.isHero=false、已装载的普通type26能力；param6整数码=1，或=0且CharaBehavior._isActive非0，或=2且_isActive为0。其他码跳过；有效PanelManaGage为授予对象；isBoost=(param5==1)；仅param0这条基础产线的授予调用数，不是队伍开局玛那总数，也不计其他能力/其他产线；不证明当前账号装载或最终玛那库存；没有实机验证。_isActive字段名已由元数据确认，不据此推断前后备的完整业务状态"
+   }
+  },
+  "charainfo|10039": {
+   "family": "type5_line_damage",
+   "record_id": 10039,
+   "table": "charainfo",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1519",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1519",
+    "raw_record_sha256": "340a460a71ca13aa0adb2dd6260570afc06ab5a59d518e304833f50b5f810dc0",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "c4dc6d2c042c78a980524a6935bc745e0ada1bf62c4d144e9510836b0d1e3db8",
+   "contexts": [
+    {
+     "cid": 10039,
+     "link_path": "/groups/2/records/0",
+     "reference_field": "skilltext",
+     "layer": "APK",
+     "character_source": {
+      "record_key": "APK/_mdCharacter.json#/charainfo/1519",
+      "source_key": "APK/_mdCharacter.json",
+      "layer": "APK",
+      "original_file": "output/base_master/_mdCharacter.json",
+      "json_pointer": "/charainfo/1519",
+      "raw_record_sha256": "340a460a71ca13aa0adb2dd6260570afc06ab5a59d518e304833f50b5f810dc0",
+      "master_source": "work\\apk\\assets\\chronicle.dat",
+      "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+      "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+     }
+    }
+   ],
+   "sub_sources": [],
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 4.0,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 4))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   }
+  },
+  "charainfo|58001": {
+   "family": "type5_line_damage",
+   "record_id": 58001,
+   "table": "charainfo",
+   "source": {
+    "record_key": "APK/_mdCharacter.json#/charainfo/1877",
+    "source_key": "APK/_mdCharacter.json",
+    "layer": "APK",
+    "original_file": "output/base_master/_mdCharacter.json",
+    "json_pointer": "/charainfo/1877",
+    "raw_record_sha256": "fba4b38b413386043551364f01962fc7745f4af77c9d390592fca5733a53dea5",
+    "master_source": "work\\apk\\assets\\chronicle.dat",
+    "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+    "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+   },
+   "entry_sha256": "0f9ae565865453cd13537035aa4529433e2afaee4a4e1627fa081ba18cfa562c",
+   "contexts": [
+    {
+     "cid": 58001,
+     "link_path": "/groups/2/records/0",
+     "reference_field": "skilltext",
+     "layer": "APK",
+     "character_source": {
+      "record_key": "APK/_mdCharacter.json#/charainfo/1877",
+      "source_key": "APK/_mdCharacter.json",
+      "layer": "APK",
+      "original_file": "output/base_master/_mdCharacter.json",
+      "json_pointer": "/charainfo/1877",
+      "raw_record_sha256": "fba4b38b413386043551364f01962fc7745f4af77c9d390592fca5733a53dea5",
+      "master_source": "work\\apk\\assets\\chronicle.dat",
+      "master_source_sha256": "d1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d",
+      "master_converted_sha256": "46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f"
+     }
+    }
+   ],
+   "sub_sources": [],
+   "local_answer": {
+    "f": "/skillparam1",
+    "raw": 3.5,
+    "rule_key": "bossskill|5|/skillparam1",
+    "value": "单次伤害输入 = floor/clamp(float32(B × 3.5))；B = bhSkillUtil.getBasicSkillAttack(true)（0x1182ed8，w1=1；已含 Chain）；整数化 0x14374bc（frintm/fcvtms 向下取整后夹到 int32 范围；+inf 时取 int32 最小值）",
+    "kind": "技能基值倍率",
+    "unit": "倍（相对 B）",
+    "status": "CONFIRMED_FORMULA_ONLY",
+    "scope": "BY_TYPE_EXTRAPOLATED",
+    "note": "证据路径（P2 第 9 批）：本角色自身 pattern 无可达 boss 技能 → CharaParamToBossSkill(0x13aa390) 把本记录 skillid[0]／skillparamN 构造成执行用 BattleBossSkill 并经同一 ExecSkill 派发；若当次必杀由传授链/英雄技 pattern 承担则以那一侧为准"
+   }
+  }
+ }
+}

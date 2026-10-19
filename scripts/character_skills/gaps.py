@@ -56,6 +56,8 @@ def main():
     block_records = collections.defaultdict(set)
     block_frags = collections.Counter()
     block_frags_unexpl = collections.Counter()
+    block_frags_bound = collections.Counter()
+    block_frags_hint = collections.Counter()
     block_unexpl_fields = collections.Counter()
     char_examples = collections.defaultdict(list)
     lead_keys = collections.defaultdict(set)
@@ -84,6 +86,9 @@ def main():
                 if frags:
                     block_frags[block] += len(frags)
                     block_frags_unexpl[block] += sum(1 for f in frags if f["status"] == "UNEXPLAINED_FRAGMENT")
+                    block_frags_bound[block] += sum(1 for f in frags if f["status"] in
+                                                   ("BASELINE_DESCRIPTION_ANSWER", "REVIEWED_DESCRIPTION_BINDING"))
+                    block_frags_hint[block] += sum(1 for f in frags if f["status"] == "INFERRED_KEYWORD_HINT")
                 for u in r["unexplained"]:
                     key = (t, et, u["f"])
                     block_unexpl_fields[block] += 1
@@ -157,7 +162,7 @@ def main():
     for key, chars in block_chars.items():
         # a "gap" block is one that still has unexplained fields or unattributed
         # fragments; blocks that are fully answered are not gaps and are dropped
-        if not block_unexpl_fields.get(key) and not block_frags_unexpl.get(key):
+        if not block_unexpl_fields.get(key) and not block_frags_unexpl.get(key) and not block_frags_hint.get(key):
             continue
         t, et = key
         cands = [dict(leads[k], field_path=k[2]) for k in leads if k[0] == t and k[1] == et]
@@ -170,6 +175,9 @@ def main():
             "affected_records": len(block_records[key]),
             "descriptions": block_frags[key],
             "descriptions_unexplained": block_frags_unexpl[key],
+            "descriptions_confirmed_binding": block_frags_bound[key],
+            "descriptions_hint_only": block_frags_hint[key],
+            "descriptions_without_confirmed_binding": block_frags_unexpl[key] + block_frags_hint[key],
             "unexplained_fields": block_unexpl_fields.get(key, 0),
             "candidate_leads": cands,
             "candidate_lead_count": len(cands),
@@ -230,13 +238,15 @@ def main():
     C.write_csv(OUT / "gap_queue.csv", header, rows)
 
     header2 = ["rank", "table", "effect_type", "affected_characters", "affected_records",
-               "descriptions", "descriptions_unexplained", "unexplained_fields",
+               "descriptions", "descriptions_unexplained", "descriptions_confirmed_binding",
+               "descriptions_hint_only", "descriptions_without_confirmed_binding", "unexplained_fields",
                "candidate_lead_count", "top_lead"]
     rows2 = []
     for i, r in enumerate(block_rows, start=1):
         top = (r["candidate_leads"] or [{}])[0]
         rows2.append([i, r["table"], r["effect_type"], r["affected_characters"], r["affected_records"],
-                      r["descriptions"], r["descriptions_unexplained"], r["unexplained_fields"],
+                      r["descriptions"], r["descriptions_unexplained"], r["descriptions_confirmed_binding"],
+                      r["descriptions_hint_only"], r["descriptions_without_confirmed_binding"], r["unexplained_fields"],
                       r["candidate_lead_count"],
                       f"{top.get('field_path')} {top.get('reference_inference')} "
                       f"(hits={top.get('hits')}, decisive={top.get('decisive')})" if top else ""])

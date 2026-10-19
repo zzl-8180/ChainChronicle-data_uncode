@@ -1270,7 +1270,10 @@ def main():
                 denju_attached_keys.add((ch.get("table"), ch.get("record_id"),
                                          ch.get("layer"), a["f"]))
     p6 = json.loads((st / "p6_increment.json").read_text(encoding="utf-8"))
-    cur = _answer_keys(BASE / "profiles" / "records.jsonl")
+    # P3B3 adds an unrelated skilllist/type26/param0 rule. Compare P6's declared
+    # (type, field) set, rather than counting every future skilllist rule as P6.
+    p6_kinds = {(int(t), '/' + f) for t, fields in p6['rules_added'].items() for f in fields}
+    cur = _answer_keys(BASE / "profiles" / "records.jsonl", kinds=p6_kinds)
     added6 = {k for k in cur if k not in p5 and k[0] == "skilllist"
               and k not in denju_attached_keys}
     check("p6_increment.added_sets_match_artifact",
@@ -1729,9 +1732,25 @@ def main():
                            and "不是回复量倍数" in (a["unit"] or "") for a in over_ans),
           f"{len(over_ans)} 条超上限答案")
     st = json.loads((BASE / "profiles" / "summary.json").read_text(encoding="utf-8"))["status_counts"]
+    # P10's terminal five are a historical assertion. Reconstruct using its frozen
+    # rule scope; later rules must not change the denominator of this old check.
+    p10_frozen = C.ROOT / 'work/character_skills_p3b1/before'
+    p10_rule_keys = set(load_json(p10_frozen / 'rules.json'))
+    def unknown_in_scope(records, profiles, keys):
+        counts = {r['rec_key']: sum(a['rule_key'] in keys for h in [r] + r['children']
+                                  for a in h.get('answers', [])) for r in records}
+        return {p['cid'] for p in profiles if not (len(p.get('baseline', [])) +
+                sum(counts[ref['rec_key']] for g in p['groups'] for ref in g['records']))}
+    p10_frozen_unknown = unknown_in_scope(load_jsonl(p10_frozen / 'records.jsonl'),
+                                         load_jsonl(p10_frozen / 'profiles.jsonl'), p10_rule_keys)
+    current_profiles = load_jsonl(BASE / 'profiles/profiles.jsonl')
+    p10_scope_unknown = unknown_in_scope(p10_recs, current_profiles, p10_rule_keys)
+    current_unknown = unknown_in_scope(p10_recs, current_profiles, set(rules_json))
     check("p10.unknown_only_status_shrank_to_the_documented_remainder",
-          st.get("仅未知") == 5 and p10_inc.get("status", {}).get("仅未知") == 5,
-          json.dumps(st, ensure_ascii=False))
+          p10_frozen_unknown == p10_scope_unknown == {4009, 4049, 8116, 8151, 10018}
+          and p10_inc.get("status", {}).get("仅未知") == 5
+          and current_unknown <= p10_scope_unknown and len(current_unknown) == st.get('仅未知', 0),
+          json.dumps(dict(p10_scope_unknown=sorted(p10_scope_unknown), current_unknown=sorted(current_unknown), status=st), ensure_ascii=False))
     cp_inc = load_json(BASE / "cp_paths" / "p9_increment.json")
     check("p10.zero_breakage_against_the_p9_terminal_snapshot",
           cp_inc["existing_answer_keys_lost"] == 0

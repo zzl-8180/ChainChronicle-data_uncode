@@ -52,6 +52,7 @@ def render(c: dict, recs: dict, rules: dict) -> str:
            f"　已有逐描述答案 {cov['baseline_answers']}",
            f"描述片段 {cov['descriptions']}（本页求和；去重 {cov['descriptions_unique']}）"
            f"　有归属 {cov['descriptions_attributed']}＝已有答案 {cov['descriptions_from_baseline']}"
+           f"＋审定对应 {cov.get('descriptions_reviewed_bindings', 0)}"
            f"＋仅关键词提示 {cov['descriptions_with_hint']}／未解释 {cov['descriptions_unexplained']}"
            f"　未解释字段 {cov['unexplained_fields']}　必杀技类型标注 {cov['annotations']}"
            f"　断链 {cov['broken_links']}",
@@ -132,6 +133,15 @@ def render(c: dict, recs: dict, rules: dict) -> str:
                 for u in ch["unexplained"]:
                     out.append(f"      {u['f']} = {json.dumps(u.get('raw'), ensure_ascii=False)} → 未解释"
                                f"（{REASON_ZH.get(u['reason'], u['reason'])}）")
+            for f in r["fragments"]:
+                b = f.get("binding")
+                if not b:
+                    continue
+                out.append(f"    [已审定描述对应] {f['t']}")
+                for a in b["fields"]:
+                    out.append(f"      {a['f']} = {a['raw']} → {a['value']}；证据范围={a['evidence_scope']}")
+                out.append(f"      对象={b['target']}；条件={b['condition']}；时间={b['duration']}")
+                out.append(f"      对应强度={b['strength']}；模板={b['template_id']}；来源={b['source']['record_key']}")
         out.append("")
     if c.get("baseline"):
         out.append(f"== 已有逐描述答案（{len(c['baseline'])} 条，cid30236 基线） ==")

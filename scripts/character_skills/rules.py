@@ -117,8 +117,9 @@ def _skilllist_type_rules() -> list[dict]:
             "status": r.get("status"),
             "applicability": r.get("condition"),
             "evidence": r.get("evidence"),
-            "limits": ("以该能力被装载并进入玩家侧 apply 路径为前提；"
-                       "不承诺最终伤害/治疗数值，不含 Chain 与等级成长"),
+            "limits": (r["limits"] if r.get("effect_type") == 9 and r.get("field_path") == "/param0"
+                       else "以该能力被装载并进入玩家侧 apply 路径为前提；"
+                            "不承诺最终伤害/治疗数值，不含 Chain 与等级成长"),
             "target": None,
             "occurrences": None,
             "answer_kind": r.get("answer_kind"),
@@ -209,7 +210,9 @@ def rules() -> list[dict]:
         merged = list(load_json(CARD_COMPARISON / "field_dictionary.json"))
         have = {(r.get("table"), _rule_effect_type(r), r.get("field_path")) for r in merged}
         for r in (_boss_extra_rules() + _skilllist_type_rules() + _boss_attack_type_rules()
-                  + _boss_heal_type_rules()):
+                  + _boss_heal_type_rules()
+                  + (load_json(Path('output/character_skills/remaining_five/field_dictionary.json'))
+                     if Path('output/character_skills/remaining_five/field_dictionary.json').exists() else [])):
             key = (r["table"], r["effect_type"], r["field_path"])
             if key not in have:
                 merged.append(r)
@@ -1111,13 +1114,22 @@ def convert(table: str, effect_type, field_path: str, value, record: dict,
         return _boss_attack(value, kind, record, rule, effect_type)
     if kind in BOSS_HEAL_KINDS:
         return _boss_heal_type(value, kind, record, rule, effect_type)
+    if kind == 'remaining_five' and table in ('bossskill', 'charainfo'):
+        from remaining_five import convert as remaining_five_convert
+        return remaining_five_convert(effect_type, field_path, value, record)
 
     if table == "skilllist":
         a = effect_type
+        if a == 9 and field_path == "/param0":
+            from type9_bullet import convert as bullet_retention_convert
+            return bullet_retention_convert(value, record)
         # type 8 (Always) and the four types sharing its branch use the generic
         # answer_kind dispatch above ("attack_mult" / "move_mult" / "take_mult"), so the
         # conversion has exactly one implementation and the rule row is its source.
         if a == 26:
+            if field_path == "/param0":
+                from type26_mana import convert as mana_base_convert
+                return mana_base_convert(value, record)
             # ManaGet: the mana produced at battle start (PlayerManager.PartyAbilityInit
             # -> subPartyAbilityInit_ManaGet). This batch traced the iParam1/param4 line
             # and the param7 line; the same function also has param0/param1/param2/param3

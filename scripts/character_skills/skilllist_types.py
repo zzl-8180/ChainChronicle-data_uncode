@@ -1440,7 +1440,11 @@ def rule_rows(affected, maps=None, native=None, md=None):
     same_leaf = same_leaf_as_type8_rows(maps) if maps else []
     composite = composite_rule_rows(native, maps) if (maps and native) else []
     union = union_count_rule_rows(native, md) if (native and md) else []
-    return crit + same_leaf + composite + union + filter_rule_rows() + [
+    from type26_mana import rule_rows as mana_base_rule_rows
+    mana_base = mana_base_rule_rows(native, md) if (native and md) else []
+    from type9_bullet import rule_rows as bullet_retention_rule_rows
+    bullet_retention = bullet_retention_rule_rows(native, md) if (native and md) else []
+    return crit + same_leaf + composite + union + mana_base + bullet_retention + filter_rule_rows() + [
         dict(file_table="skilllist.ability8", table="skilllist", effect_type=8,
              field_path="/param1",
              meaning_zh="本项攻击乘数（Always：常时生效的攻击强化）",
@@ -2935,7 +2939,12 @@ def report_p6_increment():
     base_sum = (json.loads(P6_SUMMARY_BASELINE.read_text(encoding="utf-8"))
                 if P6_SUMMARY_BASELINE.exists() else None)
     md, native = load_native()
-    maps = build_maps(native, Resolver(native))
+    # Reporting reuses the already dual-checked index, and re-reads only P6 branches.
+    published = C.load_json(OUT / "dispatch_map.json")
+    if published['native_sha256'] != hashlib.sha256(native.raw).hexdigest():
+        raise ValueError('P6 report dispatch/native version mismatch')
+    maps = {path: {int(t): v for t, v in per['entries'].items()}
+            for path, per in published['types'].items()}
     rules = {}
     for r in (composite_rule_rows(native, maps) + filter_rule_rows()
               + union_count_rule_rows(native, md)):
@@ -2983,7 +2992,7 @@ def report_p6_increment():
                     page[added[k][0]] += 1
                     record_level[added[k][0]] += 1
                     hit.add(added[k][0])
-                elif rec.get("table"):
+                elif k in before:
                     preexisting[0] = True
             for ch in rec.get("children") or []:
                 if isinstance(ch, dict) and "answers" in ch:
