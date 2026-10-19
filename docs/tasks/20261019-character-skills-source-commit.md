@@ -1,7 +1,7 @@
 # 角色技能源码整理与本地 Git 提交
 
 - 负责人：Git 整理对话（2026-10-19，单开后接 `20261019-character-skills-git-handoff.md`）。
-- 状态：进行中（提交前记录）。不推送、不发布 Release、不重跑页面/native、不改算法与审查结论。
+- 状态：已完成本地提交（2026-10-19），未推送、未发布 Release、未重跑页面/native、未改算法与审查结论。
 - 写入范围：`scripts/character_skills/` 白名单文件、本任务卡；提交后仅追加 SHA/结果。
 - 只读范围：全部快照、`output/`、`work/`、其他任务改动（`AGENTS.md`、根 `HANDOFF.md`/`STATUS.md`、reference-analysis 两项）。
 
@@ -51,6 +51,27 @@
 - 本地导入闭包：除包式 `from character_skills import ...`（经 `scripts` 路径解析）外无缺失；`capstone`／`unicorn` 为已声明第三方依赖。
 - 静态字符串引用的同目录配置/夹具均存在：`p3b5_dom.js`、`p3b6/7/8/9/10_binding_scope.json` 及对应 `_dom.js`；`p3b3/p3b4_dom.js` 为独立手动夹具，一并入库。
 
+## 提交结果
+
+| commit | 主题 | 文件数 | 范围 |
+|---|---|---|---|
+| `e64bc0d` | 角色技能解读线：补齐 P3 生成器、冻结队列配置与公共改动源码 | 54 | 第 1 组全部文件（+63887/−30） |
+| `1ed7318` | 角色技能页：补齐 type1082 与 card_page 工具源码及 R1/R2 文档 | 27 | 第 2 组全部文件（+2673/−1） |
+
+本任务卡更新的记录提交紧随两条源码提交；新 HEAD 即 `git log -1` 所示提交。工作树保留其他任务改动，见下节。
+
+### 提交后仓库树核验
+
+- 用 `git archive HEAD` 解出隔离目录后重跑：`scripts/character_skills/*.py` 59 个全部 AST 解析通过；本地模块导入无缺失；5 份 `p3b*_binding_scope.json` 可解析且与 `*_bindings.py` 的 `Path(__file__).with_name` 引用一一对应；`p3b5_dom.js` 及 P3B6—P3B10 的 DOM 夹具均在该树中取得。
+- 与 `20261019-r2-f1-f5-frozen` 核对：160 项 0 漂移；`card_page.py`／`card_page_data.py`／`card_page_render.py` 相对 R1 source-fix 的差异即 R2 已审修订。
+- 未做干净 clone 端到端运行；数据输入（解码主表、profiles／links、原生镜像／metadata）仍在忽略目录，按“可复现性边界”如实记录。
+
+### 提交后仍存在的其他任务改动（未纳入）
+
+- `AGENTS.md`、`HANDOFF.md`、`STATUS.md`（混合／过时 P3B10 记录，由整合者处理）。
+- `docs/tasks/20261017-reference-analysis.md`、`scripts/ref_analysis_claude_cc.py`（reference-analysis 任务）。
+- 其余 `raw/`、`work/`、`output/` 产物按 `.gitignore` 保持忽略。
+
 ## 下一步
 
-完成两组本地提交后，在本卡追加 HEAD SHA、文件数与剩余未纳入项；新主持只读接手续接，不以 `c50433f` 为最新状态。
+页面线按 R2 `PASS_WITH_EXPLICIT_SCOPE_LIMITS` 暂停；新主持恢复前先读本卡与 `20261019-character-skills-pivot-handoff.md`，以本卡两条源码提交为源码基线，不回到 `c50433f`。
