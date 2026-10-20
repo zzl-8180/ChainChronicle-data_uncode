@@ -30,6 +30,10 @@ def apply_basic_display(data,basic):
     for f in basic['fields']:
         key=f['key'];raw=f['raw_value'];present=f['raw_state'] not in ('missing','null')
         f['display_value']=raw if present else '外部/网站维护'
+        # S-01（DeepSeek 20to39审查）：称号原值为空字符串不是有效称号，按外部/网站维护显示（R-07同法）。
+        if key=='title' and raw=='':
+            f['display_value']='外部/网站维护'
+            f['note']='主表原值为空字符串；按缺失口径显示（外部/网站维护）；原值保留详情'
         f['formatting_basis']='同源原值，未跨CACHE/APK逐字段拼接'
         if key=='jobtype':
             f['display_value']=roster.JOB_NAMES.get(raw,'未知／外部/网站维护') if present else '未知／外部/网站维护'

@@ -19,7 +19,21 @@ def metrics(coverage):
                 original_A=item(coverage['original_A'],n,'原文A'),C=item(coverage['C'],n,'C仅未知'),
                 A_whole_row_unknown=item(cross['A'].get('未知',0),a,'A中整行未知'),
                 whole_row_inferred=item(inferred,n,'整行推断'),E=coverage['E'],N_all=n,N_num=num,
+                whole_row_confirmed_scopes=self_split(coverage,n),
                 implementation_status=INFERENCE_STATUS)
+
+
+def self_split(coverage,n):
+    """H-01（DeepSeek 20to39审查）：整行确认内部分两类口径，仅拆分呈现，不降级判定。
+    记录级=REVIEWED_RECORD（如30236基线18行）；类型外推=BY_TYPE_EXTRAPOLATED（冻结P3B9/P3B10模板行）。
+    campaign 聚合层若未带该字段则显示为不可用，不以零冒充。"""
+    scopes=coverage.get('confirmed_rows_by_scope')
+    if scopes is None:
+        return dict(record=None,by_type_extrapolated=None,denominator=None,
+                    label='整行确认口径拆分（记录级/类型外推）',status='NOT_AVAILABLE_IN_THIS_AGGREGATION')
+    return dict(record=scopes.get('REVIEWED_RECORD',0),by_type_extrapolated=scopes.get('BY_TYPE_EXTRAPOLATED',0),
+                mixed=scopes.get('MIXED',0),denominator=n,
+                label='整行确认口径拆分（记录级REVIEWED_RECORD/类型外推BY_TYPE_EXTRAPOLATED）')
 
 
 def summary_text(summary):

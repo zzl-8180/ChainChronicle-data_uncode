@@ -54,34 +54,305 @@ def raw_state(rec, key):
     return 'missing' if key not in rec else 'null' if rec[key] is None else 'zero' if rec[key]==0 else 'present'
 
 
-NUMBER = r'(?<![\d.])(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?'
-NUM_UNITS = re.compile('('+NUMBER+r')\s*(%|秒間|秒|回|発|つ|個|枚|体|倍|人|マナ)(?![a-zA-Z])')
+# NUMBER 的双重 lookbehind：排除整数相邻与小数位（“1.5”不得再匹配“5”）；
+# 但允许省略号（NFKC 归一为“...”）后的数字（L-11：8424「…3つの効果」此前被误当作小数位跳过）。
+NUMBER = r'(?<!\d)(?<!\d\.)(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?'
+UNIT_CLASS = r'%|秒間|秒|回|発|つ|個|枚|体|匹|倍|人|マナ|羽|台|本'
+NUM_UNITS = re.compile('('+NUMBER+r')\s*('+UNIT_CLASS+r')(?![a-zA-Z])')
+UNIT_DISPLAY = {'秒間':'秒'}  # 显示单位统一；unit_raw 保留原文后缀（G-08/G-09）
+SENTENCE_DELIMS = ('。','、','，','\n','◆')
+
+
+def _raw_map(text):
+    """Per-character NFKC with a normalized→raw index map, so literal/context stay verbatim (G-09)."""
+    parts=[];index=[]
+    for i,ch in enumerate(text):
+        for nch in unicodedata.normalize('NFKC',ch):
+            parts.append(nch);index.append(i)
+    return ''.join(parts),index
+
+
+def _raw_slice(text,index,start,end):
+    if not index or start>=len(index): return text,min(start,len(text)),min(end,len(text))
+    rs=index[start]
+    re_=index[end-1]+1 if end>start else rs
+    return text[rs:re_],rs,re_
+
+
+def _context(text,start,end,span=40):
+    """Evidence context aligned to sentence/clause delimiters; never cuts a number or word (G-06/G-13)."""
+    lo=max(0,start-span);hi=min(len(text),end+span)
+    s=lo;e=hi
+    for d in SENTENCE_DELIMS:
+        p=text.rfind(d,lo,start)
+        if p>=0 and p+1>s:s=p+1
+        p=text.find(d,end,hi)
+        if p>=0 and p<e:e=p
+    return text[s:e],[s,e]
 
 
 def original_numbers(text):
-    """Extract only explicit quantities; ordinal 1st/IDs/level names do not qualify."""
-    normalized=unicodedata.normalize('NFKC',text)
+    """Extract only explicit quantities; ordinal 1st/IDs/level names do not qualify.
+    literal/context are verbatim raw text; normalized_literal/value follow NFKC (G-09)."""
+    normalized,index=_raw_map(text)
     out=[]
+    def item(value,unit,role,ms,me,display,qualifier=None,unit_raw=None):
+        raw_literal,rs,re_=_raw_slice(text,index,ms,me)
+        normalized_literal=normalized[ms:me]
+        context,cspan=_context(text,rs,re_)
+        entry=dict(value=value,unit=unit,role=role,literal=raw_literal,normalized_literal=normalized_literal,
+                   display=display,raw_span=[rs,re_],normalized_span=[ms,me],context=context,context_span=cspan)
+        if qualifier: entry['qualifier']=qualifier
+        if unit_raw and unit_raw!=unit:
+            entry['unit_raw']=unit_raw
+            entry['display_note']=('原文单位后缀「'+unit_raw+'」；本页时长单位显示统一为“秒”，literal保留原文' if unit_raw=='秒間' else
+                                   '原文后缀「'+unit_raw+'」是“N回復”的量词，本项为HP回复量，literal保留原文' if unit=='HP' else
+                                   '显示单位与原文单位后缀不同，literal保留原文')
+        if normalized_literal!=raw_literal:
+            entry['normalization_note']='literal为逐字原文；normalized_literal/display为NFKC归一化，值不变'
+        out.append(entry)
+    # “N～M回”等范围：保持为单一范围值项，不再拆成两个独立次数（L-13；DeepSeek 20to39审查）。
+    # NFKC 把全角“～”归一为“~”；波浪省略号“〜”保持原形，两者都识别。
+    range_spans=[]
+    for match in re.finditer(r'('+NUMBER+r')('+UNIT_CLASS+r')[~〜]('+NUMBER+r')\2(?![a-zA-Z])',normalized):
+        n1,n2,unit=match.group(1),match.group(3),match.group(2)
+        role={'回':'次数','発':'次数','%':'效果量百分比','秒':'时长','秒間':'时长'}.get(unit,'数量')
+        unit_raw=unit;unit=UNIT_DISPLAY.get(unit,unit)
+        range_spans.append((match.start(),match.end()))
+        item(n1+'～'+n2,unit,role,match.start(1),match.end(3),n1+'～'+n2+unit+'（范围）',unit_raw=unit_raw)
     for match in NUM_UNITS.finditer(normalized):
+        if any(s<=match.start() and match.end()<=e for s,e in range_spans):continue
         value,unit=match.group(1),match.group(2)
         left=normalized[max(0,match.start()-14):match.start()]
         right=normalized[match.end():match.end()+14]
         role=('条件阈值' if re.match(r'(以上|以下|未満|を超え)',right) else
               '时长' if unit.startswith('秒') else '次数' if unit in ('回','発') else
               '效果量百分比' if unit=='%' else '倍数' if unit=='倍' else '数量')
-        if right.startswith('まで') and unit in ('回','発','人'):role=('人数上限' if unit=='人' else '次数上限')
+        if right.startswith('まで') and unit in ('回','発','人','体','羽','台','本'):
+            role=('人数上限' if unit=='人' else '次数上限' if unit in ('回','発') else '数量上限')
+        # “N回ダメージを受けるまで”是受击耐久上限，不是攻击次数（G-03）。
+        if unit=='回' and re.match(r'ダメージを受けるまで',right):role='受击次数上限'
+        # RM-03（DeepSeek remaining审查）：「N秒先/秒後」是叙述性时间（视界/时点），不是效果持续时间。
+        if unit.startswith('秒') and re.match(r'(?:先|後)',right):role='叙述数字'
         if unit=='%' and re.search(r'HP(?:が|の)?$',left) and re.match(r'(以上|以下|未満|より)',right):
             role='HP条件阈值'
-        out.append(dict(value=value,unit=unit,role=role,literal=match.group(),
-                        context=normalized[max(0,match.start()-20):match.end()+24],
-                        normalized_span=[match.start(),match.end()]))
+        # RM-01（DeepSeek remaining审查）：「(残り)HPが N% の時/の場合/ならば/だと」限定的是HP条件
+        # 而非效果量（如「HPが100%の時、攻撃力が上がる」），同标HP条件阈值。
+        elif unit=='%' and role=='效果量百分比' and re.search(r'(?:残り)?HPが$',left) \
+                and re.match(r'(の時|のとき|の場合|ならば|なら|だと)',right):
+            role='HP条件阈值'
+        # 承前省略主语的「N%の時/の場合/ならば/だと」（如7581「残りHPが50％以上の場合、…、100％の場合」
+        # 的第二个数）：同句前文已有「(残り)HPが N%（以上等）（時/場合等）」条件锚点时同标。
+        elif unit=='%' and role=='效果量百分比' and re.match(r'(の時|のとき|の場合|ならば|なら|だと)',right):
+            head=normalized[sentence_start(normalized,match.start()):match.start()]
+            if re.search(r'(?:残り)?HPが'+NUMBER+r'%(?:以上|以下|未満|より)?(?:の時|のとき|の場合|ならば|なら|だと)',head):
+                role='HP条件阈值'
+        # “0マナで発動”是发动费用，不是获得数量（G-04）。
+        if unit=='マナ' and re.match(r'で発動',right):role='发动费用'
+        # “この効果で0マナにはならない”是否定表述：费用下限，不是数量（R-04；R2审查）。
+        if unit=='マナ' and re.match(r'にはならない',right):role='费用下限'
+        # “Nつ獲得”是获得数量（G-04）。
+        if unit in ('つ','個') and re.match(r'獲得',right):role='获得数量'
+        # “必要なマナがNつ減る”是所需玛那减少量，不是获得（G-05）。
+        if unit=='つ' and re.search(r'必要なマナが$',left) and re.match(r'減',right):role='所需玛那减少'
+        # “N回復”是HP固定回复量，不是次数（M-01；DeepSeek 20to39审查）；“N回復活/復帰”仍是次数。
+        heal_fixed=False
+        if unit=='回' and re.match(r'復(?!活|帰)',right):heal_fixed=True;role='回复量'
+        # “戦闘不能になった際にN回耐え”是耐久次数（L-08；DeepSeek 20to39审查）。
+        elif unit=='回' and re.match(r'耐え',right):role='耐久次数'
+        # “N回受けるまで”是受击次数上限（G-03 同族），“N回受けると/たび”是受击触发次数（L-08）。
+        elif unit=='回' and re.match(r'受け(?!止|身)',right):
+            role='受击次数上限' if re.match(r'受け(?:る)?まで',right) else '受击触发次数'
+        if unit=='%' and role=='效果量百分比':
+            # “N%回復”／“与えたダメージのN%、HPが回復”是回复量百分比（M-05；DeepSeek 20to39审查）。
+            if re.match(r'回復',right):role='回复量效果量百分比'
+            elif re.search(r'与えたダメージ(?:量)?の$',left) and re.match(r'[、,]?[^、。]{0,10}?HPが回復',right):
+                role='回复量效果量百分比'
+            # “(自身/敵)の最大HP N%のダメージ”是对敌伤害及其基数，不是自身增益（M-04）。
+            # RM-02（DeepSeek remaining审查）：扩展到省略领属的「最大HP N%のダメージ」
+            # （与える→对敌、受ける→自身）、「(自身/自分)も最大HP N%のダメージを受ける」自伤、
+            # 「N％ダメージを受ける」无の变体及「炎属性ダメージ」类；基数按 left 窗口逐字判定，数值不变。
+            maxhp=re.search(r'(?:(自身|自分|敵)(?:も)?の?)?最大[ＨH][ＰP]の?$',left)
+            if maxhp and re.match(r'の?(?:[炎氷闇光]属性)?ダメージ',right):
+                who=maxhp.group(1)
+                take=bool(re.match(r'の?(?:[炎氷闇光]属性)?ダメージ(?:を)?受け',right))
+                if who in ('自身','自分'):
+                    role='自身受到伤害（基数：自身最大HP）效果量百分比' if take else '对敌伤害（基数：自身最大HP）效果量百分比'
+                elif who=='敵':role='对敌伤害（基数：敌方最大HP）效果量百分比'
+                else:
+                    role='自身受到伤害（基数：最大HP）效果量百分比' if take else '对敌伤害（基数：最大HP）效果量百分比'
+        # “マナを1つも所持していない”是否定条件（未持有玛那），不是持有1个（R-05；R2审查）。
+        negated=False
+        if unit=='つ' and re.search(r'マナを$',left) and re.match(r'も所持していない',right):
+            role='条件阈值';negated=True
+        unit_raw=unit;unit=UNIT_DISPLAY.get(unit,unit)
+        if heal_fixed:unit='HP'
+        display=value+unit
+        # “3つの効果のうちランダムで1つ”的“3つ”是随机效果数，不是效果量（L-11）。
+        if unit=='つ' and re.search(r'の効果のうち',right):display+='（随机效果数，非效果量）'
+        if role=='叙述数字':display+='（叙述性时间，非效果时长）'
+        if role=='费用下限':display+='（不会降至0マナ）'
+        elif negated:display+='（未持有玛那）'
+        item(value,unit,role,match.start(),match.end(),display,unit_raw=unit_raw)
+    # “所持できるマナの数がNに増えた”：可持有玛那上限，原文无单位后缀（G-02）。
+    for match in re.finditer(r'所持できるマナの数が('+NUMBER+r')に増え',normalized):
+        if any(a['normalized_span'][0]<=match.start(1)<a['normalized_span'][1] for a in out): continue
+        item(match.group(1),'マナ','数量',match.start(1),match.end(1),match.group(1)+'（可持有玛那上限）',
+             qualifier='可持有玛那上限')
     # Fixed HP/ATK amounts often have no unit suffix (HPが1000上がり).
     for match in re.finditer(r'(HP|ATK)(?:が|を|の)?('+NUMBER+r')(?=上|増|回復|減)',normalized):
         if any(a['normalized_span'][0]<=match.start(2)<a['normalized_span'][1] for a in out): continue
-        out.append(dict(value=match.group(2),unit=match.group(1)+'原文固定量',role='效果固定量',
-                        literal=match.group(),context=normalized[max(0,match.start()-15):match.end()+20],
-                        normalized_span=[match.start(),match.end()]))
+        unit=match.group(1)+'原文固定量'
+        item(match.group(2),unit,'效果固定量',match.start(),match.end(),match.group(1)+'が'+match.group(2))
+    # “ダメージをN減少させる”：防御無視攻撃等伤害的固定减少量，原文无单位后缀（R-02；R2审查）。
+    # 值行显示用纯中文标签＋数值，不再夹整句日文（L-05）；原文短语见 literal/context。
+    for match in re.finditer(r'ダメージを('+NUMBER+r')減少',normalized):
+        if any(a['normalized_span'][0]<=match.start(1)<a['normalized_span'][1] for a in out): continue
+        item(match.group(1),'ダメージ固定量','固定减少量',match.start(1),match.end(1),match.group(1))
+    # “1000ダメージ”等直接接在数字后的固定伤害量（RM-04；DeepSeek remaining审查，
+    # 6215「呪い付与_5回1000ダメージ」，正文「呪いは5回までの追加固定ダメージを与える」佐证）。
+    # 与「ダメージをN減少」同法：单位以角色名表达，值行不夹日文（L-05）。
+    for match in re.finditer(r'('+NUMBER+r')ダメージ',normalized):
+        if any(a['normalized_span'][0]<=match.start(1)<a['normalized_span'][1] for a in out): continue
+        item(match.group(1),'ダメージ固定量','固定伤害量',match.start(1),match.end(1),match.group(1))
+    out.sort(key=lambda a:(a['normalized_span'][0],a['normalized_span'][1]))
     return out
+
+
+# 多值行的“效果量百分比”按同分句前文补属性/对象；仅当一行内有≥2个百分数时启用（G-07）。
+# R-06：具体短语（如「味方の必殺技の威力」）排在泛化短语（「必殺技の威力」）之前并遮蔽之；
+# 「天魔/状態異常の敵/遠距離通常攻撃/経験値/ゴールド」为同句逐字短语补全（R2审查 R-06）。
+ATTR_KEYWORDS=(('味方の必殺技の威力','味方必杀技威力'),('必殺技の威力','必杀技威力'),('クリティカル発生率','暴击发生率'),('クリティカル威力','暴击威力'),
+               ('人間に与えるダメージ','对人间伤害'),('天魔に与えるダメージ','对天魔伤害'),('状態異常の敵に与えるダメージ','对异常状态敌人伤害'),
+               ('遠距離通常攻撃のダメージ','远程通常攻击伤害'),('経験値','经验值'),('ゴールド','金币'),
+               ('移動速度','移动速度'),('攻撃力','攻击力'),('防御力','防御力'),
+               ('回復量','回复量'),('与ダメージ','造成伤害'))
+ATTR_TARGETS=(('1stキャラクター','1st角色'),('1stキャラ','1st角色'),('味方全体','味方全体'),('自身','自身'),('敵','敌方'))
+# R-03（R2审查）：下述条件短语中的「敵」是条件/受击对象的一部分，不是效果对象；
+# 在对象搜索前遮蔽，同时经 CONDITION_PATTERNS 登记为同句条件标签。
+# R-03（R2审查）：下述条件短语中的「敵」是条件/受击对象的一部分，不是效果对象；
+# 在对象搜索前遮蔽，同时经 CONDITION_PATTERNS 登记为同句条件标签。
+# 「敵陣の奥に行く程」「状態異常の敵がいると」同类（M-02/M-03B；DeepSeek 20to39审查）。
+CONDITION_EXCLUDES=('敵陣にいると','同じ敵を攻撃すると','敵陣の奥に行く程','状態異常の敵がいると')
+
+
+def attribute_role(text,pos,window_start=None):
+    start=0
+    for d in SENTENCE_DELIMS:
+        p=text.rfind(d,0,pos)
+        if p>=0 and p+1>start:start=p+1
+    # R-06：多值行各数值只看自己与前一个数字之间的前文，避免同标签重复粘贴到每个数值。
+    if window_start is not None and window_start>start:start=window_start
+    clause=text[start:pos]
+    if not clause:return None
+    # R-03：条件短语中的「敵」不是效果对象，搜索前遮蔽（遮蔽用等长占位，不改字序）。
+    clause=mask_conditions(clause)
+    attrs=[];matched=[]
+    for pat,label in ATTR_KEYWORDS:
+        # 具体短语命中后遮蔽其包含的泛化短语（如「味方の必殺技の威力」遮蔽「必殺技の威力」）。
+        if pat in clause and label not in attrs and not any(pat in m for m in matched):
+            attrs.append(label);matched.append(pat)
+    targets=[]
+    for pat,label in ATTR_TARGETS:
+        # 对象短语若只是已命中的属性短语的一部分（如「状態異常の敵に与えるダメージ」中的「敵」），不再单列对象。
+        if pat in clause and label not in targets and not any(pat in m for m in matched):
+            targets.append(label)
+    if not attrs:return None
+    return '/'.join(targets+attrs) if targets else '/'.join(attrs)
+
+
+# R-01：条件/所属/目标标签。仅当同句原文逐字写出下列短语、且短语出现在数字之前时才附加；
+# 目标取数字之前最近的主体短语，其他主体（味方全体/自身/敵/1stキャラ）就近覆盖，
+# 不跨句推断、不补“自身”这类日文默认省略的对象；无据行保持原样。
+SENTENCE_BREAKS=('。','\n','◆')
+# M-01/M-05：HP回复量（固定/百分比）同样参与同句对象/所属/条件标注。
+TARGET_SENTENCE_ROLES={'效果量百分比','效果固定量','倍数','回复量','回复量效果量百分比'}
+CONDITION_SENTENCE_ROLES=TARGET_SENTENCE_ROLES|{'所需玛那减少','发动费用','获得数量','数量'}
+TARGET_SUBJECT=re.compile(r'戦場にいる味方(?!以外)|味方全体|1stキャラクター|1stキャラ|(?<![無宿])敵|自身')
+# R-06：dimension_labels 只附加下列同句逐字写出的对象短语；「敵」不在此列（R-03，
+# 敵方对象仅由 attribute_role 在真实敌方分句中给出，且条件短语已遮蔽）。
+TARGET_ATTACH={'戦場にいる味方','味方全体','自身','1stキャラクター','1stキャラ'}
+TARGET_CANON={'1stキャラクター':'1st角色','1stキャラ':'1st角色'}
+SCOPE_PATTERN=re.compile(r'(?:戦場にいる|メインパーティの)(<[^<>]{1,30}>所属)')
+CONDITION_PATTERNS=(re.compile(r'地形が砂浜[/／]船上[/／]海中の時'),re.compile(r'ボスWAVE時'),
+                    re.compile(r'年代記の力を発動した時'),re.compile(r'敵陣にいると'),re.compile(r'敵陣の奥に行く程'),
+                    re.compile(r'状態異常の敵がいると'),
+                    re.compile(r'[0-9０-９]+人以上で同じ敵を攻撃すると'),
+                    re.compile(r'自身がヒロイックスキルに設定されていると'))
+
+
+def mask_conditions(text):
+    """Mask all registered condition phrases (incl. the two R-03「敵」条件) for object/subject search only;
+    condition detection in dimension_labels still runs on the unmasked window."""
+    for pat in CONDITION_PATTERNS:
+        text=pat.sub(lambda m:'■'*len(m.group(0)),text)
+    for phrase in CONDITION_EXCLUDES:
+        text=text.replace(phrase,'■'*len(phrase))
+    return text
+
+
+def sentence_start(text,pos):
+    start=0
+    for d in SENTENCE_BREAKS:
+        p=text.rfind(d,0,pos)
+        if p>=0 and p+1>start:start=p+1
+    return start
+
+
+def dimension_labels(text,pos,role,subject_start=None,pos_end=None):
+    """Same-sentence verbatim condition/affiliation-scope/battlefield-ally labels before the number."""
+    labels={};sent=sentence_start(text,pos);window=text[sent:pos]
+    recip=None;recip_end=None
+    if role in TARGET_SENTENCE_ROLES or role in CONDITION_SENTENCE_ROLES:
+        for m in re.finditer(r'(1stキャラクター|1stキャラ)に',window):
+            recip,recip_end=m.group(1),m.end()
+    if role in TARGET_SENTENCE_ROLES:
+        # 条件短语切点：句内最后一个条件短语结束处；之后的对象/所属不继承条件之前的（R-03：30336
+        # 「2人以上で…」不得继承「味方全体」）。
+        cut=0
+        for pat in CONDITION_PATTERNS+tuple(re.compile(re.escape(p)) for p in CONDITION_EXCLUDES):
+            for m in pat.finditer(window):
+                if m.end()>cut:cut=m.end()
+        # R-06：对象搜索窗口为同句数字之前全部前文（句首主题可被后句承前省略继承）；
+        # 全程先遮蔽条件短语中的「敵」（R-03）。
+        masked=mask_conditions(window)
+        subject=None;subject_end=None
+        for m in TARGET_SUBJECT.finditer(masked[cut:]):
+            subject,subject_end=m.group(0),cut+m.end()
+        if subject in TARGET_ATTACH:labels['target']=TARGET_CANON.get(subject,subject)
+        # M-03（DeepSeek 20to39审查）：「1stキャラクターに…効果を付与」且效果对象是「攻撃した敵」时，
+        # 1st 是授与者不是效果对象；效果对象「敵」由 attribute_role 给出，这里只登记付与注记。
+        elif recip is not None and not (subject=='敵' and subject_end is not None and subject_end>recip_end):
+            labels['target']=TARGET_CANON.get(recip,recip)
+        elif recip is not None and subject=='敵' and subject_end is not None and subject_end>recip_end:
+            labels['grant_note']=recip+'に付与'
+        # R-06：所属继承整个同句前文，但止于付与对象标记「1stキャラクターに」之后的新述语
+        # （20521第二数值不得继承第一述语的所属）；同句后段新所属就近覆盖（last match wins）。
+        # L-02：メインパーティの限定是逐字主队限定，scope 保留完整短语。
+        cut_scope=0
+        for m in re.finditer(r'(1stキャラクター|1stキャラ)に',window):
+            cut_scope=m.end()
+        scope=None
+        for m in SCOPE_PATTERN.finditer(window[cut_scope:]):scope=m
+        if scope:labels['scope']=scope.group(0) if scope.group(0).startswith('メインパーティの') else scope.group(1)
+    # M-05：「与えたダメージのN%、自身のHPが回復」的回复对象「自身」在数字之后，逐字就近补。
+    if role=='回复量效果量百分比' and 'target' not in labels:
+        m=re.match(r'[、,]?\s*(自身|味方全体|戦場にいる味方|1stキャラクター|1stキャラ)のHPが回復',
+                   text[pos_end if pos_end is not None else pos:])
+        if m:labels['target']=TARGET_CANON.get(m.group(1),m.group(1))
+    # M-03/L-03：「効果を付与/与え」句中「1stキャラクターに」是授与对象；效果对象不是 1st 时补付与注记。
+    if (recip is not None and (role in TARGET_SENTENCE_ROLES or role in CONDITION_SENTENCE_ROLES)
+            and re.search(r'効果を(?:付与|与え)',text[sent:])
+            and labels.get('target')!=TARGET_CANON.get(recip,recip)):
+        labels.setdefault('grant_note',recip+'に付与')
+    if role in CONDITION_SENTENCE_ROLES:
+        hits=[]
+        for pat in CONDITION_PATTERNS:
+            hit=None
+            for hit in pat.finditer(window):pass
+            if hit and hit.group(0) not in hits:hits.append(hit.group(0))
+        if hits:labels['conditions']=hits
+    return labels
 
 
 def quantitative(value):
@@ -285,6 +556,27 @@ def source_answer(answer,table,ident,source,numeric_source='规则',association=
                 evidence=answer.get('evidence'),quantitative=quantitative(value))
 
 
+# 源数据异常登记：原文疑似笔误，页面忠实保留，不修改游戏原值（G-10）。
+SOURCE_ANOMALIES={204:[('ダッシュ範囲上にいるに','源数据疑似笔误“ダッシュ範囲上にいるに”（来源sinfo原文如此）；页面忠实保留原文，未修正，不当作页面错误。')]}
+
+# 分母口径登记（R2审查R-12）：计入N_all但非效果正文的行在此说明；不改行集合，只登记。
+DENOMINATOR_NOTES={20438:[('神仙セリーヌ_神仙の力',
+    'SA标题行（对应技能名「神仙セリーヌ用SA_ArtsFlag」的页内标题，非效果正文）按现状计入N_all/C。'
+    '内部标签排除规则为整技能文本单行且匹配内部前缀（エクストラ_/パッシブ_/職業_/内部）或含SA_（cid89据此整技能排除）；'
+    '本技能文本含句读正文行「《玲瓏璧》のサブアビリティ。」，不满足整技能排除条件，标题行本身无独立排除依据，故保留计数。')],
+ 6215:[('呪い付与_5回1000ダメージ',
+    'SA内部标签行（整技能文本即「呪い付与_5回1000ダメージ」单一行，下划线连接的内部标识，非效果正文）'
+    '按L-07保留口径计入N_all/A（「5回」为原文数字项；RM-04，DeepSeek remaining审查）。'
+    '内部标签排除规则为整技能文本单行且匹配内部前缀（エクストラ_/パッシブ_/職業_/内部）或含SA_（cid89据此整技能排除）；'
+    '本文本不含上述前缀与SA_，无逐字排除依据，故保留计数并在此登记。'
+    '「1000ダメージ」按同轮RM-04补提为固定伤害量（special_move正文「呪いは5回までの追加固定ダメージを与える」佐证语义）。')],
+ 6327:[('アマツVer3用_ManaHunter',
+    'SA内部标签行（整技能文本即「アマツVer3用_ManaHunter」单一行，内部用途标识，非效果正文）'
+    '按L-07保留口径计入N_all/C（RM-04，DeepSeek remaining审查）。'
+    '内部标签排除规则为整技能文本单行且匹配内部前缀（エクストラ_/パッシブ_/職業_/内部）或含SA_；'
+    '本文本不含上述前缀与SA_，无逐字排除依据，故保留计数并在此登记。')]}
+
+
 def baseline_target(b):
     ids=re.findall(r'pattern(\d+)',b.get('condition',''))
     if b.get('description_table')=='bosspattern' and len(set(ids))==1: return int(ids[0])
@@ -349,7 +641,7 @@ def build_card(data:Inputs,cid):
                            rows=[],record_evidence=data.evidence_tree(entry),forward_links=data.forward_links(entry),
                            old_rec_key=oldref.get('rec_key'),link_status=entry.get('link_status'),
                            baseline_metadata_answers=[],
-                           association_evidence='推断' if entry.get('ambiguous') or 'INFERRED' in str(entry.get('link_status','')) else '确认')
+                           association_evidence='推断' if entry.get('ambiguous') or 'INFERRED' in str(entry.get('link_status','')) else '确认·记录引用（不代表句内归属）')
                 skill['level_note']='原表无等级字段，序号不代表解锁等级' if group_id=='passive' and 'lv' not in record else '按原始引用独立保留档位；实际装载另有门控'
                 for effect_id,item in registry.items():
                     b=item['answer']
@@ -374,9 +666,46 @@ def build_card(data:Inputs,cid):
                     row_id=f'{cid}-{group_id}-{original_group}-{ref}-lv{record.get("lv","order"+str(ordinal))}-f{fragment_index}'
                     row_id=re.sub(r'[^\w\-]','_',row_id)
                     originals=original_numbers(frag)
-                    answers=[dict(value=f"{n['role']}：{n['literal']}",quantity_kind=n['role'],unit=n['unit'],
+                    # 效果量百分比分句补属性/对象标签（G-07；单值泛标签行同样适用，阈值/上限角色不覆盖）；
+                    # 条件/所属/目标只取同句原文逐字写出的短语并附加到其后的效果数值，无据不补（R-01）。
+                    # R-06：多值行各数值的对象/属性窗口不跨前一个数字；R-03：条件短语中的「敵」先遮蔽。
+                    prev_end=None;prev_sent=None;prev_role=None
+                    for n in originals:
+                        sent=sentence_start(frag,n['raw_span'][0])
+                        window_start=prev_end if (prev_end is not None and prev_sent==sent) else None
+                        dims=dimension_labels(frag,n['raw_span'][0],n['role'],window_start,pos_end=n['raw_span'][1])
+                        if n['unit']=='%' and n['role']=='效果量百分比':
+                            enriched=attribute_role(frag,n['raw_span'][0],window_start)
+                            if enriched:n['role']=enriched+'效果量百分比'
+                        if dims.get('target') or dims.get('scope'):
+                            # 同义对象前缀去重（如 attribute_role 的「1st角色」与 dims 的「1stキャラクター」）。
+                            have={TARGET_CANON.get(p,p) for p in n['role'].split('/')[:-1]}
+                            add=[t for t in (dims.get('target'),dims.get('scope'))
+                                 if t and TARGET_CANON.get(t,t) not in have]
+                            if add:
+                                n['role']='/'.join(add+[n['role']])
+                                if dims.get('target') in add:n['target']=dims['target']
+                                if dims.get('scope') in add:n['scope']=dims['scope']
+                        if dims.get('conditions'):n['condition']='、'.join(dims['conditions'])
+                        # L-01（DeepSeek 20to39审查）：同一敌方减益句（「攻撃した敵の…下がる」）中，
+                        # 后续同向值逐字继承「敌方/」前缀；句中出现新主体、方向转上升时不继承。
+                        if (prev_sent==sent and prev_end is not None and prev_role and prev_role.startswith('敌方/')
+                                and '/' not in n['role'] and n['unit']=='%'):
+                            between=frag[prev_end:n['raw_span'][0]]
+                            sent_end=min([p for p in (frag.find(b,prev_end) for b in SENTENCE_BREAKS) if p>=0]+[len(frag)])
+                            tail=frag[prev_end:sent_end]
+                            if (not TARGET_SUBJECT.search(mask_conditions(between))
+                                    and '下が' in tail and not re.search(r'上が|アップ',tail)):
+                                n['role']='敌方/'+n['role']
+                        if dims.get('grant_note'):
+                            n['condition']=(n['condition']+'、' if n.get('condition') else '')+dims['grant_note']
+                        prev_end=n['raw_span'][1];prev_sent=sent;prev_role=n['role']
+                    answers=[dict(value=f"{n['role']}：{n['display']}"+(f"（条件：{n['condition']}）" if n.get('condition') else ''),
+                                  quantity_kind=n['role'],unit=n['unit'],
                                   raw_value=n['value'],numeric_source='原文',numeric_evidence='确认',association_evidence='未知',
-                                  note='原文数字，字段关联未证',source={**source,'field':'/'+tf},context=n['context'],
+                                  note='；'.join(['原文数字，字段关联未证']+[n[key] for key in ('display_note','normalization_note') if n.get(key)]),
+                                  source={**source,'field':'/'+tf},context=n['context'],
+                                  **({'condition':n['condition']} if n.get('condition') else {}),
                                   quantitative=True) for n in originals]
                     matched_old=next((f for f in oldfrags if canonical(f['t'])==canonical(frag)),None)
                     if matched_old and matched_old.get('binding') and matched_old.get('status')=='REVIEWED_DESCRIPTION_BINDING':
@@ -416,20 +745,36 @@ def build_card(data:Inputs,cid):
                             amount=next(n['literal'] for n in originals if n['unit']=='%')
                             a['value']=f'本档Chain威力提升量 {amount}（原文；原101项基线支持分档）'
                         answers.append(a); item['mapped_row_ids'].append(row_id)
+                    # L-09（DeepSeek 20to39审查）：同一数值同时存在原文（关联未知）与规则（确认）答案时，
+                    # 在原文答案注记覆盖关系；不改 R-01 整行判定，数值与口径不变。
+                    rule_values=[float(a['raw_value']) for a in answers
+                                 if a.get('numeric_source')=='规则' and isinstance(a.get('raw_value'),(int,float))
+                                 and not isinstance(a.get('raw_value'),bool)]
+                    for a in answers:
+                        if a.get('numeric_source')!='原文' or '同值规则答案' in (a.get('note') or ''):continue
+                        try: v=float(a.get('raw_value'))
+                        except (TypeError,ValueError): continue
+                        if any(abs(v-r)<=1e-9 for r in rule_values):
+                            a['note']=(a.get('note') or '')+'；同值已有一条规则答案（见本行「规则」来源值行）；原文数字的字段关联仍未知，整行按R-01口径维持未知'
                     numerical=[a for a in answers if a['quantitative']]
                     # Existing baseline mechanisms may be useful, but only count B with an explicit added claim.
                     mechanisms=[a for a in answers if not a['quantitative'] and a.get('numeric_source')=='既有逐描述证据']
                     cls='A' if numerical else 'B' if mechanisms else 'C'
-                    association='确认' if any(a['association_evidence']=='确认' for a in answers) else '未知'
+                    # R-01（40to59审查）：整行字段关联确认当且仅当该行全部答案的关联均为确认；
+                    # 任一答案「关联未知」（含原文数字答案）即整行为未知，不再用 any() 虚增整行确认。
+                    association='确认' if answers and all(a['association_evidence']=='确认' for a in answers) else '未知'
                     if skill['association_evidence']=='推断' and association=='确认': association='推断'
                     reasons=[]
-                    if association!='确认': reasons.append('尚无已审定的句内字段归属；原文数字仅确认原文，不猜参数对应' if originals else '原文未提供该效果数值，尚无已审定的句内字段归属')
+                    if association!='确认':
+                        reasons.append('尚无已审定的句内字段归属；原文数字仅确认原文，不猜参数对应' if originals else
+                                       '原文未提供该效果数值，尚无已审定的句内字段归属'+
+                                       ('；原文含范围几何数字（N直線），不作为效果量提取' if re.search(r'[0-9０-９]+直線',frag) else ''))
                     if not answers: reasons.append('此描述尚无可适用的已确认数值或新增机制证据')
                     if matched_old and matched_old.get('cands') and not matched_old.get('binding'):
                         reasons.append('旧关键词候选未作为答案；不能排除对象或效果错配')
                     if group_id=='heroic': reasons.append('英雄技引用沿用既有ID模式关联，未证明运行时装载和等级条件')
                     if skill['forward_links']: reasons.append('str0目标规则已在来源层复用；具体句内归属、对象资格及缺参默认值另列未知')
-                    partial=cls=='A' and not (matched_old and matched_old.get('binding') and skill['association_evidence']=='确认')
+                    partial=cls=='A' and not (matched_old and matched_old.get('binding') and skill['association_evidence'].startswith('确认'))
                     state_keys=([f'param{i}' for i in range(10)] if table in ('skilllist','heroicskilllist','supporterskill') else
                                 [f'skillparam{i}' for i in range(10)] if table in ('charainfo','bossskill') else [])
                     states={k:raw_state(record,k) for k in sorted(set(state_keys)|{k for k in record if re.match(r'(param|iParam|skillparam|str)\d',k)})}
@@ -446,6 +791,13 @@ def build_card(data:Inputs,cid):
                              source_evidence_ref=skill_id,old_fragment_status=matched_old.get('status') if matched_old else None,
                              old_candidates_reused=False,mechanism_added=mechanisms,
                              evidence_scope=sorted({str(a['evidence_scope']) for a in answers if a.get('evidence_scope')}))
+                    # L-12（DeepSeek 20to39审查）：冻结绑定条件（N>=2/职业/所属/武器等）提到行级可见层，
+                    # 不再只在折叠JSON；条件文本逐字来自冻结binding，不改数值与判定。
+                    row['binding_conditions']=[]
+                    for a in answers:
+                        binding=a.get('binding')
+                        if binding and binding.get('condition') and binding['condition'] not in row['binding_conditions']:
+                            row['binding_conditions'].append(binding['condition'])
                     # The display ordinal is not an execution identity. Reference slots
                     # and the actual parent record (including level/conditions) are.
                     execution_context=dict(reference_slot=ref,parent_record_sha256=hashlib.sha256(json.dumps(record,sort_keys=True,ensure_ascii=False).encode('utf-8')).hexdigest())
@@ -487,13 +839,32 @@ def build_card(data:Inputs,cid):
                   chain_parent_original_A_rows=sum(r['original_A'] for g in groups for s in g['skills'] if s['forward_links'] for r in s['rows']),
                   old_descriptions=profile['coverage']['descriptions'],old_confirmed=profile['coverage']['fragments_attributed_confirmed'],
                   old_hint=profile['coverage']['fragments_attributed_hint_only'])
+    # H-01（DeepSeek 20to39审查）：整行确认分两类口径——记录级 REVIEWED_RECORD（30236基线）
+    # 与类型外推 BY_TYPE_EXTRAPOLATED（冻结P3B9/P3B10模板行）；只拆分呈现与统计，不降级判定。
+    confirmed_scopes={}
+    for r in allrows:
+        if r['evidence']!='确认':continue
+        scopes=set(r['evidence_scope'])
+        key=next(iter(scopes)) if len(scopes)==1 else 'MIXED' if scopes else '无scope标注'
+        confirmed_scopes[key]=confirmed_scopes.get(key,0)+1
+    coverage['confirmed_rows_by_scope']=confirmed_scopes
     coverage['internal_labels_excluded']=sum(bool(s.get('internal_label')) for g in groups for s in g['skills'])
     coverage['leader_sympathy_rows_added']=sum(len(s['rows']) for g in groups for s in g['skills'] if s['text_field']=='sympathy_text')
     coverage['repeated_actual_occurrences_retained']=sum(len(s['rows'])-len({canonical(r['japanese']) for r in s['rows']}) for g in groups for s in g['skills'])
     coverage['same_position_aliases_merged']=sum(len(r['alias_references']) for r in allrows)
+    source_anomalies=[dict(cid=cid,row_id=r['row_id'],note=note) for r in allrows
+                      for pattern,note in SOURCE_ANOMALIES.get(cid,()) if pattern in r['japanese']]
+    denominator_notes=[dict(cid=cid,row_id=r['row_id'],note=note) for r in allrows
+                       for pattern,note in DENOMINATOR_NOTES.get(cid,()) if pattern in r['japanese']]
     return dict(schema_version='card-page-pilot-1',cid=cid,basic=basic(data,cid),groups=groups,coverage=coverage,
                 summary=metrics(coverage),implementation_status=INFERENCE_STATUS,
                 sources=dict(input_root='声明的 --input-root',snapshot='cache_full_20261015_v3 + APK5.6.2',
-                             task0_verdict=data.forward,baseline_registry=registry,old_to_new=mapping),
+                             task0_verdict=data.forward,baseline_registry=registry,old_to_new=mapping,
+                             source_anomalies=source_anomalies,denominator_notes=denominator_notes,
+                             baseline_evidence_roots=dict(
+                                 root='output/card_comparison_cid30236/',
+                                 note='30236基线answers[].evidence中的相对路径（含以../引用output/同层其他任务目录，'
+                                      '如「barrier/README.md」「../boss_chain/type105/README.md」）均以上述目录为解析根；'
+                                      '「skill43023600.text」「extra_ability_info.extra_abilities[].text」等非路径文本为说明性引用，不是文件指针')),
                 reference_comparison=dict(local_layout='仅参考结构；不读取参考数值或图片作为数据',website_status='待主持/独立R1实际浏览对照',
                                           external_difference_note='网站一致/差异独立于证据等级；外部值不覆盖游戏原值'))

@@ -19,13 +19,29 @@ from card_page_write import commit,reusable,state,retention,ArtifactWriteError
 def aggregate(stats):
     cov={k:sum(s['coverage'][k] for s in stats) for k in ('N_all','E','N_num','A','B','C','original_A','partial_A')}
     cov['evidence_cross']={c:{e:sum(s['coverage']['evidence_cross'][c][e] for s in stats) for e in ('确认','推断','未知')} for c in ('A','B','C')}
+    # H-01：整行确认的记录级/类型外推拆分随 cohort 聚合透传。
+    scopes={}
+    for s in stats:
+        for key,value in (s['coverage'].get('confirmed_rows_by_scope') or {}).items():
+            scopes[key]=scopes.get(key,0)+value
+    cov['confirmed_rows_by_scope']=scopes
     return cov
 
 
 def audit_rows(card):
+    """G-15：在既有每卡≥10行抽样（不足10行全列）之上，保证每个有实际行的 configured skill
+    至少1个不同实际 row_id 入队；技能多的卡队列可超过10行。合并别名行的技能由共享的
+    规范行代表（同实际位置，无法再拆出不同 row_id），按 alias_row_ids 说明。"""
+    selected={}
+    for r in choose_samples(card):selected[r['row_id']]=r
+    for s in (s for g in card['groups'] for s in g['skills'] if s['rows']):
+        if not any(r['row_id'] in selected for r in s['rows']):
+            selected[s['rows'][0]['row_id']]=s['rows'][0]
+    rows={r['row_id']:r for g in card['groups'] for s in g['skills'] for r in s['rows']}
     return [dict(cid=card['cid'],row_id=r['row_id'],japanese=r['japanese'],page=f'{card["cid"]}/index.html#{r["row_id"]}',
                  row_class=r['row_class'],source=r['source'],review_status='NOT_REVIEWED',reviewer=None,decision=None,
-                 issue=None,evidence=None,fix_recheck_status=None) for r in choose_samples(card)]
+                 issue=None,evidence=None,fix_recheck_status=None)
+            for r in sorted(selected.values(),key=lambda r:[row['row_id'] for row in rows.values()].index(r['row_id']))]
 
 
 def inventory(out,m,cohort,signature):
