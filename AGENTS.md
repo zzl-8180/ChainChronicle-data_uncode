@@ -38,6 +38,7 @@
 | 查询入口 | `scripts/query_effect_dictionary.py`，先查看用法和已有实现 |
 | 分享包 | `output/share_bundle/`；现有 `CC_analysis_*_20261016.zip` 是分析材料包，不是完整解包发行包；后续版本按第8节注明类别与范围 |
 | 可复现性审计 | `docs/tasks/20261016-reproducibility-audit.md`；第三方独立解包依赖链、阻塞点、已验证／推断／未验证结论与隔离测试记录 |
+| 他人下游项目分析 | `output/reference_analysis/claude_cc_site_pages/README.md`；对象 `其他人的参考/claude_cc_site_pages/`（只读）；含 1610 行参数表逐条核对、冲突与候选清单 |
 
 ## 3. 文件分类
 

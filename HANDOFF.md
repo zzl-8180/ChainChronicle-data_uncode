@@ -20,7 +20,10 @@
 
 ## 1. 当前有效入口
 
-- **角色技能解读（P1 首批 ＋ P2 第 1／2／3／4／5／6／7／8／9／10 批）**：[产物说明](output/character_skills/README.md)、
+- **P3B10 C冻结待新D**：[交接](output/character_skills/P3B10_HANDOFF.md)、[证据/命令](output/character_skills/description_bindings/p3b10_batch/README.md)。仅28条type67（26武器＋2职业逗号），新增28唯一/28页描述、54唯一/54页效果槽、28cid；25主组47槽＋3缺weapon.type组7槽。3条页面明示主weaponlist缺type/自身计入未知，保留N>=2及条件化自外关系；武器按Constants跳表逐值，不套22+枚举。字段+0，398真实/11409提示/29788未知、2233部分/0仅未知/3完整，无迁移。复用B9已审native，新执行0；C专项12/12、边界94/94、原行61/61、GBK8/DOM39、verify189/A—P与12产物一次稳定通过。旧82013完整答案/重复、311绑定及强度、101/31、非目标/分母/三完整profile整体保留；仅C自检，待独立D。
+- **P3B9已由独立D R1带明确范围限制通过**：[交接](output/character_skills/P3B9_HANDOFF.md)、[证据/命令](output/character_skills/description_bindings/p3b9_batch/README.md)。仅type67条件纯句，新增162唯一/162页描述、336唯一/336页效果槽、162角色，字段+0；当前41595=真实370＋提示11437＋未知29788，角色仍2233部分/0仅未知/3完整。156主组与6条原文未写计数2的差异分别保留；30620310持有者CACHE缺jobtype保留未知。实际alive列表后再判active、聚合职业位图门槛及AND筛选，阈值2仅在持有者合格且实际计入时可换述其余>=1；所有162均ordinary skillid[3]，实际装载为明确前提。C原生9/9、专项10/10、边界2117/2117、GBK14/DOM338、verify189/189与原表A—P通过，12相关产物一次重建字节一致；旧82013完整答案/重复、149绑定/强度、277用规则/源287、101/31、三旧完整profile及非目标/未知/分母保留。D最终结论为问题/阻塞/整改0，见[正式报告](output/character_skills/review/p3b9_20261019_type67_bindings/REPORT.md)；上列C检查为实施历史。
+- **P3B8 已由独立D R1带明确范围限制通过，问题/阻塞/需整改0**：[最终报告](output/character_skills/review/p3b8_20261019_boss_bindings/REPORT.md)。下面旧C待审/PENDING均是冻结历史，不为文案另开整改轮次。
+- **角色技能解读（P1＋P2十批＋P3第1—8批独立审查闭合；第9批C冻结待新D）**：[产物说明](output/character_skills/README.md)、
   [逐角色查询页](output/character_skills/profiles/index.html)（约 100 MB 自包含，按 cid／名称查询；也可用
   `query.py --cid 30236`）、[缺口队列](output/character_skills/gaps/gap_queue.json)、
   审查交接 [P2-1](output/character_skills/P2R_HANDOFF.md)／[P2-2](output/character_skills/P2B2_HANDOFF.md)／
@@ -35,9 +38,23 @@
   （P1／P2-1／P2-2／P2-3／P2-4／P2-5／P2-6 见同目录同前缀的 `-p1.md`／`-p2.md`／`-p2b2.md`／`-p3.md`／`-p4.md`／`-p5.md`／`-p6.md`）。
   P1（R1＋R2 复验）与 P2 第 1—8 批均已过审查（各 `review/p2b*_2026101*_thirdparty/`，通过或带限制通过）；
   P2 第 8 批审查 3 处文字问题已在本批第 0 项整改；P2 第 9 批已过审查并完成整改；
-  **P2 第 10 批（`Exec_HEAL` 家族与其余类型；里程碑 A 收官）已完成 → p2b10 审查「需修正」（F1–F4）→ **整改完成、待复验**。
-  当前数字：角色 2236、部分 **2231**／仅未知 **5**／完整 0；引用 48555＝已解析 48552＋断链 3；记录 15973；
-  规则答案 **81500**（唯一 **80659**，已逐条评审 10095／按类型套用 71258）；未解释参数槽 **428551**；缺口字段级 **5571**；
+  **P2 十批与P3 第 1 批已审查闭合**：P3B1 独立审查「带明确限制通过」，阻塞0、需整改0，
+  [审查报告](output/character_skills/review/p3b1_20261019_type8/REPORT.md)；仅基线校准与十条固定APK type8记录的人工描述对应试点，
+  [P3B1 交接](output/character_skills/P3B1_HANDOFF.md)。10 唯一片段／17 页引用、17 角色，字段数值答案新增 0；
+  **P3B2 已独立审查闭合**（带明确限制通过，阻塞0、需整改0）：[报告](output/character_skills/review/p3b2_20261019_type8/REPORT.md)、[交接](output/character_skills/P3B2_HANDOFF.md)、[15候选裁决](output/character_skills/description_bindings/p3b2_type8/candidate_decisions.jsonl)。
+  纳入11/排除4，新增11唯一片段/12页引用、12唯一效果槽/13页引用、12角色（与首批无重合）；字段答案+0、角色状态不变。
+  P3B2闭合时41595描述页引用＝31基线＋17首批已审＋12本批已审＋11601仅提示＋29934未解释；type8累积21条/29页，两批结论各限固定记录，不向其他记录自动推广。机器产物PENDING为审查前快照，当前以D报告为准。
+  **P3B3 D已审，带明确限制通过，阻塞0；N1已修待文档差异复验**（[报告](output/character_skills/review/p3b3_20261019_type26/REPORT.md)、[整改](output/character_skills/type26_mana/RECTIFICATION.md)）：[交接](output/character_skills/P3B3_HANDOFF.md)、[原生/增量证据](output/character_skills/type26_mana/README.md)。type26 param0基础玛那+489页/+469归一行/+469父holder键（416来源记录），影响481角色；3101/3102固定APK纯句+2唯一/+22页，仍限装载/非继续战斗/存活/isHero与param6门槛。当前描述41595＝31基线＋29旧type8对应＋22本批已审＋11601提示＋29912未知；旧答案和绑定零破坏。机器JSON保留审查前PENDING，以正式报告为准；本次仅文档整改，未改代码/数值/机器产物、未重跑检查。
+  **P3B4 D已审，带限制通过/阻塞0；N1已由原D差异复验闭合**（[报告](output/character_skills/review/p3b4_20261019_type9/REPORT.md)、[整改](output/character_skills/type9_crit/RECTIFICATION.md)；机器PENDING保留审查前状态，以正式报告为准）：[交接](output/character_skills/P3B4_HANDOFF.md)、[证据/命令](output/character_skills/type9_crit/README.md)。type9 param0原“暴击率”候选被反证，真实是Bullet贯通后伤害保留系数；首次先Attack、后按最大已启用param0逐次乘法/整数化/夹紧，须符合MULTIHIT或击杀SHOT_THROUGH继续条件，非具体最终伤害。新增1规则、789页/788归一行/788父holder键、441来源、450角色；全BY_TYPE，描述+0、状态不变。P3B3 N1已由原D差异复验闭合，旧交接快照不改。
+  **P3B5 初审需整改，F1已修待原D复验**：[交接](output/character_skills/P3B5_HANDOFF.md)、[证据/命令](output/character_skills/remaining_five/README.md)。6条Boss必杀规则（24/sp3、56/sp2、68/sp4、73/sp5/sp6/sp7），+97页/+97归一行/+97父holder键，52来源（APK44/CACHE8）、40角色；4009/4049/8116/10018/8151均仅未知→部分，描述+0。仅局部计时/请求系数/发射门槛，未承诺整条技能时长或最终发射数。P10检查以P3B1开工真实快照固定历史规则视角，仍核原5人；当前实际零未知另由实际答案核算。F1把type73改为候选遍历入口门槛，非正冷却同轮可越过次数门槛，正冷却停止继续遍历；27行文案/数量名称和3规则修订，原值/单位/来源/scope/状态/计数不变，见[整改](output/character_skills/remaining_five/RECTIFICATION.md)。P3B4 N1已[复验闭合](output/character_skills/review/p3b4_20261019_type9/RE_VERIFICATION.md)，旧交接/审查快照不改。
+  **P3B5 F1已由原D R2复验通过，闭合无剩余阻塞**：[最终报告](output/character_skills/review/p3b5_20261019_remaining_five/REPORT_R2.md)，上段初审/整改为历史快照。
+  **P3B6 已独立D带范围限制通过（阻塞0、整改0）**：[交接](output/character_skills/P3B6_HANDOFF.md)、[证据与命令](output/character_skills/description_bindings/p3b6_batch/README.md)。3条type26与6条自身F0/Boss type5纯直线句采用冻结集合的受控结构规则＋raw/native对应，新增9唯一/9页片段及9唯一/9页效果槽，字段+0。type5伤害保持公式，运行时能力/武器flag可另调整，不保证实战全敌命中或最终伤害。cid29的2/2原有片段真实对应且无断链，按原标准自然从部分→完整；24未知字段照留。其他8受影响角色状态不变；旧82013完整字段对象/重复数、277旧已用规则、101/31/type8/type26旧绑定原样。当前描述41595＝真实91＋提示11601＋未知29903；未改完整标准/分母或verify期望。C自检原生10/10、专项9/9、边界91/91、原JSON9/9、GBK8次、DOM14/14、verify189/189与A—P通过，[独立D报告](output/character_skills/review/p3b6_20261019_batch_bindings/REPORT.md)已确认限定队列和完整cid29；旧C交接PENDING保持历史状态。
+  **P3B7 R1 F1整改完成，待原D R2**：[交接](output/character_skills/P3B7_HANDOFF.md)、[证据/命令](output/character_skills/description_bindings/p3b7_batch/README.md)。仅80条type26完整开局基础玛那句，实际新增80唯一/80页/80角色及80/80效果槽，字段+0；当前描述41595＝真实171＋提示11599＋未知29825（目标78未知、2提示升级）。角色状态迁移0，仍2235部分/0仅未知/1完整，cid29保留。新原生8/8含204过滤样本；metadata→ctor→实际双向缓存映射→消费者→精确类型比较，26/1073/1077子消费者拒绝；初始化枚举/对象/泛型接口夹具及保护值解码stub明示，不是全引擎/实机。199子源/65类型不扩研究，其他系统授予/旁句保留。旧82013完整答案/重复数、277用规则/源287、32旧绑定、101/31及非目标对象精确保留；专项10/10、边界1140/1140、raw80根+199子引用、GBK12次、DOM165/165、verify189/189、A—P及12产物稳定性通过。
+  F1更正与定向交接：[RECTIFICATION](output/character_skills/description_bindings/p3b7_batch/RECTIFICATION.md)。80玩家页面引用以外，全选源9169条charainfo有82原始引用＝80范围内＋2范围外敌用引用（75370/75528→3233），后两明确排除于玩家语义和输出。现冻结全表skillid[1+]引用及名册/links/profiles范围身份，原表增删/槽位/源/分类变化可在root与links不变时拒绝；C定向6/6、80正例＋9变更反例通过，8054 GBK2次/DOM5项和12产物一次重建不变，112完整绑定及旧全部答案/状态/分母保留。原C/A与D R1证据保持冻结，旧“全引用”仅为玩家links范围的说法以本更正为准；不重跑原生/189/A—P。
+  **P3B7 F1已由原D R2闭合，带范围限制通过，剩余问题/阻塞/需整改均0**：[最终报告](output/character_skills/review/p3b7_20261019_type26_batch/REPORT_R2.md)。上面R1待复验文字及旧C交接是历史冻结；80绑定与全部正式产物不因整改改变。
+  **P3B8 C冻结待新D**：[交接](output/character_skills/P3B8_HANDOFF.md)、[证据/命令](output/character_skills/description_bindings/p3b8_boss/README.md)。自身F0/Boss type5纯直线22条＋type11全体HP回复15条，新增37唯一/37页描述、37/37效果槽、37角色各一句，字段+0；真实208/提示11599/未知29788，分母41595。按原标准仅2020/5023自然部分→完整，仍13/14未知字段，旧29完整对象不变。四flag单/多目标及type11实际列表/活动出场hero字节/存活/职业/逐目标Heal输入与一次执行有界原生9/9；伤害/回复均保留运行时B的公式和BY_TYPE。37原始CID身份/自身上下文及13另域denju分别冻结，12普通同号数字不当charainfo引用。C专项10/10、边界565/565、raw37+13、GBK12次、DOM80/80，verify/A—P与一次相关稳定性机器结果见本批；全部旧82013完整答案/重复数、277用规则/源287、112旧绑定/101答案/31片段及非目标对象保留，不称独立审查。
+  当前数字：角色 2236、部分 **2233**／仅未知 **0**／完整 **3**（cid29/2020/5023，本批规则范围；第9批待D）；引用 48555＝已解析 48552＋断链 3；记录 15973；
+  规则答案 **82875**（归一记录行求和 **82013**，另按父/所属记录/规则/字段键去重 **81996**；已逐条评审10095／按类型套用72780）；未解释参数槽 **427176**；缺口字段级 **5560**；
   十批累计新增：P2-1 `charainfo` 参数 **522**、P2-2 skilllist 8／26 **6209 页／2869 唯一**、
   P2-3 暴击双路径 **1179／1085／881**、P2-4 同叶四类 **999／963／672**、
   P2-5 复合分支 67／80／96 **8979／8979／6305**、P2-6 条件语义三件套 **9112／9112／7959**、
@@ -45,7 +62,7 @@
   P2-8 攻击系类型族 **14132 页／10000 新增唯一键**、
   **P2-9 执行侧裁决后的 F0 答案 1727 页／1727 唯一（全部 charainfo）**、
   **P2-10 heal 族与其余类型 5452 页／4050 唯一（80 条新规则，36 个类型）**（页／记录级／去重行）；
-  状态累计迁移 **908**（268／173／97／1／1／39／**187**／**142**）。
+  P2状态累计迁移 **908**（268／173／97／1／1／39／**187**／**142**）；P3B5另迁移5人已由D闭合；P3B6 cid29部分→完整已由D确认，P3B7新增80描述但无状态迁移。
   暴击双路径已并入派发索引（路径 3 → **5**，夹紧 rate [0,0.5]／dmg [-1,2]；2012／3000／1008／1095
   经核实不在其上，登记 `read_elsewhere`）；`type8 param4` 的依据是「**无按类型分派的**读取路径」。索引侧现有
   两项常驻防回归检查：**双路核对**（Unicorn 仿真 vs 纯静态解码，5 路径 × 3001 type 0 差异）与
