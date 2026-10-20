@@ -105,21 +105,25 @@ def original_numbers(text):
         if qualifier: entry['qualifier']=qualifier
         if unit_raw and unit_raw!=unit:
             entry['unit_raw']=unit_raw
+            # N-01（DeepSeek 20to39复验）：「回」是「回復」的首字，不是次数单位/量词；措辞修正，值与标签不变。
             entry['display_note']=('原文单位后缀「'+unit_raw+'」；本页时长单位显示统一为“秒”，literal保留原文' if unit_raw=='秒間' else
-                                   '原文后缀「'+unit_raw+'」是“N回復”的量词，本项为HP回复量，literal保留原文' if unit=='HP' else
+                                   '原文后缀「回」是「回復」的首字（不是次数单位），本项为HP回复量，literal保留原文' if unit=='HP' else
                                    '显示单位与原文单位后缀不同，literal保留原文')
         if normalized_literal!=raw_literal:
             entry['normalization_note']='literal为逐字原文；normalized_literal/display为NFKC归一化，值不变'
         out.append(entry)
     # “N～M回”等范围：保持为单一范围值项，不再拆成两个独立次数（L-13；DeepSeek 20to39审查）。
     # NFKC 把全角“～”归一为“~”；波浪省略号“〜”保持原形，两者都识别。
+    # N-02（DeepSeek 20to39复验）：literal/raw_span 取完整范围 token（含第二个单位后缀，如「1回～6回」），
+    # 不再截断为「1回～6」；raw_value 仍为字符串范围，显示值不变。前后单位必须一致才按范围合并。
     range_spans=[]
-    for match in re.finditer(r'('+NUMBER+r')('+UNIT_CLASS+r')[~〜]('+NUMBER+r')\2(?![a-zA-Z])',normalized):
+    for match in re.finditer(r'('+NUMBER+r')('+UNIT_CLASS+r')[~〜]('+NUMBER+r')('+UNIT_CLASS+r')(?![a-zA-Z])',normalized):
+        if match.group(4)!=match.group(2):continue
         n1,n2,unit=match.group(1),match.group(3),match.group(2)
         role={'回':'次数','発':'次数','%':'效果量百分比','秒':'时长','秒間':'时长'}.get(unit,'数量')
         unit_raw=unit;unit=UNIT_DISPLAY.get(unit,unit)
         range_spans.append((match.start(),match.end()))
-        item(n1+'～'+n2,unit,role,match.start(1),match.end(3),n1+'～'+n2+unit+'（范围）',unit_raw=unit_raw)
+        item(n1+'～'+n2,unit,role,match.start(1),match.end(4),n1+'～'+n2+unit+'（范围）',unit_raw=unit_raw)
     for match in NUM_UNITS.finditer(normalized):
         if any(s<=match.start() and match.end()<=e for s,e in range_spans):continue
         value,unit=match.group(1),match.group(2)
@@ -154,7 +158,16 @@ def original_numbers(text):
         # “Nつ獲得”是获得数量（G-04）。
         if unit in ('つ','個') and re.match(r'獲得',right):role='获得数量'
         # “必要なマナがNつ減る”是所需玛那减少量，不是获得（G-05）。
-        if unit=='つ' and re.search(r'必要なマナが$',left) and re.match(r'減',right):role='所需玛那减少'
+        # L-08（DeepSeek 20to39/remaining审查，终版polish）：「(必要な)マナ(の数|数)が/を」同样逐字
+        # 写在同分句内（12004/2003/2042/5098/8106/8146 等「マナ数がNつ減る」变体，原14字符窗口未覆盖），
+        # 按同法标所需玛那减少；这是同句逐字依据，不是跨片段推断。
+        reduce_note=None
+        if unit=='つ' and re.search(r'(?:必要な)?マナ(?:の数|数)?[がを]$',left) and re.match(r'減',right):
+            role='所需玛那减少'
+        # 「2ndChainを達成した時、さらに1つ減る」承接前片段的マナ语义，片段内无逐字对象：
+        # 不跨片段推断，标签保持数量，值行注记指向同技能前文（L-08保留口径）。
+        elif unit=='つ' and re.match(r'減',right):
+            reduce_note='减少对象见同技能前文（片段内无逐字依据）'
         # “N回復”是HP固定回复量，不是次数（M-01；DeepSeek 20to39审查）；“N回復活/復帰”仍是次数。
         heal_fixed=False
         if unit=='回' and re.match(r'復(?!活|帰)',right):heal_fixed=True;role='回复量'
@@ -163,7 +176,12 @@ def original_numbers(text):
         # “N回受けるまで”是受击次数上限（G-03 同族），“N回受けると/たび”是受击触发次数（L-08）。
         elif unit=='回' and re.match(r'受け(?!止|身)',right):
             role='受击次数上限' if re.match(r'受け(?:る)?まで',right) else '受击触发次数'
-        if unit=='%' and role=='效果量百分比':
+        if unit=='%' and role=='效果量百分比' and match.start()==0:
+            # RM-05（DeepSeek remaining审查）：片段开头即「N%」、后接叙述性文本（5037
+            # 「１００％あーしの葡萄酒…」）是叙述性数字，不是效果量；与8022「N秒先」同法。
+            # 全库段首%（无任何前文）的行实测仅此1行，其他段首数字均为条件/固定量等既有角色。
+            role='叙述数字'
+        elif unit=='%' and role=='效果量百分比':
             # “N%回復”／“与えたダメージのN%、HPが回復”是回复量百分比（M-05；DeepSeek 20to39审查）。
             if re.match(r'回復',right):role='回复量效果量百分比'
             elif re.search(r'与えたダメージ(?:量)?の$',left) and re.match(r'[、,]?[^、。]{0,10}?HPが回復',right):
@@ -190,10 +208,11 @@ def original_numbers(text):
         display=value+unit
         # “3つの効果のうちランダムで1つ”的“3つ”是随机效果数，不是效果量（L-11）。
         if unit=='つ' and re.search(r'の効果のうち',right):display+='（随机效果数，非效果量）'
-        if role=='叙述数字':display+='（叙述性时间，非效果时长）'
+        if role=='叙述数字':display+='（叙述性时间，非效果时长）' if unit.startswith('秒') else '（叙述性数字，非效果量）'
         if role=='费用下限':display+='（不会降至0マナ）'
         elif negated:display+='（未持有玛那）'
         item(value,unit,role,match.start(),match.end(),display,unit_raw=unit_raw)
+        if reduce_note:out[-1]['reduce_note']=reduce_note
     # “所持できるマナの数がNに増えた”：可持有玛那上限，原文无单位后缀（G-02）。
     for match in re.finditer(r'所持できるマナの数が('+NUMBER+r')に増え',normalized):
         if any(a['normalized_span'][0]<=match.start(1)<a['normalized_span'][1] for a in out): continue
@@ -265,6 +284,36 @@ def attribute_role(text,pos,window_start=None):
 # 目标取数字之前最近的主体短语，其他主体（味方全体/自身/敵/1stキャラ）就近覆盖，
 # 不跨句推断、不补“自身”这类日文默认省略的对象；无据行保持原样。
 SENTENCE_BREAKS=('。','\n','◆')
+# L-04（终版polish；DeepSeek 20to39/40to59/ge60/remaining审查）：多值行重复标签（同一行内同一
+# 数量/次数类角色≥2个数值）的逐值就近对象标注。仅当数值在同一分句（R-06窗口）内紧邻逐字对象
+# 短语时，以括注原样引用；无逐字依据的行保持原样并另行计数，不跨句、不翻译、不按位置猜测对象。
+L04_COUNT_ROLES=('数量','次数','获得数量')
+L04_DELIMS=re.compile(r'[、。・【】（）「」『』〈〉／/！？!?…\n◆ 　]+')
+L04_PARTICLES='をがのにへとはでも'
+L04_NOUN_ENDS=('敵','味方','自身','マナ')
+
+
+def l04_object(text,window_start,num_start):
+    """同一分句内紧邻数值之前的逐字原文（截到最后一个句读分隔符，去掉一个尾随助词）。
+    就近依据收紧为两种形态：「名詞＋を/が＋数值」（被数名词直接受を/が支配）或
+    「敵/味方/自身/マナ＋数值」（对象名词紧邻数值）；纯承接/上限词（最大/さらに）、
+    以助词开头的跨数值残留尾巴、时间副词（効果時間中に）与接续语（自身に対して）等
+    无对象名词收尾的情况一律视为无逐字依据，返回None并保持原样。
+    L-04微修（20261020终版复验）：对象名词收尾的尾巴不得跨入以「を」结尾的前一修饰链——
+    该「を」是前一分句的对象而非被数名词的修饰，故截到最后一个「を」之后，只保留紧邻
+    数值的最小名词短语（如「…宝石を自身から最も遠い味方」→「自身から最も遠い味方」）。"""
+    window=text[window_start:num_start]
+    tail=L04_DELIMS.split(window)[-1] if window else ''
+    if not tail or tail in ('最大','さらに'):return None
+    phrase=tail[:-1] if tail[-1] in L04_PARTICLES else tail
+    if tail[-1] not in 'をが' and tail[-1] not in L04_PARTICLES:
+        # 对象名词收尾：括注不得跨入以「を」结尾的前一修饰链——该「を」是前一
+        # 分句的对象标记，不是被数名词的修饰，故截到最后一个「を」之后取最小名词短语。
+        cut=tail.rfind('を')
+        phrase=tail[cut+1:] if cut>=0 else tail
+    if not phrase or phrase in ('最大','さらに') or phrase[0] in L04_PARTICLES:return None
+    if not (tail[-1] in 'をが' or phrase.endswith(L04_NOUN_ENDS)):return None
+    return phrase
 # M-01/M-05：HP回复量（固定/百分比）同样参与同句对象/所属/条件标注。
 TARGET_SENTENCE_ROLES={'效果量百分比','效果固定量','倍数','回复量','回复量效果量百分比'}
 CONDITION_SENTENCE_ROLES=TARGET_SENTENCE_ROLES|{'所需玛那减少','发动费用','获得数量','数量'}
@@ -669,10 +718,11 @@ def build_card(data:Inputs,cid):
                     # 效果量百分比分句补属性/对象标签（G-07；单值泛标签行同样适用，阈值/上限角色不覆盖）；
                     # 条件/所属/目标只取同句原文逐字写出的短语并附加到其后的效果数值，无据不补（R-01）。
                     # R-06：多值行各数值的对象/属性窗口不跨前一个数字；R-03：条件短语中的「敵」先遮蔽。
-                    prev_end=None;prev_sent=None;prev_role=None
+                    prev_end=None;prev_sent=None;prev_role=None;l04_windows=[]
                     for n in originals:
                         sent=sentence_start(frag,n['raw_span'][0])
                         window_start=prev_end if (prev_end is not None and prev_sent==sent) else None
+                        l04_windows.append(window_start if window_start is not None else sent)
                         dims=dimension_labels(frag,n['raw_span'][0],n['role'],window_start,pos_end=n['raw_span'][1])
                         if n['unit']=='%' and n['role']=='效果量百分比':
                             enriched=attribute_role(frag,n['raw_span'][0],window_start)
@@ -700,10 +750,20 @@ def build_card(data:Inputs,cid):
                         if dims.get('grant_note'):
                             n['condition']=(n['condition']+'、' if n.get('condition') else '')+dims['grant_note']
                         prev_end=n['raw_span'][1];prev_sent=sent;prev_role=n['role']
+                    # L-04（终版polish）：多值重复标签行的逐值就近对象——仅同一行内同一数量/次数类
+                    # 角色≥2个数值、且该数值同分句内紧邻逐字对象短语时，display 以括注原样引用；
+                    # 无逐字依据的行保持原样（不为清零债务按位置猜测）。
+                    l04_counts=collections.Counter(n['role'] for n in originals if n['role'] in L04_COUNT_ROLES)
+                    for n,ws in zip(originals,l04_windows):
+                        if n['role'] in L04_COUNT_ROLES and l04_counts[n['role']]>=2 and 'qualifier' not in n and '（' not in n['display']:
+                            phrase=l04_object(frag,ws,n['raw_span'][0])
+                            if phrase:
+                                n['l04_object']=phrase;n['display']+='（'+phrase+'）'
+                                n['l04_note']='括注为该数值同分句紧邻的逐字原文（L-04逐值标注）'
                     answers=[dict(value=f"{n['role']}：{n['display']}"+(f"（条件：{n['condition']}）" if n.get('condition') else ''),
                                   quantity_kind=n['role'],unit=n['unit'],
                                   raw_value=n['value'],numeric_source='原文',numeric_evidence='确认',association_evidence='未知',
-                                  note='；'.join(['原文数字，字段关联未证']+[n[key] for key in ('display_note','normalization_note') if n.get(key)]),
+                                  note='；'.join(['原文数字，字段关联未证']+[n[key] for key in ('display_note','normalization_note','reduce_note','l04_note') if n.get(key)]),
                                   source={**source,'field':'/'+tf},context=n['context'],
                                   **({'condition':n['condition']} if n.get('condition') else {}),
                                   quantitative=True) for n in originals]

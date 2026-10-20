@@ -48,7 +48,9 @@ def row_html(row):
     out+='<span class="pill '+cls+'">整行证据：'+esc(evidence)+'</span>'
     numeric=scope_label(row['numeric_evidence'],row.get('evidence_scope')) if row['row_class']=='A' else row['numeric_evidence']
     out+='<span class="pill e-confirm">数值：'+esc(numeric)+'</span>' if row['row_class']=='A' else ''
-    out+='<span class="pill">字段／描述关联：'+row['association_evidence']+'</span></div>'
+    # H-01（DeepSeek 20to39审查，N-05）：「字段／描述关联」pill 与行级/数值/值行同口径，
+    # BY_TYPE_EXTRAPOLATED 的确认行同样显示「确认（类型外推）」。
+    out+='<span class="pill">字段／描述关联：'+esc(scope_label(row['association_evidence'],row.get('evidence_scope')))+'</span></div>'
     out+=''.join(answer_html(a) for a in row['answers'])
     # L-12（DeepSeek 20to39审查）：冻结绑定条件提到行级可见层，不再只在折叠JSON。
     for cond in row.get('binding_conditions') or []:
@@ -69,6 +71,9 @@ def page(card):
     body='<main class="card"><header class="card-head"><div><p class="eyebrow">CHAIN CHRONICLE · SKILL NOTES</p><p class="title" lang="ja">'+esc(title)+'</p><h1 lang="ja">'+esc(name)+'</h1><div class="meta" style="margin-top:20px"><span class="pill">CID '+str(cid)+'</span><span class="pill">'+esc(rarity)+'★</span><span class="pill">'+esc(basic['layer'])+' · 声明输入版本</span></div></div><div class="seal">'+esc(basic['card_art']['note'])+'</div></header>'
     body+='<p class="intro">每行保留日文原文。A＝数值／公式，B＝新增机制，C＝仅未知。数值证据与字段关联分别标注；原文数字不代表已证实参数归属。整行确认＝该行全部答案的字段关联均为「确认」（R2审查R-01口径：任一答案关联未知——含全部原文数字答案——即不计整行确认；该行显示「字段／描述关联：未知」）。整行确认分两类口径（DeepSeek 20to39审查H-01）：记录级 REVIEWED_RECORD（逐记录审定的既有逐描述证据，如30236基线18行）与类型外推 BY_TYPE_EXTRAPOLATED（冻结模板按同类型记录推广，无逐记录人工审定，如20to39的17行type67规则行）；后者在本页行级pill与值行显式标注「确认（类型外推）」，不与记录级混用。原文A＝答案来自该行日文原文明确写出的数字（不代表参数归属已证）。指标方法见 <a href="../../r2_preparation/README.md">r2_preparation/README.md</a>。独立审查状态与逐行审查队列不在本目录：见 <code>pages/_batch/&lt;cohort&gt;/latest.json</code> 所指运行目录的 cohort_report.md 与 audit_queue.json；本目录仅含 card.json、index.html、receipt.json。</p>'
     body+='<p class="intro">'+esc(summary_text(card['summary']))+'</p><p class="small">'+esc(INFERENCE_STATUS['message']+'；'+INFERENCE_STATUS['zero_inference_meaning']+'。B=0：'+INFERENCE_STATUS['B_zero_reason'])+'</p>'
+    # L-05（DeepSeek 20to39审查，终版polish）：条件/对象/所属标签及值行括注内的日文短语是同句原文
+    # 逐字引用，逐字性是标签依据，不翻译不改写；页面统一图例＋常见短语对照，不逐行改。
+    body+='<details class="source" style="margin:22px 0"><summary>图例：标签与注记中的日文短语（逐字原文引用）</summary><p class="small" style="padding:8px 4px">「条件：…」、对象／所属前缀、付与注记、值行括注（如「数量：1体（直線範囲上の敵）」）中出现的日文短语，均为该行日文原文的同句逐字引用；逐字性是证据标签的一部分，本页不翻译、不改写。常见短语对照（仅为阅读辅助，不改变证据口径）：状態異常の敵がいると＝当有异常状态的敌人时；敵陣にいると＝处于敌阵时；敵陣の奥に行く程＝越深入敌阵；ボスWAVE時＝Boss wave 时；地形が砂浜/船上/海中の時＝地形为沙滩／船上／海中时；年代記の力を発動した時＝发动年代记之力时；N人以上で同じ敵を攻撃すると＝当N人以上攻击同一敌人时；自身がヒロイックスキルに設定されていると＝当自身被设定为英雄技（ヒロイックスキル）时；戦場にいる味方＝战场上的我方；メインパーティの〈…〉所属＝主队伍中〈…〉所属；味方全体＝我方全体；1stキャラクターに付与＝赋予1st角色。</p></details>'
     body+='<section class="basic"><h2>基础信息</h2><dl class="basic-grid">'
     for f in basic['fields']:
         value='缺失' if f['raw_state']=='missing' else 'null' if f['raw_state']=='null' else f['raw_value']
