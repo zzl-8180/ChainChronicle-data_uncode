@@ -9,7 +9,10 @@ from pathlib import Path
 
 from card_page import dump,validate,choose_samples
 from card_page_data import Inputs,build_card
-from card_page_render import page
+# 版式迁移（2026-10-20 定稿）：主渲染层切换为 card_page_render_v2（玩家视角版式，
+# 定稿依据 output/character_skills/dbstyle_samples/DESIGN.md 与三张示例）；旧
+# card_page_render.page 保留给 11 卡试点入口（card_page.py），不再被 batch 使用。
+from card_page_render_v2 import page
 from card_page_policy import metrics,summary_text
 from card_page_cohorts import sha
 from card_page_dependencies import source_paths,data_paths
@@ -19,6 +22,10 @@ from card_page_write import commit,reusable,state,retention,ArtifactWriteError
 def aggregate(stats):
     cov={k:sum(s['coverage'][k] for s in stats) for k in ('N_all','E','N_num','A','B','C','original_A','partial_A')}
     cov['evidence_cross']={c:{e:sum(s['coverage']['evidence_cross'][c][e] for s in stats) for e in ('确认','推断','未知')} for c in ('A','B','C')}
+    # 模板作用域推断层试点（type1017）、批 3（type8）与批 4（条件扩展）晋级/留 hint 行数随 cohort 聚合透传。
+    for key in ('inference_pilot_promoted','inference_pilot_hinted','inference_b3_promoted','inference_b3_hinted',
+                'inference_b4_promoted','inference_b4_hinted'):
+        cov[key]=sum(s['coverage'].get(key,0) for s in stats)
     # H-01：整行确认的记录级/类型外推拆分随 cohort 聚合透传。
     scopes={}
     for s in stats:
@@ -107,9 +114,12 @@ def run(args):
     plan=dict(mode='EXECUTE' if args.execute else 'PLAN_ONLY',cohort=args.cohort,cids=cids,count=len(cids),expected=len(expected),
               subset=list(cids)!=list(expected),manifest_sha256=sha(manifest),source_signature=source_signature,generation_signature=generation,
               run_id=stamp,run_directory=run_dir.relative_to(out).as_posix(),review_required_cids=[cid for cid in cids if cid in m['review_cids']],
-              inference_layer='暂不启用；候选晋级及一般机制择句未实现',
+              inference_layer='模板作用域推断层已启用三批（type1017 试点 337 行＋批 3 type8 严格子集 '
+                              'Tier1 40 行＋批 4 条件扩展候选 37 行；只升「推断」档；候选晋级及一般机制'
+                              '择句仍未实现）',
               summary={k:dict(count=None,denominator=None,rate=None,status='NOT_GENERATED') for k in ('A','whole_row_confirmed','original_A','C')},
-              permission_boundary='R2通过前不执行全量，过审后等主持按已确认顺序调度；当前追加修复完成后先暂停')
+              permission_boundary='本轮按任务卡 docs/tasks/20261020-character-skills-layout-migration.md 授权执行版式迁移'
+                                  '（card_page_render_v2 玩家视角版式＋B4-R01 修复）四 cohort 全量重建')
     dump(run_dir/'plan.json',plan)
     if not args.execute:
         dump(out/'_batch'/args.cohort/'plan_latest.json',dict(plan=(run_dir/'plan.json').relative_to(out).as_posix()))

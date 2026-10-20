@@ -2,8 +2,23 @@
 INFERENCE_STATUS={
     'skill_candidate_promotion_enabled':False,
     'general_mechanism_layer_enabled':False,
-    'message':'技能描述推断层暂不启用（候选晋级未实现；有意保守的实际边界）',
-    'zero_inference_meaning':'本轮未将候选晋级入页，不代表全库无hint',
+    'template_inference_pilot_enabled':True,
+    'template_inference_pilot_scope':'type1017「戦場バフ」纯句式家族（pilot_design.md 批 1：341 行/341 cid）；'
+                                     '只升「推断」档，逐行对象位图审核，不进整行确认',
+    'template_inference_b3_type8_enabled':True,
+    'template_inference_b3_type8_scope':'家族 #3「⟨ATTR⟩が上がる。」type8 子集严格范围'
+                                        '（b3_type8_scope.md 批 3：Tier1 40 行/40 cid，全 APK）；'
+                                        '只升「推断」档，方向/句位/句后文本/同文次数逐行审核，不进整行确认',
+    'template_inference_b4_cond_enabled':True,
+    'template_inference_b4_cond_scope':'句后条件扩展——基础 type8 记录＋兄弟 sub 记录条件增幅，'
+                                       '双记录映射（b4_cond_scope.md 批 4：审计行集 172 行，候选 37 行）；'
+                                       '只升「推断」档，兄弟记录覆盖匹配/阈值核对/门控 A·B·C 分级逐行审核，'
+                                       '基础句值行与条件增幅值行分列、各自注明来源记录，不跨记录合并数值',
+    'message':'候选晋级及一般机制择句仍未实现；模板作用域推断层已启用三批（type1017 试点＋批 3 type8 '
+              '严格子集＋批 4 条件扩展双记录映射），仅「推断」档，行级标注「推断（模板试点 type1017）」'
+              '或「推断（模板批 3 type8）」或「推断（模板批 4 条件扩展）」，与「确认（类型外推）」不同、'
+              '不进入整行确认',
+    'zero_inference_meaning':'未晋级候选仍留 hint，不代表全库无hint',
     'B_zero_reason':'无经实现入页的新增机制；并非原数据不存在机制',
     'basic_mapping_note':'基础职业名称沿用名册的推断映射，与技能候选层分开标注',
 }

@@ -12,6 +12,9 @@ from pathlib import Path
 
 import common as C
 import rules as R
+import card_page_inference_1017 as PILOT1017
+import card_page_inference_type8 as TYPE8
+import card_page_inference_cond as COND4
 from card_page_policy import metrics,INFERENCE_STATUS
 from card_page_basic import apply_basic_display
 from card_page_positions import fragment_positions,position_identity
@@ -816,6 +819,34 @@ def build_card(data:Inputs,cid):
                         except (TypeError,ValueError): continue
                         if any(abs(v-r)<=1e-9 for r in rule_values):
                             a['note']=(a.get('note') or '')+'；同值已有一条规则答案（见本行「规则」来源值行）；原文数字的字段关联仍未知，整行按R-01口径维持未知'
+                    # 模板作用域推断层试点（20261020 批 1：type1017「戦場バフ」纯句式 341 行；
+                    # 范围与逐行审核依据 output/character_skills/inference_inventory/pilot_design.md）。
+                    # 只升「推断」；审核不通过或有疑点留 hint 不晋级；推断行不进入整行确认。
+                    # 既有答案（原文数字/基线/绑定）的行不进入本层；多档同文逐档按本记录参数审核。
+                    # INFR-02：传 layer 供分层适用范围披露（APK 173 类行不在 param1/param3 的
+                    # v3 CACHE 321 条已核样本内）；INFR-05：传正文全文供非首段降级与多段披露。
+                    pilot=PILOT1017.evaluate(record,frag, layer=entry.get('layer'), text=text) \
+                        if table=='skilllist' and not answers else None
+                    # 模板作用域推断层批 4（20261020：句后条件扩展——基础 type8 记录＋兄弟 sub
+                    # 记录条件增幅，双记录映射；范围与晋级规则依据
+                    # output/character_skills/inference_inventory/b4_cond_scope.md）。
+                    # 只升「推断」；兄弟记录覆盖匹配/阈值核对/门控分级逐行审核，不通过留 hint。
+                    sub_children=[sr for sr in (data.links[cid].get('sub_effect_refs') or [])
+                                  if sr.get('resolved') and sr.get('parent_record_id')==entry.get('reference_id')] \
+                        if table=='skilllist' else []
+                    b4=COND4.evaluate(record,frag, layer=entry.get('layer'), record_id=entry.get('reference_id'),
+                                      text=text, sub_children=sub_children) \
+                        if table=='skilllist' and not answers else None
+                    # 批 4 晋级的行不再调批 3（批 3 的句后文本 hint 已由批 4 双记录映射裁决；
+                    # 批 4 未晋级/hint 的行批 3 照常审核，非首段/同文多次/方向冲突沿用批 3 留 hint）。
+                    b3=TYPE8.evaluate(record,frag, layer=entry.get('layer'), record_id=entry.get('reference_id'), text=text) \
+                        if table=='skilllist' and not answers and not (b4 is not None and b4.get('kind')=='promote') else None
+                    promoted_b4=b4 is not None and b4['kind']=='promote'
+                    promoted_b3=(not promoted_b4) and b3 is not None and b3['kind']=='promote'
+                    promoted=pilot is not None and pilot['kind']=='promote' or promoted_b3 or promoted_b4
+                    if promoted:
+                        active_answers=(b4 if promoted_b4 else b3 if promoted_b3 else pilot)['answers']
+                        answers.extend(active_answers)
                     numerical=[a for a in answers if a['quantitative']]
                     # Existing baseline mechanisms may be useful, but only count B with an explicit added claim.
                     mechanisms=[a for a in answers if not a['quantitative'] and a.get('numeric_source')=='既有逐描述证据']
@@ -824,13 +855,25 @@ def build_card(data:Inputs,cid):
                     # 任一答案「关联未知」（含原文数字答案）即整行为未知，不再用 any() 虚增整行确认。
                     association='确认' if answers and all(a['association_evidence']=='确认' for a in answers) else '未知'
                     if skill['association_evidence']=='推断' and association=='确认': association='推断'
+                    if promoted: association='推断'
                     reasons=[]
+                    active=b4 if promoted_b4 else b3 if promoted_b3 else pilot
                     if association!='确认':
-                        reasons.append('尚无已审定的句内字段归属；原文数字仅确认原文，不猜参数对应' if originals else
-                                       '原文未提供该效果数值，尚无已审定的句内字段归属'+
-                                       ('；原文含范围几何数字（N直線），不作为效果量提取' if re.search(r'[0-9０-９]+直線',frag) else ''))
+                        if promoted:
+                            reasons.append(active['summary_reason'])
+                        else:
+                            reasons.append('尚无已审定的句内字段归属；原文数字仅确认原文，不猜参数对应' if originals else
+                                           '原文未提供该效果数值，尚无已审定的句内字段归属'+
+                                           ('；原文含范围几何数字（N直線），不作为效果量提取' if re.search(r'[0-9０-９]+直線',frag) else ''))
+                    if promoted: reasons+=active['extra_reasons']
+                    if pilot is not None and pilot['kind']=='hint':
+                        reasons.append('模板试点 type1017 未晋级（留 hint）：'+'；'.join(pilot['reasons']))
+                    if b3 is not None and b3['kind']=='hint':
+                        reasons.append('模板批 3 type8 未晋级（留 hint）：'+'；'.join(b3['reasons']))
+                    if b4 is not None and b4['kind']=='hint':
+                        reasons.append('模板批 4 条件扩展未晋级（留 hint）：'+'；'.join(b4['reasons']))
                     if not answers: reasons.append('此描述尚无可适用的已确认数值或新增机制证据')
-                    if matched_old and matched_old.get('cands') and not matched_old.get('binding'):
+                    if matched_old and matched_old.get('cands') and not matched_old.get('binding') and not promoted:
                         reasons.append('旧关键词候选未作为答案；不能排除对象或效果错配')
                     if group_id=='heroic': reasons.append('英雄技引用沿用既有ID模式关联，未证明运行时装载和等级条件')
                     if skill['forward_links']: reasons.append('str0目标规则已在来源层复用；具体句内归属、对象资格及缺参默认值另列未知')
@@ -851,6 +894,31 @@ def build_card(data:Inputs,cid):
                              source_evidence_ref=skill_id,old_fragment_status=matched_old.get('status') if matched_old else None,
                              old_candidates_reused=False,mechanism_added=mechanisms,
                              evidence_scope=sorted({str(a['evidence_scope']) for a in answers if a.get('evidence_scope')}))
+                    if promoted:
+                        # 模板推断行：行级「推断」标签＋值行证据同为「推断」；绝不使用「确认」字样。
+                        row['numeric_evidence']='推断'
+                        if promoted_b4:
+                            row['evidence_label']=COND4.COND_TAG
+                            row['inference_b4']=dict(batch='20261020 批4',family=COND4.COND_FAMILY,
+                                                     record_id=entry.get('reference_id'),claims=b4['claims'],
+                                                     child_record_id=b4.get('child_record_id'),
+                                                     child_effect_type=b4.get('child_effect_type'),
+                                                     gate_tier=b4.get('gate_tier'),attrs=b4['attrs'])
+                        elif promoted_b3:
+                            row['evidence_label']=TYPE8.TYPE8_TAG
+                            row['inference_b3']=dict(batch='20261020 批3',family=TYPE8.TYPE8_FAMILY,
+                                                     record_id=entry.get('reference_id'),attrs=b3['attrs'])
+                        else:
+                            row['evidence_label']=PILOT1017.PILOT_TAG
+                            row['inference_pilot']=dict(batch='20261020 批1',family=PILOT1017.PILOT_FAMILY,
+                                                        subject=pilot['subject'],attrs=pilot['attrs'])
+                    else:
+                        if pilot is not None:
+                            row['inference_pilot_hint']='；'.join(pilot['reasons'])
+                        if b3 is not None and b3['kind']=='hint':
+                            row['inference_b3_hint']='；'.join(b3['reasons'])
+                        if b4 is not None and b4['kind']=='hint':
+                            row['inference_b4_hint']='；'.join(b4['reasons'])
                     # L-12（DeepSeek 20to39审查）：冻结绑定条件（N>=2/职业/所属/武器等）提到行级可见层，
                     # 不再只在折叠JSON；条件文本逐字来自冻结binding，不改数值与判定。
                     row['binding_conditions']=[]
@@ -898,7 +966,13 @@ def build_card(data:Inputs,cid):
                   chain_new_A_rows=0,chain_new_value_items_in_rows=0,
                   chain_parent_original_A_rows=sum(r['original_A'] for g in groups for s in g['skills'] if s['forward_links'] for r in s['rows']),
                   old_descriptions=profile['coverage']['descriptions'],old_confirmed=profile['coverage']['fragments_attributed_confirmed'],
-                  old_hint=profile['coverage']['fragments_attributed_hint_only'])
+                  old_hint=profile['coverage']['fragments_attributed_hint_only'],
+                  inference_pilot_promoted=sum(1 for r in allrows if r.get('inference_pilot')),
+                  inference_pilot_hinted=sum(1 for r in allrows if r.get('inference_pilot_hint')),
+                  inference_b3_promoted=sum(1 for r in allrows if r.get('inference_b3')),
+                  inference_b3_hinted=sum(1 for r in allrows if r.get('inference_b3_hint')),
+                  inference_b4_promoted=sum(1 for r in allrows if r.get('inference_b4')),
+                  inference_b4_hinted=sum(1 for r in allrows if r.get('inference_b4_hint')))
     # H-01（DeepSeek 20to39审查）：整行确认分两类口径——记录级 REVIEWED_RECORD（30236基线）
     # 与类型外推 BY_TYPE_EXTRAPOLATED（冻结P3B9/P3B10模板行）；只拆分呈现与统计，不降级判定。
     confirmed_scopes={}

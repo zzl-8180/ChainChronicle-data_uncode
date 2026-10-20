@@ -42,12 +42,19 @@ def answer_html(a):
 def row_html(row):
     cls={'确认':'e-confirm','推断':'e-infer','未知':'e-unknown'}[row['evidence']]
     evidence=scope_label(row['evidence'],row.get('evidence_scope'))
+    # 模板作用域推断层试点（type1017）：行级 evidence_label 显式标注「推断（模板试点 type1017）」，
+    # 与「确认（类型外推）」区分；不使用「确认」字样。
+    evidence=row.get('evidence_label') or evidence
     out=f'<div class="effect-row" id="{esc(row["row_id"])}" data-row-id="{esc(row["row_id"])}" data-row-class="{row["row_class"]}" data-evidence="{row["evidence"]}">'
     out+='<p class="jp" lang="ja">'+esc(row['japanese'])+'</p><div class="row-meta">'
     out+='<span class="pill">'+row['row_class']+(' · 部分填充' if row['partial'] else '')+'</span>'
     out+='<span class="pill '+cls+'">整行证据：'+esc(evidence)+'</span>'
     numeric=scope_label(row['numeric_evidence'],row.get('evidence_scope')) if row['row_class']=='A' else row['numeric_evidence']
-    out+='<span class="pill e-confirm">数值：'+esc(numeric)+'</span>' if row['row_class']=='A' else ''
+    # INFR-03（DeepSeek inference1017 审查）：A 行「数值」pill 样式随证据等级取色——
+    # 确认→e-confirm 绿、推断→e-infer 橙、未知→e-unknown；此前推断行一律用 e-confirm 绿色，
+    # 视觉上等同整行确认。
+    numeric_pill_cls={'确认':'e-confirm','推断':'e-infer','未知':'e-unknown'}.get(row['numeric_evidence'],'e-unknown')
+    out+='<span class="pill '+numeric_pill_cls+'">数值：'+esc(numeric)+'</span>' if row['row_class']=='A' else ''
     # H-01（DeepSeek 20to39审查，N-05）：「字段／描述关联」pill 与行级/数值/值行同口径，
     # BY_TYPE_EXTRAPOLATED 的确认行同样显示「确认（类型外推）」。
     out+='<span class="pill">字段／描述关联：'+esc(scope_label(row['association_evidence'],row.get('evidence_scope')))+'</span></div>'
@@ -69,7 +76,7 @@ def page(card):
     title=title_field['raw_value'] if title_field['raw_state'] in ('present','zero') and title_field['raw_value'] not in ('',None) else (title_field.get('display_value') or '称号未知')
     rarity=fields['rarity']['raw_value']
     body='<main class="card"><header class="card-head"><div><p class="eyebrow">CHAIN CHRONICLE · SKILL NOTES</p><p class="title" lang="ja">'+esc(title)+'</p><h1 lang="ja">'+esc(name)+'</h1><div class="meta" style="margin-top:20px"><span class="pill">CID '+str(cid)+'</span><span class="pill">'+esc(rarity)+'★</span><span class="pill">'+esc(basic['layer'])+' · 声明输入版本</span></div></div><div class="seal">'+esc(basic['card_art']['note'])+'</div></header>'
-    body+='<p class="intro">每行保留日文原文。A＝数值／公式，B＝新增机制，C＝仅未知。数值证据与字段关联分别标注；原文数字不代表已证实参数归属。整行确认＝该行全部答案的字段关联均为「确认」（R2审查R-01口径：任一答案关联未知——含全部原文数字答案——即不计整行确认；该行显示「字段／描述关联：未知」）。整行确认分两类口径（DeepSeek 20to39审查H-01）：记录级 REVIEWED_RECORD（逐记录审定的既有逐描述证据，如30236基线18行）与类型外推 BY_TYPE_EXTRAPOLATED（冻结模板按同类型记录推广，无逐记录人工审定，如20to39的17行type67规则行）；后者在本页行级pill与值行显式标注「确认（类型外推）」，不与记录级混用。原文A＝答案来自该行日文原文明确写出的数字（不代表参数归属已证）。指标方法见 <a href="../../r2_preparation/README.md">r2_preparation/README.md</a>。独立审查状态与逐行审查队列不在本目录：见 <code>pages/_batch/&lt;cohort&gt;/latest.json</code> 所指运行目录的 cohort_report.md 与 audit_queue.json；本目录仅含 card.json、index.html、receipt.json。</p>'
+    body+='<p class="intro">每行保留日文原文。A＝数值／公式，B＝新增机制，C＝仅未知。数值证据与字段关联分别标注；原文数字不代表已证实参数归属。整行确认＝该行全部答案的字段关联均为「确认」（R2审查R-01口径：任一答案关联未知——含全部原文数字答案——即不计整行确认；该行显示「字段／描述关联：未知」）。整行确认分两类口径（DeepSeek 20to39审查H-01）：记录级 REVIEWED_RECORD（逐记录审定的既有逐描述证据，如30236基线18行）与类型外推 BY_TYPE_EXTRAPOLATED（冻结模板按同类型记录推广，无逐记录人工审定，如20to39的17行type67规则行）；后者在本页行级pill与值行显式标注「确认（类型外推）」，不与记录级混用。模板作用域推断层试点（20261020 批 1）：type1017「戦場にいる（味方|⟨X⟩）の攻撃力/防御力/移動速度が上がる」纯句式行以「推断（模板试点 type1017）」标注晋级为 A·推断档（句式→字段映射由 skilllist|1017 已确认规则支撑，占位符与 iParam0 位图逐行审核；值行为「模板推断」来源＋规则键＋原值＋按字段解析的证据目录：param1/param3→output/ordinary_effects/ability1017/、param2→output/card_comparison_cid30236/movement/）；值行与行级注记逐行披露规则适用范围（param1/param3 规则已核样本为 v3 CACHE 普通 ability1017 的 321 条记录，APK 主表记录属同类型外推；param2 移动规则仅 2 个已核 ID，值行均属同类型外推）；位于记录非首段◆的同句行保守降级留 hint。模板作用域推断层批 3（20261020）：家族 #3「⟨ATTR⟩が上がる。」的 type8 子集严格范围行（Tier1 40 行/40 cid）以「推断（模板批 3 type8）」标注晋级为 A·推断档（句式→字段 1:1 映射由 skilllist|8 三条已确认规则支撑——攻撃力→/param1、移動速度→/param2、防御力→/param3（受伤量乘数，方向按代码）；方向/句位/段内句后文本/同文次数逐行审核；值行证据按 rules.json rule["evidence"] 指向 skilllist_types 原生核对件；type8 规则无逐记录文本核验样本（occurrences 未登记），全部值行逐行披露「按同类型 ability8 原生规则外推，未逐记录审定」；句后条件扩展/同文多次出现/非首段/暴击-only 行留 hint）。模板作用域推断层批 4（20261020）：句后条件扩展行（基础 type8 严格句＋同段句后「（条件）、効果が上がり、さらに…」tail；审计行集 172 行、候选 37 行）以「推断（模板批 4 条件扩展）」标注、按「基础 type8 记录＋兄弟 sub 记录条件增幅」双记录映射晋级为 A·推断档（基础句值行来源＝父 type8 记录 /param1/2/3（无条件常时）；条件增幅值行来源＝经父记录 sub 字段关联的兄弟记录 skilllist|36/80/67/1005 对应参数＋条件文本逐字；门控证据分级 A（type80/67，条件谓词受控原生核实）/B（type36，类型语料＋阈值一致）/C（type1005，仅值规则）逐行披露；兄弟记录条件槽不造数、只注记原值；两值行不合并为一条数值答案、不写跨记录乘积；兄弟记录无规则/覆盖不齐/tail 其他效果主张/兄弟活性槽超出文本主张/双条件链/非首段/同文多次行留 hint）。三批均不使用「确认」字样、不进入整行确认，审核未通过或有疑点的同句行留 hint 维持 C。范围与留 hint 规则见 <a href="../README.md">pages/README.md §13、§14、§15</a>。原文A＝答案来自该行日文原文明确写出的数字（不代表参数归属已证）。指标方法见 <a href="../../r2_preparation/README.md">r2_preparation/README.md</a>。独立审查状态与逐行审查队列不在本目录：见 <code>pages/_batch/&lt;cohort&gt;/latest.json</code> 所指运行目录的 cohort_report.md 与 audit_queue.json；本目录仅含 card.json、index.html、receipt.json。</p>'
     body+='<p class="intro">'+esc(summary_text(card['summary']))+'</p><p class="small">'+esc(INFERENCE_STATUS['message']+'；'+INFERENCE_STATUS['zero_inference_meaning']+'。B=0：'+INFERENCE_STATUS['B_zero_reason'])+'</p>'
     # L-05（DeepSeek 20to39审查，终版polish）：条件/对象/所属标签及值行括注内的日文短语是同句原文
     # 逐字引用，逐字性是标签依据，不翻译不改写；页面统一图例＋常见短语对照，不逐行改。
