@@ -1,7 +1,7 @@
 # 任务卡：批 4 前置结构审计——句后条件扩展 172 行的兄弟记录承载结构核实（纯分析）
 
 - 任务 ID：`20261020-character-skills-inference-b4-cond`
-- 状态：**已完成（结构核实与范围设计；未晋级、未改生成器、未改 pages 产物）**
+- 状态：**前置结构审计已完成（2026-10-20 时点：未晋级、未改生成器）【2026-10-21 复核注：其后实施晋级 37 行＋hint 135，DeepSeek 审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS；过程见下文实施节】**
 - 负责人／对话标识：批4结构审计员（GLM 5.3 Flash 260828，动态工作流子代理）
 - 日期：2026-10-20
 - 产出：`output/character_skills/inference_inventory/b4_cond_scope.md`（结构核实、模式分类、

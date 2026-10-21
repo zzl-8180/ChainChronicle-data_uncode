@@ -248,3 +248,43 @@
 - 未做浏览器渲染视觉回归（静态 HTML＋文本级自检）；吸顶卡滚动遮挡行为仅静态核查，
   未做实机窄屏截图验证。
 - DESIGN.md 已补「五、证据等级图例」节（原边界节顺延为六）。
+
+---
+
+## 2026-10-20 第五轮追加：主图显示比例修正（2:3 竖版，与正式渲染层同步）
+
+### 需求与证据边界（本轮只读引用，未新采）
+
+已核实证据 `output/card_images/cid30236/followup/REPORT.txt`：卡面纹理存储 512×512 方形，
+但游戏 UI 显示为 2:3 竖版（CharaInfoCard._cardTexture → UITexture 109376/CardOrg，控件
+640×960、aspectRatio≈0.6667、UV 覆盖整张纹理；APK prefab 最小序列化前缀解析，非实机
+测量）；头像 42×42 与上半身 512×512 的使用场景是 1:1；半身 face 变体无其他界面比例依据、
+保留 1:1。本轮另实测：full_unpack 全部 4313 张 Card_OrgSize PNG 逐一读 IHDR 均为 512×512。
+
+### 渲染器改动（仅 `scripts/character_skills/card_page_dbstyle_sample.py`）
+
+- 主图 CSS：`max-width:100%;max-height:420px;width:auto` →
+  `width:min(340px,100%);aspect-ratio:2/3;height:auto;object-fit:fill`——512×512 源图
+  非均匀拉伸进 2:3 盒子，等价于游戏 UI 把整张方形纹理铺进 640×960 控件的行为；
+  `.art-thumb`（whole/icon）CSS 不动，维持 1:1。
+- 逐图「▶ 绑定标注」追加显示比例标注（主图 2:3；whole/icon 各带 1:1 使用场景依据）；
+  立绘区审计折叠新增页级「显示比例依据」段。
+- `run_checks` 新增：2:3 缩放 CSS 恰 1 次、逐图/页级标注文本齐全（缺图页不要求逐图标注）。
+
+### 本轮自检（实际运行）
+
+1. 渲染命令：`& .\.venv\Scripts\python.exe -B scripts/character_skills/card_page_dbstyle_sample.py`
+   → 三页 [OK]：30236（2182042B，自检 228 项）、7616（1050718B，37 项）、
+   10001（1476886B，112 项）；A/C 行数与 summary 不变（46A/12C/58、4A/4C/8、9A/43C/52）。
+2. 三页逐一 grep 核实：`aspect-ratio:2/3`、主图「显示 2:3 竖版（游戏 UI 控件 640×960」
+   标注、页级「显示比例依据（output/card_images/cid30236/followup/REPORT.txt」段、
+   whole/icon 1:1 标注各恰 1 次。
+3. 正式 2236 页由 `card_page_render_v2.py` 同口径修正并四 cohort 全量重建（复核
+   2236/2236 receipt SUCCESS、card.json 逐字节不变 2236/2236）；详见
+   `output/character_skills/pages/README.md` §16.6 与
+   `docs/tasks/20261020-character-skills-layout-migration.md` 追加轮。
+
+### 第五轮边界
+
+- 与第四轮相同：未做浏览器渲染视觉回归；显示比例为静态 CSS（aspect-ratio＋object-fit:fill）。
+- 源 PNG、base64 数据 URI、证据等级与数值均不变——本轮只改显示盒比例与标注文本。

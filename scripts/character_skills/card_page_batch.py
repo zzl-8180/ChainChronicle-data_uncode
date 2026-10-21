@@ -3,6 +3,7 @@ import argparse
 import datetime
 import hashlib
 import json
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -13,6 +14,8 @@ from card_page_data import Inputs,build_card
 # 定稿依据 output/character_skills/dbstyle_samples/DESIGN.md 与三张示例）；旧
 # card_page_render.page 保留给 11 卡试点入口（card_page.py），不再被 batch 使用。
 from card_page_render_v2 import page
+# M1（20261021 独立审查整改）：campaign 完成检查复用入口页生成器的一致性检查。
+from card_page_index import entry_pages_consistency
 from card_page_policy import metrics,summary_text
 from card_page_cohorts import sha
 from card_page_dependencies import source_paths,data_paths
@@ -24,7 +27,9 @@ def aggregate(stats):
     cov['evidence_cross']={c:{e:sum(s['coverage']['evidence_cross'][c][e] for s in stats) for e in ('确认','推断','未知')} for c in ('A','B','C')}
     # 模板作用域推断层试点（type1017）、批 3（type8）与批 4（条件扩展）晋级/留 hint 行数随 cohort 聚合透传。
     for key in ('inference_pilot_promoted','inference_pilot_hinted','inference_b3_promoted','inference_b3_hinted',
-                'inference_b4_promoted','inference_b4_hinted'):
+                'inference_b4_promoted','inference_b4_hinted','inference_b5_promoted','inference_b5_hinted',
+                'inference_b6_promoted','inference_b6_hinted','inference_b7_promoted','inference_b7_hinted',
+                'inference_b8_promoted','inference_b8_hinted','inference_b9_promoted','inference_b9_hinted'):
         cov[key]=sum(s['coverage'].get(key,0) for s in stats)
     # H-01：整行确认的记录级/类型外推拆分随 cohort 聚合透传。
     scopes={}
@@ -93,9 +98,19 @@ def campaign(out,m,signature,cohort,report,run_dir):
             campaign_complete=len(reports)==len(m['members']),coverage=cov,summary=metrics(cov),
             audited=0,review_required_cards=len(m['review_cids']),queue_cards=len({r['cid'] for r in queue}),unresolved_latest_failures=latest_failures,
             status='Generation snapshots, not completed human review. Artifact hashes verified as of each referenced run; stale signatures excluded.')
+    # M1（20261021 独立审查整改）：campaign 完成时核对入口页（index.html/all_cards.html）
+    # 的指标与 run 指针是否等于本次 campaign；过期/缺失时在 campaign_report 的
+    # entry_pages 字段明确标注 STALE/NOT_FOUND 并向 stderr 发警告，不允许静默陈旧。
+    report_rel=(run_dir/'campaign_report.json').relative_to(out).as_posix()
+    result['entry_pages']=entry_pages_consistency(out,result['summary'],report_rel)
     dump(run_dir/'campaign_report.json',result);dump(run_dir/'campaign_audit_queue.json',queue)
-    dump(out/'_batch/campaign_latest.json',dict(report=(run_dir/'campaign_report.json').relative_to(out).as_posix(),
+    dump(out/'_batch/campaign_latest.json',dict(report=report_rel,
                                               audit_queue=(run_dir/'campaign_audit_queue.json').relative_to(out).as_posix()))
+    if result['entry_pages']['status']!='CURRENT':
+        print(f"[WARN] 入口页与当前 campaign 不一致（entry_pages={result['entry_pages']['status']}）："
+              f"{'; '.join(result['entry_pages']['detail'])}"
+              f"——请重跑 scripts/character_skills/card_page_index.py --execute 刷新，不要带着过期入口页交付。",
+              file=sys.stderr)
 
 
 def run(args):
@@ -114,12 +129,21 @@ def run(args):
     plan=dict(mode='EXECUTE' if args.execute else 'PLAN_ONLY',cohort=args.cohort,cids=cids,count=len(cids),expected=len(expected),
               subset=list(cids)!=list(expected),manifest_sha256=sha(manifest),source_signature=source_signature,generation_signature=generation,
               run_id=stamp,run_directory=run_dir.relative_to(out).as_posix(),review_required_cids=[cid for cid in cids if cid in m['review_cids']],
-              inference_layer='模板作用域推断层已启用三批（type1017 试点 337 行＋批 3 type8 严格子集 '
-                              'Tier1 40 行＋批 4 条件扩展候选 37 行；只升「推断」档；候选晋级及一般机制'
-                              '择句仍未实现）',
+              inference_layer='模板作用域推断层已启用八批（type1017 试点 337 行＋批 3 type8 严格子集 '
+                              'Tier1 40 行＋批 4 条件扩展候选 37 行＋批 5 跨表扩展 job_ability/'
+                              'supporterskill 211 行＋批 6 必殺バフ bossskill type13 子记录解析 '
+                              '1,349 行（B6-RV-01 修复：30 行同属性竞争句降级留 hint）＋批 7 共鳴 '
+                              'sympathy ability3000 载体解析＋批 8 暴击 2012 链载体解析＋批 9 '
+                              '敵デバフ skilllist own sub_effect→ability99 载体解析；只升「推断」档；'
+                              '候选晋级及一般机制择句仍未实现）',
               summary={k:dict(count=None,denominator=None,rate=None,status='NOT_GENERATED') for k in ('A','whole_row_confirmed','original_A','C')},
-              permission_boundary='本轮按任务卡 docs/tasks/20261020-character-skills-layout-migration.md 授权执行版式迁移'
-                                  '（card_page_render_v2 玩家视角版式＋B4-R01 修复）四 cohort 全量重建')
+              permission_boundary='本轮按任务卡 docs/tasks/20261021-character-skills-inference-b9-debuff.md '
+                                  '授权执行批 9 敵デバフ实施（skilllist/supporterskill 容器行 own '
+                                  'sub_effect 链→skilllist ability99 PowerDrain 载体解析；scope §5.1 '
+                                  '门控 P1–P6＋B1 防线，值行 rule_key 只允许 skilllist|99|/param0|'
+                                  '/param7|/param8|/param9；2003 载体形状同构但无规则一律留 hint、'
+                                  'pattern 行不经 sub_effect 伪影消费、我方增益句不挂敌方减益值）'
+                                  '四 cohort 全量重建')
     dump(run_dir/'plan.json',plan)
     if not args.execute:
         dump(out/'_batch'/args.cohort/'plan_latest.json',dict(plan=(run_dir/'plan.json').relative_to(out).as_posix()))

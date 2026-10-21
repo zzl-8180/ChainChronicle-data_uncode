@@ -29,6 +29,10 @@
   skilllist|<child_record_id>|<layer>|ability=<child_type>（经父记录 sub 字段关联的子效果记录，
   link_kind=sub_effect）＋条件文本逐字」。
 * 两行都不得混合来源；禁止把「3.0×1.75」这类跨记录乘积写进任何值行（scope §6.1/§6.2）。
+* 条件增幅值行另带结构化 ``condition_label``（条件文本逐字，与 note「条件文本（逐字）」同值，
+  不换算；20261021 独立审查 H1 整改）与逐答案 ``source``（指向子记录定位，不继承父记录，
+  20261021 独立审查 M2 整改；基础句值行 source 由 card_page_data.py 按行级 source
+  同记录继承契约补齐）。
 
 硬边界（逐行强制；scope §4/§6）：
 
@@ -123,6 +127,33 @@ RECOGNIZED_PHRASES = [
 _CLASS_OF_PARENT_FIELD = {'param1': 'attack', 'param2': 'move', 'param3': 'defence'}
 
 _EVIDENCE_CACHE = {}
+
+
+def _child_answer_source(child_ref, child_id, child_layer, child_rec_key, child_type,
+                         field_path, parent_record_id):
+    """M2（20261021 独立审查整改）：条件增幅值行逐答案 source＝子记录定位（不继承父记录）。
+
+    结构：table/record_id/layer/source_key/json_pointer/field_path（与 rules.json rule_key
+    ``skilllist|<child_type>|<field_path>`` 一致到字段）＋ record_key（命名空间键
+    ``skilllist|<child_id>|<layer>|ability=<child_type>``，与 note「来源记录＝…」同值）＋
+    link_kind/parent_record_id（父子记录区分）。子记录在解码 JSON 的位置与
+    raw_record_sha256 取自 link_skills._resolve 登记的 C.location 印章（APK 层含
+    json_pointer＋raw_record_sha256；CACHE 层 json_pointer 为 None、以
+    record_key 内 id＋字节范围定位）。source_key 缺失显式失败（不产出死指针）。
+    """
+    loc = dict((child_ref or {}).get('source') or {})
+    if not loc.get('source_key'):
+        raise ValueError(f'模板批 4 条件扩展（M2 整改）：子记录 {child_rec_key} 缺 C.location '
+                         f'来源印章（source_key），无法产出逐答案 source；显式失败不静默继承父记录')
+    out = dict(table='skilllist', record_id=child_id, layer=child_layer,
+               source_key=loc.get('source_key'), json_pointer=loc.get('json_pointer'),
+               field_path=field_path, record_key=child_rec_key,
+               link_kind='sub_effect', parent_record_id=parent_record_id,
+               link_effect_type=child_type)
+    for key in ('original_file', 'raw_record_sha256', 'byte_begin', 'byte_end_exclusive'):
+        if loc.get(key) is not None:
+            out[key] = loc[key]
+    return out
 
 
 def _kind_is_config(kind):
@@ -470,7 +501,8 @@ def _promote(record, frag, layer, record_id, mapped, base_mapped, claims, cond_p
             raw_value=value, field_path='/' + field,
             numeric_source=NUMERIC_SOURCE_BASE, numeric_evidence='推断',
             association_evidence='推断', evidence_scope=COND_SCOPE,
-            rule_key=f'skilllist|8|/{field}', rule_status=rule.get('status'),
+            rule_key=f'skilllist|8|/{field}',
+            rule_body_status=rule.get('status'), rule_status=rule.get('status'),
             conversion=rule.get('conversion'), conditions=converted.get('conditions'),
             rule_limits=rule.get('limits'),
             evidence=list(rule.get('evidence') or []),
@@ -515,11 +547,15 @@ def _promote(record, frag, layer, record_id, mapped, base_mapped, claims, cond_p
             raw_value=raw, field_path=field_path,
             numeric_source=NUMERIC_SOURCE_COND, numeric_evidence='推断',
             association_evidence='推断', evidence_scope=COND_SCOPE,
-            rule_key=f'skilllist|{child_type}|{field_path}', rule_status=rule.get('status'),
+            rule_key=f'skilllist|{child_type}|{field_path}',
+            rule_body_status=rule.get('status'), rule_status=rule.get('status'),
             conversion=rule.get('conversion'), conditions=converted.get('conditions'),
             rule_limits=rule.get('limits'),
             evidence=list(rule.get('evidence') or []),
             evidence_paths=list(path_files),
+            condition_label=condition_verbatim,
+            source=_child_answer_source(child, child_id, child_layer, child_rec_key,
+                                        child_type, field_path, record_id),
             note=(f'模板批 4 条件扩展·条件增幅值行（来源记录＝{child_rec_key}，经父记录 '
                   f'{parent_rec_key} 的 sub 字段关联的子效果记录，link_kind=sub_effect）；'
                   f'对应句后主张：{CLAIM_LABEL[cls]}；条件文本（逐字）：「{condition_verbatim}」；'

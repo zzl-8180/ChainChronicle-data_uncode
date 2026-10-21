@@ -26,6 +26,7 @@
 - 数据全部来自 card.json 原值，不新增/推测任何数值或字段；
 - 无来源区域按既定惯例显示「外部/网站维护」；
 - 立绘区使用 full_unpack 解包产物原 PNG（base64 内嵌），逐图绑定标注收入折叠；
+  主图显示比例 2:3 竖版（游戏 UI 控件 640×960，followup/REPORT.txt；whole/icon 维持 1:1）；
   缺失时显示「本输入快照未取得」并列出尝试路径，不借用其他 cid 的图；
 - 内置自检逐行比对：日文原文、数值文案、规则键/原值/证据目录（折叠层内）、行数与
   汇总一致，立绘 data URI 与绑定标注必须在页面中。
@@ -70,6 +71,32 @@ MANIFEST_NOTE_30236 = (
     'cid30236 manifest 状态（' + MANIFEST_REL_30236 + '）：' + MANIFEST_STATUS_30236
     + '——头像 CONFIRMED_CLIENT_ID_BINDING；全身未定位、局部立绘已导出。'
       '本页整卡与局部图均按命名规则绑定标注，不视为全身体已确认。')
+
+# 显示比例依据（2026-10-20 修正轮，与正式渲染层 card_page_render_v2 同口径）：
+# 卡面纹理存储 512×512 方形，但游戏 UI 显示为 2:3 竖版。证据：
+# output/card_images/cid30236/followup/REPORT.txt——CharaInfoCard._cardTexture 指向
+# UITexture 109376/CardOrg，控件 640×960、aspectRatio≈0.6667、UV 覆盖整张纹理（APK prefab
+# 最小序列化前缀解析，非完整 UI 树恢复或实机测量）；头像 42×42 与上半身 512×512 的使用
+# 场景是 1:1。本仓库 4313 张 Card_OrgSize PNG 实测全部 512×512（2026-10-20 全量尺寸普查）。
+FOLLOWUP_REPORT_REL = 'output/card_images/cid30236/followup/REPORT.txt'
+DISPLAY_RATIO_NOTE_CARD = ('显示比例：存储 512×512；显示 2:3 竖版（游戏 UI 控件 640×960，'
+                           'APK prefab 证据 ' + FOLLOWUP_REPORT_REL +
+                           '；最小序列化前缀解析，非实机测量）')
+DISPLAY_RATIO_NOTES_1_1 = {
+    'whole': '显示比例：维持 1:1（同报告使用场景依据：上半身 PanelSortieLoginNext._texChara '
+             '控件 512×512，1:1 有据；半身 face 变体无其他界面比例依据，不套卡面比例）',
+    'icon': '显示比例：维持 1:1（同报告使用场景依据：头像 CardKizunaButton._charaIcon '
+            '控件 42×42，1:1 有据）',
+}
+DISPLAY_RATIO_AUDIT = (
+    '显示比例依据（' + FOLLOWUP_REPORT_REL + '；APK prefab 最小序列化前缀解析，'
+    '非实机测量、非完整 UI 树恢复）：主图 Card_OrgSize 存储 512×512 方形（本仓库 4313 张 '
+    'Card_OrgSize PNG 实测全部 512×512），游戏 UI CharaInfoCard._cardTexture 指向 '
+    'UITexture 109376/CardOrg，控件 640×960、aspectRatio≈0.6667、UV 覆盖整张纹理——'
+    '显示比例应为 2:3 竖版；本页主图按 2:3 非均匀缩放显示（浏览器等价于游戏 UI 把整张'
+    '方形纹理铺进 640×960 控件的行为，源 PNG 未改）。Trimmed_Whole 与 Card_Icon 维持 '
+    '1:1 显示（头像 42×42、上半身 512×512 的使用场景依据；半身 face 变体无其他界面'
+    '比例依据，保留 1:1）。')
 
 
 def art_kinds(padded):
@@ -232,7 +259,18 @@ ROW_AUDIT_LABELS = {
     'source_position': '来源位置', 'source_span_id': '来源跨度ID',
     'merge_key': '合并键', 'alias_references': '别名引用', 'japanese': '日文原文',
     'answers': '逐答案',
+    'inference_pilot': '推断层元数据（批1试点 type1017）',
+    'inference_pilot_hint': '批1试点 hint',
+    'inference_b3': '推断层元数据（批3 type8）', 'inference_b3_hint': '批3 hint',
+    'inference_b4': '推断层元数据（批4 条件扩展）', 'inference_b4_hint': '批4 hint',
+    'inference_b5': '推断层元数据（批5 跨表 type1017）', 'inference_b5_hint': '批5 hint',
+    'inference_b6': '推断层元数据（批6 必殺バフ）', 'inference_b6_hint': '批6 hint',
+    'inference_b7': '推断层元数据（批7 共鳴）', 'inference_b7_hint': '批7 hint',
 }
+# 批 6 复验 Low（49/367 行）句序口径澄清（渲染层，card.json 不变；scope §7 方案 A）。
+CHARAINFO_SENTENCE_ORDER_NOTE = (
+    '句序口径澄清（批 7 实施轮，渲染层）：句序注记的「本记录正文句序」指 charainfo 行自身正文'
+    '（charainfo.skilltext）句序；同页 pattern 正文句序另计，两者不相互替代')
 ANSWER_AUDIT_LABELS = {
     'value': '数值文案', 'quantity_kind': '类型', 'unit': '单位', 'raw_value': 'card.json 原值',
     'field_path': '字段路径', 'conversion': '换算', 'base_definition': '基值定义',
@@ -241,7 +279,8 @@ ANSWER_AUDIT_LABELS = {
     'association_evidence': '关联证据', 'evidence_scope': '适用范围', 'table': '表',
     'record_id': '记录ID', 'source': '来源指针', 'rule_key': '规则键', 'evidence': '证据目录',
     'effect_id': '效果ID', 'baseline_declared_description_id': '基线描述ID',
-    'context': '原句片段', 'quantitative': '定量', 'binding': '绑定', 'rule_status': '规则状态',
+    'context': '原句片段', 'quantitative': '定量', 'binding': '绑定', 'rule_status': '规则状态（兼容别名，=rule_body_status）',
+    'rule_body_status': '规则本体状态', 'condition_label': '条件标签（原文逐字，首屏分组键）',
 }
 SKILL_AUDIT_LABELS = {
     'skill_id': '技能ID', 'name': '名称', 'original_group': '原始组', 'record_id': '记录ID',
@@ -275,6 +314,9 @@ def render_audit(obj, labels, skip=()):
         if k in skip or v is None or v == '' or v == [] or v == {}:
             continue
         label = labels.get(k, k)
+        if k == 'rule_status' and isinstance(v, str):
+            # B5-R01（批5审查）同款：规则级状态限定口径，与 card_page_render_v2 同步。
+            v = f'规则级状态（规则本体{v}；不代表本值归属确认）'
         parts.append(f'<div class="kv"><span class="kv-k">{esc(label)}</span>'
                      f'<span class="kv-v">{audit_value_html(v)}</span></div>')
     return ''.join(parts)
@@ -301,8 +343,40 @@ def answer_chip(a, row, out_checks):
     if cls == 'ev-conf-ext':
         body += '<span class="chip-tag">外推</span>'
     if a.get('association_evidence') == '未知' and nev == '确认':
+        # L1（20261021 独立审查整改）：原文数字 chip 追加「原文已写」小字，与「关联未知」
+        # 并存；限定 numeric_source='原文'（基线答案不标）。与 card_page_render_v2 同步。
         body += '<span class="chip-assoc">关联未知</span>'
+        if a.get('numeric_source') == '原文':
+            body += '<span class="chip-assoc">原文已写</span>'
     return f'<span class="chip {cls}" title="证据：{esc(label)}">{body}</span>'
+
+
+def chip_groups_html(answers, row, out_checks):
+    """H1（20261021 独立审查整改）：批 4 条件扩展行的首屏 chips 分组显示（与
+    card_page_render_v2.chip_groups_html 同口径）：无 condition_label＝「基础」组；
+    带 condition_label（逐字条件原文）按条件值分组、组内按原顺序；组标签首屏可见、
+    不需展开详情；不合乘、不改证据等级；无 condition_label 的行维持原样。"""
+    if not any(a.get('condition_label') for a in answers):
+        return ''.join(answer_chip(a, row, out_checks) for a in answers)
+    base, cond_order, cond_groups = [], [], {}
+    for a in answers:
+        cl = a.get('condition_label')
+        if cl is None:
+            base.append(a)
+        else:
+            if cl not in cond_groups:
+                cond_groups[cl] = []
+                cond_order.append(cl)
+            cond_groups[cl].append(a)
+    parts = []
+    if base:
+        parts.append('<span class="chip-group"><span class="chip-group-label">基础</span>'
+                     + ''.join(answer_chip(a, row, out_checks) for a in base) + '</span>')
+    for cl in cond_order:
+        parts.append('<span class="chip-group"><span class="chip-group-label">条件：'
+                     + esc(cl) + '</span>'
+                     + ''.join(answer_chip(a, row, out_checks) for a in cond_groups[cl]) + '</span>')
+    return ''.join(parts)
 
 
 def render_row(row, out_checks):
@@ -311,7 +385,7 @@ def render_row(row, out_checks):
     out_checks.append(('row_japanese:' + rid, esc(row.get('japanese', ''))))
     answers = row.get('answers', [])
     if answers:
-        chips = ''.join(answer_chip(a, row, out_checks) for a in answers)
+        chips = chip_groups_html(answers, row, out_checks)
         ans_audit = ''.join(
             f'<div class="audit-ans"><div class="audit-ans-title">答案 {i + 1}</div>'
             f'{render_audit(a, ANSWER_AUDIT_LABELS)}</div>'
@@ -322,8 +396,15 @@ def render_row(row, out_checks):
         chips = '<span class="chip ev-unk">未知</span>'
         ans_sec = ''
     ev_label = row_evidence_label(row)
+    # 批 6 复验 Low（49/367 行）句序口径澄清（渲染层，card.json 不变；scope §7 方案 A），
+    # 与 card_page_render_v2 同步。
+    b6_meta = row.get('inference_b6') or {}
+    charainfo_note = (f'<div class="kv"><span class="kv-k">句序口径澄清</span>'
+                      f'<span class="kv-v">{esc(CHARAINFO_SENTENCE_ORDER_NOTE)}</span></div>'
+                      if isinstance(b6_meta, dict) and b6_meta.get('table') == 'charainfo' else '')
     row_audit = (f'<div class="kv"><span class="kv-k">行证据等级</span>'
                  f'<span class="kv-v">{esc(ev_label)}</span></div>'
+                 + charainfo_note
                  + render_audit(row, ROW_AUDIT_LABELS, skip=('answers', 'japanese')))
     row_sec = f'<div class="audit-sec"><div class="audit-title">行级审计</div>{row_audit}</div>'
     fold = (f'<details class="row-detail"><summary>▶ 详情（规则键/原值/证据/来源/条件）</summary>'
@@ -435,6 +516,10 @@ def render_html(m):
         if it.get('data_uri'):
             bind_bits = [f'文件：{esc(it["rel"])}（{it["bytes"]} 字节 PNG，base64 内嵌）',
                          f'绑定依据：{esc(it["binding"])}']
+            ratio_note = (DISPLAY_RATIO_NOTE_CARD if it['kind'] == 'main'
+                          else DISPLAY_RATIO_NOTES_1_1.get(it['kind']))
+            if ratio_note:
+                bind_bits.append(esc(ratio_note))
             if it.get('extra'):
                 bind_bits.append(esc(it['extra']))
             art_html_parts.append(
@@ -461,6 +546,7 @@ def render_html(m):
         f'{esc(m["art"].get("status", "NO_VERIFIED_BINDING"))}'
         + (f'；{esc(art_note)}' if art_note else '')
         + '。本立绘区独立于主管线，绑定依据见各图折叠标注。</div>')
+    art_audit_bits.append(f'<div class="art-bind">{esc(DISPLAY_RATIO_AUDIT)}</div>')
     art_audit = (f'<details class="art-audit"><summary>▶ 立绘区审计（manifest/主管线状态）</summary>'
                  f'{"".join(art_audit_bits)}</details>')
     art_block = f'<div class="art-block">{"".join(art_html_parts)}{art_audit}</div>'
@@ -516,7 +602,9 @@ details.basic-detail{{margin-top:8px;}}
 details.basic-detail summary{{cursor:pointer;color:#8a8a94;font-size:12px;}}
 .art-block{{border:1px solid #34343c;border-radius:6px;background:#1b1b20;padding:12px;margin-bottom:10px;}}
 .art-main{{margin:0 0 10px;text-align:center;}}
-.art-main .art-img{{max-width:100%;max-height:420px;width:auto;}}
+/* 主图显示比例（2026-10-20 修正）：游戏 UI 控件 640×960=2:3 竖版（followup/REPORT.txt）；
+   源 PNG 为 512×512 方形，object-fit:fill 默认拉伸＝游戏 UI 的非均匀缩放行为；whole/icon 维持 1:1 */
+.art-main .art-img{{width:min(340px,100%);aspect-ratio:2/3;height:auto;object-fit:fill;}}
 .art-strip{{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}}
 .art-thumb{{margin:0;flex:0 1 220px;text-align:center;}}
 .art-thumb .art-img{{max-width:200px;max-height:260px;width:auto;}}
@@ -557,6 +645,9 @@ details.art-audit summary{{cursor:pointer;color:#9a9aa2;font-size:12px;}}
 .chip.ev-unk{{background:rgba(130,130,140,.12);color:#9a9aa2;border:1px solid rgba(130,130,140,.35);font-weight:normal;}}
 .chip-tag{{font-size:10px;font-weight:normal;color:#a8d8a8;border:1px dashed rgba(125,220,141,.6);border-radius:3px;padding:0 4px;margin-left:5px;vertical-align:1px;}}
 .chip-assoc{{font-size:10px;font-weight:normal;color:#9a9aa2;margin-left:6px;}}
+/* H1（20261021 整改）：批 4 条件扩展行首屏 chips 分组——组标签首屏可见、不需展开详情 */
+.chip-group{{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;margin-right:12px;padding-right:10px;border-right:1px dotted #3c3c46;}}
+.chip-group-label{{display:inline-block;font-size:11px;font-weight:normal;color:#c8c8d0;background:#26262e;border:1px solid #3c3c46;border-radius:4px;padding:1px 8px;max-width:420px;white-space:normal;}}
 /* ---- 折叠层：全部审计内容，默认收起 ---- */
 details.row-detail{{margin-top:5px;}}
 details.row-detail summary{{cursor:pointer;color:#8a8a94;font-size:12px;user-select:none;list-style:none;}}
@@ -639,8 +730,17 @@ def run_checks(m, doc, checks):
                     failures.append(f'{tag}: 页面缺少尝试路径 {t}')
         if esc(it['binding']) not in doc:
             failures.append(f'{tag}: 页面缺少绑定依据标注')
+        ratio_note = (DISPLAY_RATIO_NOTE_CARD if it['kind'] == 'main'
+                      else DISPLAY_RATIO_NOTES_1_1.get(it['kind']))
+        if it.get('data_uri') and ratio_note and esc(ratio_note) not in doc:
+            failures.append(f'{tag}: 页面缺少显示比例标注')
         if it.get('extra') and esc(it['extra']) not in doc:
             failures.append(f'{tag}: 页面缺少追加标注')
+    # 显示比例（2026-10-20 修正轮）：主图 2:3 竖版缩放 CSS＋页级审计依据文本必须齐全
+    if 'aspect-ratio:2/3' not in doc:
+        failures.append('主图显示比例 CSS 缺少 aspect-ratio:2/3（2:3 竖版）')
+    if esc(DISPLAY_RATIO_AUDIT) not in doc:
+        failures.append('页面缺少立绘区审计显示比例依据文本')
     if m['cid'] == 30236:
         if esc(MANIFEST_NOTE_30236) not in doc:
             failures.append('art_manifest: 页面缺少 cid30236 manifest 状态标注')
@@ -660,6 +760,20 @@ def run_checks(m, doc, checks):
     n_fold = doc.count('<details class="row-detail">')
     if n_fold != len(row_ids):
         failures.append(f'row-detail 折叠数 {n_fold} != 行数 {len(row_ids)}')
+    # H1（20261021 整改）：带 condition_label 的批 4 行必须按组显示；组标签首屏可见
+    # （与 card_page_render_v2.run_checks 同口径）
+    for g in m['groups_present']:
+        for sk in g['skills']:
+            for r in sk.get('rows', []):
+                labels = sorted({a['condition_label'] for a in r.get('answers', [])
+                                 if a.get('condition_label')})
+                if not labels:
+                    continue
+                if '<span class="chip-group">' not in doc:
+                    failures.append(f'批4行 chips 未分组显示: {r.get("row_id")}')
+                for cl in labels:
+                    if f'<span class="chip-group-label">条件：{esc(cl)}</span>' not in doc:
+                        failures.append(f'批4行缺少条件组标签: {r.get("row_id")}: {cl[:40]}')
     for rid in row_ids:
         if f'<span class="kv-v">{esc(rid)}</span>' not in doc:
             failures.append(f'折叠层缺少行ID可见文本: {rid}')

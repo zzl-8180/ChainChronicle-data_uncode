@@ -2,7 +2,7 @@
 
 - 日期：2026-10-20
 - 负责人／对话标识：type1017试点实施员（GLM 5.3 Flash 260828，动态工作流子代理）
-- 状态：修复轮次已实施并全量重建完成；复核通过（待审查方定向复验）
+- 状态：**已闭合（2026-10-21 复核更新）**：修复轮次与全量重建完成，DeepSeek 定向复验 PASS_WITH_EXPLICIT_SCOPE_LIMITS（晋级 337、hint 4）。过程记录见下文；上部「待复验」为该时点状态。
 - 设计依据：`output/character_skills/inference_inventory/pilot_design.md`（pilot_design / TOP20 / boundaries / template_inventory，批 1 盘点产物）
 
 ## 目标

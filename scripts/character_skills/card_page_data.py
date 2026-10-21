@@ -15,6 +15,11 @@ import rules as R
 import card_page_inference_1017 as PILOT1017
 import card_page_inference_type8 as TYPE8
 import card_page_inference_cond as COND4
+import card_page_inference_b5_xtable as B5
+import card_page_inference_b6_bossbuff as B6
+import card_page_inference_b7_sympathy as B7
+import card_page_inference_b8_crit2012 as B8
+import card_page_inference_b9_debuff as B9
 from card_page_policy import metrics,INFERENCE_STATUS
 from card_page_basic import apply_basic_display
 from card_page_positions import fragment_positions,position_identity
@@ -841,11 +846,87 @@ def build_card(data:Inputs,cid):
                     # 批 4 未晋级/hint 的行批 3 照常审核，非首段/同文多次/方向冲突沿用批 3 留 hint）。
                     b3=TYPE8.evaluate(record,frag, layer=entry.get('layer'), record_id=entry.get('reference_id'), text=text) \
                         if table=='skilllist' and not answers and not (b4 is not None and b4.get('kind')=='promote') else None
+                    # 模板作用域推断层批 5（20261020：type1017 严格句跨表扩展——job_ability/
+                    # supporterskill 两表；行记录无参数槽，值行来源＝链上 skilllist 记录；
+                    # 范围与逐行审核依据 output/character_skills/inference_inventory/b5_xtable_scope.md）。
+                    # 只升「推断」；段位↔链位置对应/对象位图/方向/未主张活性槽逐行重验，不通过留 hint。
+                    b5=B5.evaluate(record,frag, table=table, layer=entry.get('layer'),
+                                   record_id=entry.get('reference_id'), text=text,
+                                   skill_refs=entry.get('skill_refs')) \
+                        if table in B5.TABLES and not answers else None
+                    # 模板作用域推断层批 6（20261020：味方全体必殺バフ——bosspattern/denju/dlb/
+                    # charainfo 行的 bossskill type13 子记录解析；行记录无直接 buff 参数槽，
+                    # 值行来源＝父记录唯一 type13 子记录；范围与逐行审核依据
+                    # output/character_skills/inference_inventory/b6_bossbuff_scope.md）。
+                    # 只升「推断」；G1–G7 门控（链可达/唯一 t13 载体/形状匹配/crit 排除/
+                    # charainfo 同文 pattern 唯一/同记录家族冲突/同文一次）逐行重验，
+                    # 不通过留 hint。非首段行按唯一载体＋形状匹配化解归属（20261020 主持裁决）。
+                    b6=B6.evaluate(record,frag, table=table, layer=entry.get('layer'),
+                                   record_id=entry.get('reference_id'), text=text,
+                                   data=data, cid=cid,
+                                   boss_skill_refs=entry.get('boss_skill_refs')) \
+                        if table in B6.TABLES and not answers else None
+                    # 模板作用域推断层批 7（20261020：共鳴アビリティ家族——sympathy 组 skilllist
+                    # 行的 ability3000 载体解析：值行来源＝主记录自身（若 3000）或相邻 sub1
+                    # （skillid+1，ability3000）；3005/3006 自身参数无规则不消费；范围与逐行
+                    # 审核依据 output/character_skills/inference_inventory/b7_sympathy_scope.md）。
+                    # 只升「推断」；G1–G8 门控（句唯一子串/buff 形状/主记录类型/属性全有规则/
+                    # 唯一载体形状匹配/競争句/样本域 CACHE/槽值方向）逐行重验，不通过留 hint。
+                    b7=B7.evaluate(record,frag, group=group_id, layer=entry.get('layer'),
+                                   record_id=entry.get('reference_id'), text=text,
+                                   data=data, cid=cid) \
+                        if group_id=='sympathy' and table=='skilllist' and not answers \
+                           and not (b4 is not None and b4['kind']=='promote') \
+                           and not (b3 is not None and b3['kind']=='promote') else None
+                    # 模板作用域推断层批 8（20261021：暴击增益——bosspattern/denju/charainfo/
+                    # dlb/heroic 行的 bossskill type13 中继→s_ability→skilllist ability2012
+                    # 载体解析；值行只消费 skilllist|2012|/param4|/param5；范围与逐行审核
+                    # 依据 output/character_skills/inference_inventory/b8_crit2012_scope.md）。
+                    # 只升「推断」；G1–G8 门控（句唯一子串/链可达/唯一载体＋type13 中继/
+                    # 属性形状/样本域 CACHE 406 条/对象相容/方向/跨 cid 守卫）逐行重验，
+                    # 不通过留 hint。普通 1110→1095 暴击段单列不进本批。
+                    b8=B8.evaluate(record,frag, table=table, layer=entry.get('layer'),
+                                   record_id=entry.get('reference_id'), text=text,
+                                   data=data, cid=cid,
+                                   boss_skill_refs=entry.get('boss_skill_refs'),
+                                   sa_ability_refs=entry.get('sa_ability_refs')) \
+                        if table in B8.TABLES and not answers \
+                           and not (b6 is not None and b6['kind']=='promote') else None
+                    # 模板作用域推断层批 9（20261021：敵デバフ——skilllist/supporterskill 容器行
+                    # own sub_effect 链→skilllist ability99 PowerDrain 载体；值行只消费
+                    # skilllist|99|/param0|/param7|/param8|/param9；范围与逐行审核依据
+                    # output/character_skills/inference_inventory/b9_debuff_scope.md）。
+                    # 只升「推断」；P1–P6 门控（敵減益半句逐字对象/own sub99 链可达/唯一载体/
+                    # 形状双向/竞争句/方向按符号/跨 cid 守卫）＋B1 防线（pattern 行不经
+                    # sub_effect 伪影消费；我方增益句不挂敌方减益值）逐行重验，
+                    # 不通过留 hint。2003 载体（形状同构但无规则）一律留 hint。
+                    b9=B9.evaluate(record,frag, table=table, layer=entry.get('layer'),
+                                   record_id=entry.get('reference_id'), text=text,
+                                   data=data, cid=cid) \
+                        if table in B9.TABLES and not answers \
+                           and not (pilot is not None and pilot['kind']=='promote') \
+                           and not (b4 is not None and b4['kind']=='promote') \
+                           and not (b3 is not None and b3['kind']=='promote') \
+                           and not (b5 is not None and b5['kind']=='promote') \
+                           and not (b6 is not None and b6['kind']=='promote') \
+                           and not (b7 is not None and b7['kind']=='promote') \
+                           and not (b8 is not None and b8['kind']=='promote') else None
                     promoted_b4=b4 is not None and b4['kind']=='promote'
                     promoted_b3=(not promoted_b4) and b3 is not None and b3['kind']=='promote'
-                    promoted=pilot is not None and pilot['kind']=='promote' or promoted_b3 or promoted_b4
+                    promoted_pilot=pilot is not None and pilot['kind']=='promote'
+                    promoted_b5=b5 is not None and b5['kind']=='promote'
+                    promoted_b6=b6 is not None and b6['kind']=='promote'
+                    promoted_b7=b7 is not None and b7['kind']=='promote'
+                    promoted_b8=b8 is not None and b8['kind']=='promote'
+                    promoted_b9=b9 is not None and b9['kind']=='promote'
+                    promoted=promoted_pilot or promoted_b3 or promoted_b4 or promoted_b5 \
+                             or promoted_b6 or promoted_b7 or promoted_b8 or promoted_b9
                     if promoted:
-                        active_answers=(b4 if promoted_b4 else b3 if promoted_b3 else pilot)['answers']
+                        active=(b4 if promoted_b4 else b3 if promoted_b3 else
+                                pilot if promoted_pilot else b5 if promoted_b5 else
+                                b6 if promoted_b6 else b7 if promoted_b7 else
+                                b8 if promoted_b8 else b9)
+                        active_answers=active['answers']
                         answers.extend(active_answers)
                     numerical=[a for a in answers if a['quantitative']]
                     # Existing baseline mechanisms may be useful, but only count B with an explicit added claim.
@@ -857,7 +938,10 @@ def build_card(data:Inputs,cid):
                     if skill['association_evidence']=='推断' and association=='确认': association='推断'
                     if promoted: association='推断'
                     reasons=[]
-                    active=b4 if promoted_b4 else b3 if promoted_b3 else pilot
+                    active=(b4 if promoted_b4 else b3 if promoted_b3 else
+                            pilot if promoted_pilot else b5 if promoted_b5 else
+                            b6 if promoted_b6 else b7 if promoted_b7 else
+                            b8 if promoted_b8 else b9)
                     if association!='确认':
                         if promoted:
                             reasons.append(active['summary_reason'])
@@ -872,6 +956,24 @@ def build_card(data:Inputs,cid):
                         reasons.append('模板批 3 type8 未晋级（留 hint）：'+'；'.join(b3['reasons']))
                     if b4 is not None and b4['kind']=='hint':
                         reasons.append('模板批 4 条件扩展未晋级（留 hint）：'+'；'.join(b4['reasons']))
+                    if b5 is not None and b5['kind']=='hint':
+                        reasons.append('模板批 5 跨表 type1017 未晋级（留 hint）：'+'；'.join(b5['reasons']))
+                    if b6 is not None and b6['kind']=='hint':
+                        b6msg='模板批 6 必殺バフ未晋级（留 hint）：'+'；'.join(b6['reasons'])
+                        if promoted_b8:
+                            # 批 8 晋级的行：批 6 hint 保留（事实口径不变——bossskill|13 确无
+                            # crit 槽规则），但补注暴击段已由批 8 经 s_ability→skilllist 2012
+                            # 载体另行出值行，避免与本行批 8 值行并读时误读为整行未晋级。
+                            b6msg+=('（本行暴击值行已由模板批 8 暴击 2012 链另行出值行——见 '
+                                    'inference_b8 值行与 inference_b8 元数据；批 6 hint 保留：'
+                                    '非 crit 属性仍按批 6 门无值行，批 6 键不重写）')
+                        reasons.append(b6msg)
+                    if b7 is not None and b7['kind']=='hint':
+                        reasons.append('模板批 7 共鳴未晋级（留 hint）：'+'；'.join(b7['reasons']))
+                    if b8 is not None and b8['kind']=='hint':
+                        reasons.append('模板批 8 暴击 2012 链未晋级（留 hint）：'+'；'.join(b8['reasons']))
+                    if b9 is not None and b9['kind']=='hint':
+                        reasons.append('模板批 9 敵デバフ未晋级（留 hint）：'+'；'.join(b9['reasons']))
                     if not answers: reasons.append('此描述尚无可适用的已确认数值或新增机制证据')
                     if matched_old and matched_old.get('cands') and not matched_old.get('binding') and not promoted:
                         reasons.append('旧关键词候选未作为答案；不能排除对象或效果错配')
@@ -908,6 +1010,84 @@ def build_card(data:Inputs,cid):
                             row['evidence_label']=TYPE8.TYPE8_TAG
                             row['inference_b3']=dict(batch='20261020 批3',family=TYPE8.TYPE8_FAMILY,
                                                      record_id=entry.get('reference_id'),attrs=b3['attrs'])
+                        elif promoted_b5:
+                            row['evidence_label']=B5.B5_TAG
+                            row['inference_b5']=dict(batch='20261020 批5',family=B5.B5_FAMILY,table=table,
+                                                     record_id=entry.get('reference_id'),
+                                                     chain_record_id=b5['chain_record_id'],
+                                                     chain_layer=b5['chain_layer'],
+                                                     subject=b5['subject'],attrs=b5['attrs'],
+                                                     section_no=b5['section_no'])
+                        elif promoted_b6:
+                            row['evidence_label']=B6.B6_TAG
+                            row['inference_b6']=dict(batch='20261020 批6',family=B6.B6_FAMILY,table=table,
+                                                     record_id=entry.get('reference_id'),
+                                                     parent_table=b6['parent_table'],
+                                                     parent_record_id=b6['parent_record_id'],
+                                                     parent_layer=b6['parent_layer'],
+                                                     chain_record_id=b6['chain_record_id'],
+                                                     chain_layer=b6['chain_layer'],
+                                                     chain_slot=b6['chain_slot'],via=b6['via'],
+                                                     pattern_record_id=b6.get('pattern_record_id'),
+                                                     subject=b6['subject'],attrs=b6['attrs'],
+                                                     section_no=b6['section_no'],
+                                                     section_count=b6['section_count'],
+                                                     sent_no=b6.get('sent_no'),
+                                                     sent_total=b6.get('sent_total'))
+                        elif promoted_b7:
+                            row['evidence_label']=B7.B7_TAG
+                            row['inference_b7']=dict(batch='20261020 批7',family=B7.B7_FAMILY,
+                                                     table=table,group=group_id,
+                                                     record_id=entry.get('reference_id'),
+                                                     layer=entry.get('layer'),
+                                                     main_skillid=b7['main_skillid'],
+                                                     main_ability=b7['main_ability'],
+                                                     carrier_record_id=b7['carrier_record_id'],
+                                                     carrier_layer=b7['carrier_layer'],
+                                                     carrier_role=b7['carrier_role'],
+                                                     carrier_name=b7.get('carrier_name'),
+                                                     subject=b7['subject'],attrs=b7['attrs'],
+                                                     claims=b7['claims'],
+                                                     seg_no=b7['seg_no'],seg_count=b7['seg_count'])
+                        elif promoted_b8:
+                            row['evidence_label']=B8.B8_TAG
+                            row['inference_b8']=dict(batch='20261021 批8',family=B8.B8_FAMILY,
+                                                     table=table,
+                                                     record_id=entry.get('reference_id'),
+                                                     layer=entry.get('layer'),
+                                                     pattern_record_id=b8['pattern_record_id'],
+                                                     relay_record_id=b8['relay_record_id'],
+                                                     relay_type=b8['relay_type'],
+                                                     relay_slot=b8['relay_slot'],
+                                                     carrier_record_id=b8['carrier_record_id'],
+                                                     carrier_layer=b8['carrier_layer'],
+                                                     carrier_name=b8.get('carrier_name'),
+                                                     via=b8['via'],subject=b8['subject'],
+                                                     attrs=b8['attrs'],claims=b8['claims'],
+                                                     sent_no=b8['sent_no'],
+                                                     sent_total=b8['sent_total'])
+                            # 批 8 晋级的行保留批 6 hint 键（不重写批 6 键：bossskill|13 侧的
+                            # 批 6 排除事实不变，非 crit 属性仍无值行；只新增批 8 键/值行）。
+                            if b6 is not None and b6['kind']=='hint':
+                                row['inference_b6_hint']='；'.join(b6['reasons'])
+                        elif promoted_b9:
+                            row['evidence_label']=B9.B9_TAG
+                            row['inference_b9']=dict(batch='20261021 批9',family=B9.B9_FAMILY,
+                                                     table=table,
+                                                     record_id=entry.get('reference_id'),
+                                                     layer=entry.get('layer'),
+                                                     carrier_record_id=b9['carrier_record_id'],
+                                                     carrier_layer=b9['carrier_layer'],
+                                                     carrier_name=b9.get('carrier_name'),
+                                                     via=b9['via'],subject=b9['subject'],
+                                                     attrs=b9['attrs'],claims=b9['claims'],
+                                                     sent_no=b9['sent_no'],
+                                                     sent_total=b9['sent_total'])
+                            # 批 9 晋级的行保留其它批 hint 键（skilllist 行上 pilot/b3/b4/b7
+                            # 可能已登记 hint；事实口径不变，只新增批 9 键/值行）。
+                            for _bn,_br in (('pilot',pilot),('b3',b3),('b4',b4),('b7',b7)):
+                                if _br is not None and _br['kind']=='hint':
+                                    row[f'inference_{_bn}_hint']='；'.join(_br['reasons'])
                         else:
                             row['evidence_label']=PILOT1017.PILOT_TAG
                             row['inference_pilot']=dict(batch='20261020 批1',family=PILOT1017.PILOT_FAMILY,
@@ -919,6 +1099,34 @@ def build_card(data:Inputs,cid):
                             row['inference_b3_hint']='；'.join(b3['reasons'])
                         if b4 is not None and b4['kind']=='hint':
                             row['inference_b4_hint']='；'.join(b4['reasons'])
+                        if b5 is not None and b5['kind']=='hint':
+                            row['inference_b5_hint']='；'.join(b5['reasons'])
+                        if b6 is not None and b6['kind']=='hint':
+                            row['inference_b6_hint']='；'.join(b6['reasons'])
+                        if b7 is not None and b7['kind']=='hint':
+                            row['inference_b7_hint']='；'.join(b7['reasons'])
+                        if b8 is not None and b8['kind']=='hint':
+                            row['inference_b8_hint']='；'.join(b8['reasons'])
+                        if b9 is not None and b9['kind']=='hint':
+                            row['inference_b9_hint']='；'.join(b9['reasons'])
+                    # M2（20261021 独立审查整改）：逐答案 source 补齐——试点 type1017（941）、
+                    # 批 3 type8（89）与批 4 基础句值行（110）共 1,130 条按「同记录继承契约」
+                    # 补 source：行级 source 所指记录即值行原值所在记录（推断模块 evaluate 的
+                    # record 与 entry['record'] 为同一对象），field_path 定位到记录内具体字段
+                    # （与 rule_key 第三段一致）。批 4 条件增幅值行（175 条）不走此继承——
+                    # 其 source 已在 card_page_inference_cond.py 内直接指向子记录。
+                    # 结构：table/record_id/layer/source_key/json_pointer/field_path
+                    # ＋record_key/original_file/raw_record_sha256（若可得）＋inheritance 标记；
+                    # 契约文本见 pages/README.md「逐答案 source 契约」节。
+                    # b5/b6/b7 答案自带 table/record_id/layer/record_key 形式的 source，不在此改写。
+                    if promoted:
+                        _inherited_base={k:v for k,v in row['source'].items() if k not in ('field','field_json_pointer')}
+                        for _a in answers:
+                            if _a.get('source'):continue
+                            _a['source']={**_inherited_base,'table':table,
+                                          'record_id':entry.get('reference_id'),
+                                          'field_path':_a.get('field_path'),
+                                          'inheritance':'same_record_as_row_source'}
                     # L-12（DeepSeek 20to39审查）：冻结绑定条件（N>=2/职业/所属/武器等）提到行级可见层，
                     # 不再只在折叠JSON；条件文本逐字来自冻结binding，不改数值与判定。
                     row['binding_conditions']=[]
@@ -972,7 +1180,17 @@ def build_card(data:Inputs,cid):
                   inference_b3_promoted=sum(1 for r in allrows if r.get('inference_b3')),
                   inference_b3_hinted=sum(1 for r in allrows if r.get('inference_b3_hint')),
                   inference_b4_promoted=sum(1 for r in allrows if r.get('inference_b4')),
-                  inference_b4_hinted=sum(1 for r in allrows if r.get('inference_b4_hint')))
+                  inference_b4_hinted=sum(1 for r in allrows if r.get('inference_b4_hint')),
+                  inference_b5_promoted=sum(1 for r in allrows if r.get('inference_b5')),
+                  inference_b5_hinted=sum(1 for r in allrows if r.get('inference_b5_hint')),
+                  inference_b6_promoted=sum(1 for r in allrows if r.get('inference_b6')),
+                  inference_b6_hinted=sum(1 for r in allrows if r.get('inference_b6_hint')),
+                  inference_b7_promoted=sum(1 for r in allrows if r.get('inference_b7')),
+                  inference_b7_hinted=sum(1 for r in allrows if r.get('inference_b7_hint')),
+                  inference_b8_promoted=sum(1 for r in allrows if r.get('inference_b8')),
+                  inference_b8_hinted=sum(1 for r in allrows if r.get('inference_b8_hint')),
+                  inference_b9_promoted=sum(1 for r in allrows if r.get('inference_b9')),
+                  inference_b9_hinted=sum(1 for r in allrows if r.get('inference_b9_hint')))
     # H-01（DeepSeek 20to39审查）：整行确认分两类口径——记录级 REVIEWED_RECORD（30236基线）
     # 与类型外推 BY_TYPE_EXTRAPOLATED（冻结P3B9/P3B10模板行）；只拆分呈现与统计，不降级判定。
     confirmed_scopes={}

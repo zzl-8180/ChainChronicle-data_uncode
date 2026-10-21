@@ -106,3 +106,26 @@
 1. 按需对最终 2236 页做一次独立版式验收（浏览器视觉回归本轮未做）。
 2. B4-R01 修复后可请审查方在 issues.jsonl 将 B4-R01 置为 fixed（本实施不改旧审查报告）。
 3. 遗留：README §15 下一步的 P-B 86 行原生核实、type26 子集 272 行前置审计（未动）。
+
+---
+
+## 追加轮（2026-10-20）：主图显示比例修正（2:3 竖版）
+
+- 需求来源：已核实证据 `output/card_images/cid30236/followup/REPORT.txt`（只读引用）——
+  卡面纹理存储 512×512 方形，游戏 UI 控件 640×960＝2:3 竖版（APK prefab 最小序列化前缀
+  解析，非实机测量）；whole/icon 维持 1:1；半身 face 变体保留 1:1。
+- 改动：`card_page_render_v2.py` 主图 CSS 改 `width:min(340px,100%);aspect-ratio:2/3;
+  height:auto;object-fit:fill`（非均匀缩放＝游戏 UI 行为；源 PNG 不改）；逐图绑定标注与
+  立绘区审计追加显示比例依据文本；`run_checks` 内置显示比例自检。`card_page_dbstyle_sample.py`
+  同步并重渲染三张示例卡。
+- 重建：四 cohort 0 失败（ge60 `20261020T105237995373Z-792dbc80`、40to59
+  `20261020T105300269503Z-1d7adde0`、20to39 `20261020T105407774703Z-423c2551`、remaining
+  `20261020T105510177428Z-ef67b344`）；新签名 `66de3593e75dae03…4858ff`
+  （dependency_signature `4029ad13…` 不变，29/29 依赖重算未变）。
+- 复核（`work/character_skills_display_ratio_20261020/recheck.py`）：2236/2236 receipt
+  SUCCESS、4472 哈希 0 不一致、29/29 依赖、0 stale；**card.json 逐字节不变 2236/2236**
+  （重建前全量 SHA-256 快照对比，纯显示层修正）；四联指标、coverage 全键、campaign 与
+  各 cohort 审计队列（11469 行）逐字节不变；全量 2236 页落盘核查 2:3 CSS/页级依据段
+  2236/2236、主图逐图标注 2205/2205、whole/icon 1:1 标注 2235/2232（与有图页数恰等）。
+- 抽样自检：`work/character_skills_display_ratio_20261020/sample_selfcheck.py` 17 卡全部通过。
+- 详见 `output/character_skills/pages/README.md` §16.6。未做浏览器截图级视觉回归。
