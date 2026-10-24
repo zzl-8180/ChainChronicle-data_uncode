@@ -442,13 +442,19 @@ def _p0_note(p0_raw):
 
 def _sample_domain_note(rule, param):
     """样本域披露（INFR-02）：skilllist|2012 三条规则 occurrences 已登记（406/308/311）且
-    前置审计与 v3 CACHE 实测交叉验证一致→按登记口径披露（比批 6 occ=None 外推强）。"""
+    前置审计与 v3 CACHE 实测交叉验证一致→按登记口径披露（比批 6 occ=None 外推强）。
+    批 14 扩域（2026-10-22）刷新：三键样本域扩至 CACHE＋APK 两域分源（occurrences_apk
+    登记）——本句动态引用 rules.json 登记值，旧「样本域＝当前 v3 CACHE…406 条记录」
+    单域口径由两域分源取代（批 14 存量披露刷新，数值零变化）。"""
     occ = rule.get('occurrences')
     origin = _registered_rule(param).get('origin') or '未登记'
-    return (f'该规则登记已核出现 {occ} 次（origin {origin}；样本域＝当前 v3 CACHE 普通 '
-            'ability2012 的 406 条记录：param4 存在 308 条全>0、param5 存在 311 条全>0、'
-            '缺槽保持缺失不导出 0）；本行来源载体记录未逐条核对，按规则适用条件披露，'
-            '不属逐记录确认')
+    return (f'该规则登记已核出现 {occ} 次＋occurrences_apk={rule.get("occurrences_apk")} 次'
+            f'（origin {origin}；样本域＝两域分源（批 14 扩域 2026-10-22）：①当前 v3 CACHE '
+            '普通 ability2012 的 406 条记录：param4 存在 308 条全>0、param5 存在 311 条全>0、'
+            '缺槽保持缺失不导出 0；②APK 主表 _mdSkill.json ability2012 的 211 条记录：'
+            'param4 存在数 132、param5 存在数 131（存储 0.0＝中性不计，与 CACHE 缺失不计'
+            '同语义）；命名空间不合并、行侧载体按载体所在层取值不得跨层读取）；'
+            '本行来源载体记录未逐条核对，按规则适用条件披露，不属逐记录确认')
 
 
 def _slots_note(carrier_rec, claimed):
@@ -719,12 +725,21 @@ def evaluate(record: dict, frag: str, table: str, layer: str | None = None, reco
     crec = carrier['record']
 
     # --- G5 样本域：载体层==CACHE 且 id ∈ 406 条 v3 规则样本域 ------------------------------
+    # 批 14 APK 扩域（2026-10-22）：rules.json 2012 三键样本域扩至 CACHE＋APK 两域分源
+    # （occurrences_apk 登记）后，APK 层 2012 载体（211 条扩后域）在此委托批 14 模块按
+    # 载体层域接管：G4/G6/G7/G8 门控后晋级（行级键 inference_b14，替换本批旧域外 hint，
+    # 不双登记）或 hint（实际门）。返回 dict 带 b14_ext 标记（晋级时）。
     if carrier['layer'] != 'CACHE' or carrier['carrier_id'] not in _r2012_domain(data):
+        if carrier['layer'] == 'APK':
+            import card_page_inference_b14_apkext as B14
+            return B14.handle_2012_apk(frag, table, layer, record_id, cid,
+                                       rate, power, claims, subject_phrase, obj,
+                                       direction, carrier, text)
         return _hint(table, [f'G5：载体 skilllist|{carrier["carrier_id"]}|{carrier["layer"]} 在 '
                              '规则样本域（conditions：仅当前 v3 CACHE 普通 ability2012 的 406 条'
-                             '记录）之外；APK 层 2012 记录 211 条值形同构但含 CACHE 域外值'
-                             '（如 float32 值/0.0 槽），扩域需独立原生核实，不静默扩域'
-                             '（carrier-out-of-domain）'], subject=subject_phrase, attrs=claims)
+                             '记录）之外（防御性分支：批 14 扩域后 APK 载体已委托批 14 接管，'
+                             '本分支对 CACHE 层非域内载体理论不可达）'],
+                     subject=subject_phrase, attrs=claims)
 
     # --- G4 属性形状：句 crit 属性⇔载体活性 crit 槽（双向，防跨段误配）-----------------------
     def _active(key):

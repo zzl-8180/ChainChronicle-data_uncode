@@ -52,6 +52,9 @@ import sys
 from pathlib import Path
 
 from card_page_policy import summary_text, INFERENCE_STATUS
+# P3（目标整改 §三.4/A8，20261023）：行首屏同句呈现未解决效果——判定与效果账本同源
+# （effect_ledger.analyze_row 单一事实来源），未解决不呈现为完整、推断不呈现为确认。
+import effect_ledger as EFFECT_LEDGER
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PAGES = ROOT / 'output' / 'character_skills' / 'pages'
@@ -268,6 +271,16 @@ ROW_AUDIT_LABELS = {
     'inference_b7': '推断层元数据（批7 共鳴）', 'inference_b7_hint': '批7 hint',
     'inference_b8': '推断层元数据（批8 暴击 2012 链）', 'inference_b8_hint': '批8 hint',
     'inference_b9': '推断层元数据（批9 敵デバフ ability99 载体）', 'inference_b9_hint': '批9 hint',
+    'inference_b10': '推断层元数据（批10 SA2003 载体）', 'inference_b10_hint': '批10 hint',
+    'inference_b11': '推断层元数据（批11 自身增益 1095）', 'inference_b11_hint': '批11 hint',
+    'inference_b12': '推断层元数据（批12 1095 扩域）', 'inference_b12_hint': '批12 hint',
+    'inference_b13': '推断层元数据（批13 APK 扩域）', 'inference_b13_hint': '批13 hint',
+    'inference_b14': '推断层元数据（批14 APK 扩域第二批）', 'inference_b14_hint': '批14 hint',
+    'inference_b15': '推断层元数据（批15 并集归属：t13 槽∪2012 暴击链）',
+    'inference_b15_hint': '批15 并集归属未成立（具体缺口）',
+    'inference_b17': '推断层元数据（批17 P0 收尾：槽位分区/时长槽共享/denju patternid 映射）',
+    'inference_b17_hint': '批17 P0 收尾未成立（具体缺口）',
+    'same_cond_alt_t13': '同 HP 条件组其余 pattern→t13 分支披露（R1-High 复审整改；原值逐字＋选取维度未解析待办）',
 }
 # 批 6 复验 Low（49/367 行）句序口径澄清（渲染层，card.json 不变；scope §7 方案 A）。
 CHARAINFO_SENTENCE_ORDER_NOTE = (
@@ -385,8 +398,59 @@ def chip_groups_html(answers, row):
     return ''.join(parts)
 
 
+_UNRES_FLAG_SHORT = {
+    'S1_zero_claims': '词表未识别出效果主张（不能排除词表外效果）',
+    'S2_unconfirmed_numbers': '原文数字语义未确认（如次数/阈值；含主张子句内数字——R2 整改）',
+    'S3_uncovered_clauses': '存在未被效果主张覆盖的子句（定性机制待核查）',
+    'S3b_residual_mechanisms': '正文含词表外机制词且无答案覆盖（状态异常等待核查——R2 整改）',
+    'S4_unconsumed_typed_answers': '存在未对应句面主张的答案（归属缺口）',
+    'S5_hp_branch_coverage': 'HP 档位分支覆盖不完整（R1 整改）',
+    'S5_hp_variation_unbound': '「随HP变化」句的增益答案缺 HP 档位绑定（R1 整改）',
+    'S6_unresolved_conditions': '概率类条件无载体映射与解析状态（R2 整改）',
+    'S7_same_cond_alt_t13': '同 HP 条件组内其余 pattern→t13 值不同、选取维度未解析（R1-High 复审整改）',
+}
+
+
+def unresolved_effects_html(row):
+    """P3（目标整改 §三.4/A8）：首屏同句呈现仍未解决的效果——可读短句列表；
+    判定与效果账本 effect_ledger.analyze_row 同源（单一事实来源）。
+    未解决不呈现为完整（不使用数值 chip 样式）；推断不呈现为确认（证据档颜色不变，
+    已解释效果仍由 chips 呈现）。纯定性 NA 判定与已回答效果不出现在此。"""
+    res = EFFECT_LEDGER.analyze_row(row)
+    parts = []
+    for e in res['effects']:
+        if e['status'] != 'unresolved':
+            continue
+        etype = e['effect_type']
+        dirword = {'up': '上升', 'down': '下降'}.get(e['direction'], '')
+        # R4（DS-GR-R1/R4 修复，20261023 复验）：ダメージ 类未解决主张标注对象维度
+        # （自身/敵）——与账本 effect.object 同源，供 verify_full 第 15 项内容级核对，
+        # 读者可分辨自伤/敌方伤害（对象不可判时不标注）。
+        objmark = ''
+        if etype in EFFECT_LEDGER._DAMAGE_TYPES and e.get('object'):
+            objmark = '（自身）' if e['object'] == 'self' else '（敵）'
+        if etype in EFFECT_LEDGER._OUTSIDE_TYPES:
+            cand = '效果类型在当前词表外，待语义核查'
+        elif res['breakpoint']:
+            cand = '候选 bossskill type13 槽（并集归属），核查中'
+        elif row.get('inference_b15_hint'):
+            cand = '并集归属未成立（见批15 hint），核查中'
+        elif row.get('inference_b17_hint'):
+            cand = '批17 收尾归属未成立（见批17 hint），核查中'
+        else:
+            cand = '候选来源定位中'
+        parts.append(f'未解：{etype}{dirword}{objmark}（{cand}）')
+    for f in res['split_flags']:
+        parts.append('拆分待核查：' + _UNRES_FLAG_SHORT.get(f['code'], f['code']))
+    if not parts:
+        return ''
+    items = ''.join(f'<span class="unres-item">{esc(p)}</span>' for p in parts)
+    return (f'<div class="unresolved-effects" data-unresolved="{len(parts)}">'
+            f'<span class="unres-title">仍未解决（{len(parts)}）</span>{items}</div>')
+
+
 def render_row(row):
-    """首屏＝日文原文＋数值 chips；全部审计内容收入单个 <details>（默认收起）。"""
+    """首屏＝日文原文＋数值 chips＋未解决效果短句；全部审计内容收入单个 <details>（默认收起）。"""
     rid = row.get('row_id', '')
     answers = row.get('answers', [])
     if answers:
@@ -415,7 +479,7 @@ def render_row(row):
     return (f'<div class="row" data-row-id="{esc(rid)}" data-row-class="{esc(row["row_class"])}"'
             f' data-evidence="{esc(row["evidence"])}">'
             f'<p class="jp" lang="ja">{esc(row.get("japanese", ""))}</p>'
-            f'<div class="chips">{chips}</div>{fold}</div>')
+            f'<div class="chips">{chips}</div>{unresolved_effects_html(row)}{fold}</div>')
 
 
 def render_skill(skill):
@@ -728,6 +792,11 @@ details.art-audit summary{cursor:pointer;color:#9a9aa2;font-size:12px}
 .row:first-of-type{border-top:none}
 .row-jp,.row p.jp{font-size:17px;line-height:1.7;color:#f2f2f6;margin:0 0 7px;font-family:"Yu Gothic","Meiryo","Microsoft YaHei",system-ui,sans-serif}
 .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+/* P3 未解决效果短句（同句呈现已解释＋未解决；不使用数值 chip 样式，不呈现为完整） */
+.unresolved-effects{margin-top:4px;font-size:12px;line-height:1.7}
+.unresolved-effects .unres-title{color:#c8a44a;margin-right:8px}
+.unresolved-effects .unres-item{display:inline-block;border:1px dashed #5a5245;border-radius:5px;
+  padding:1px 7px;margin:2px 6px 2px 0;color:#c8b98f;white-space:normal}
 .chip{display:inline-block;font-size:14px;font-weight:bold;padding:2px 10px;border-radius:4px;line-height:1.5}
 .chip.ev-conf{background:rgba(70,160,90,.2);color:#7ddc8d;border:1px solid rgba(70,160,90,.6)}
 .chip.ev-conf-ext{background:rgba(70,160,90,.2);color:#7ddc8d;border:1px dashed rgba(70,160,90,.75)}

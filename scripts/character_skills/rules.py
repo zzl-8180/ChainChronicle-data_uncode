@@ -28,6 +28,8 @@ Rule sources, in merge order (a later source only fills keys the earlier ones la
 from __future__ import annotations
 
 import json
+import math
+import struct
 from pathlib import Path
 
 from common import CARD_COMPARISON, DECODED, load_json
@@ -204,19 +206,529 @@ def _boss_heal_type_rules() -> list[dict]:
     return out
 
 
+def _sa2003_rules() -> list[dict]:
+    """Rules confirmed by the batch-10 line (ability2003 = SA_PowerDrain).
+
+    批 10 前置审计（``output/character_skills/inference_inventory/b10_sa2003_scope.md``
+    §2–§3）：ability2003 是独立处理器 ``AttackEffectCtrl.ExecSA_PowerDrain``@0x1037a08
+    （metadata 方法 3373），与 ability99 的 ``OnAttackAbilityPowerDrain``@0x1121be0 不同
+    函数；但目标侧数据路径与 99 同一：param7/8/9→TimePowerUpData(_attack/_move/_defense)
+    →setSupport2（multiCheck=true、时间 param0），Support2 聚合/倒计时链共用（复用 99/
+    timed_support 既有证据，未重跑）。触发差异（与 99 三路不同，逐行披露）：2003 仅
+    damageType==1（Skill）经 param3×Random.Range 门，Normal/Critical 阈值恒 0 永不触发。
+
+    样本域＝当前 v3 CACHE 普通 skilllist ability==2003 全部 265 条（occurrences 按槽位
+    存在数 265/265/265/258/263）；APK 148 条同构但域外（未分配，扩域另立小步）。
+    param4/param5/param6（自身侧提交，7/5/7 条）**未登记换算**，不在此注册。规则草案
+    的草案文本以 scope §3 为准；evidence 指向批 10 证据目录（受控原生检查 8 项）与
+    复用的 99/timed_support 既有证据。
+    """
+    a2003 = "output/ordinary_effects/ability2003/"
+    a99 = "output/ordinary_effects/ability99/"
+    ts = "output/card_comparison_cid30236/timed_support/"
+    own = [a2003 + n for n in ("README.md", "trace.json", "native_checks.json")]
+    reused = [ts + n for n in ("README.md", "trace.json", "native_checks.json")] + \
+             [a99 + n for n in ("README.md", "trace.json", "native_checks.json")]
+    base = {
+        "source": "CACHE",
+        "table": "skilllist",
+        "record_type": "ability=2003",
+        "effect_type": 2003,
+        "base_definition": "目标Support2普通/技能攻击或受伤量倍率基准1；param0是两次支持提交共用的计时输入",
+        "target": "param7/9为本次受击目标；param0同时用于攻击者和目标两次提交；param8写目标_move",
+        "status": "已确认（静态及受控原生局部规则）",
+        "limits": ("只推广本类型存在字段；缺param8的7条、缺param9的2条不填0，其他参数不推广"
+                   "（param1/param2全不存在、param4/5/6自身侧未登记换算）。倍率夹紧[.5,2]沿用"
+                   "ability99侧证据（2003侧未重跑，复用披露）；重复施加匹配/覆盖、跨类别叠加/"
+                   "实际HP及死亡/换波等清除未知。源-1不当-1秒或无条件永久。触发仅Skill型着弹"
+                   "（Normal/Critical不触发，与99三路不同）；普通表中的敌用能力仍保留，不能"
+                   "限制为玩家施加。"),
+        "evidence": own + reused,
+        "origin": "output/character_skills/inference_inventory/b10_sa2003_scope.md",
+    }
+    domain = ("仅当前v3 CACHE普通skilllist ability2003（SA_PowerDrain）的265条记录样本域"
+              "（APK 148条同构但域外，未分配）；已进入Attack正返回伤害附加阶段"
+              "（OnDamagedTo，伤害≥1）并触发本能力时")
+    return [
+        {**base, "field_path": "/param0",
+         "meaning_zh": "SA_PowerDrain支持计时输入（正秒数或-1标记）",
+         "unit": "正值为游戏秒；-1为无正计时标记",
+         "conversion": ("正30/60/90/300原样存入Support2支持时间及完整时间，按游戏delta扣减；"
+                        "源-1保存-1并跳过正时间扣减，其他移除条件另论；不乘Chain"),
+         "applicability": domain + "：正值param0 255条（30×251/60×2/90×1/300×1）、-1×10",
+         "occurrences": 265},
+        {**base, "field_path": "/param3",
+         "meaning_zh": "Skill 型着弹触发阈值（Random.Range(0,1)≤param3）",
+         "unit": "概率阈值（仅 damageType==1（Skill）生效）",
+         "conversion": ("仅伤害类型==1（Skill）读本槽：Random.Range(0,1)≤param3（加Epsilon静态"
+                        "门槛，0x29ab820，99同款）触发；Normal(0)/Critical(2) 的阈值恒0，"
+                        "永不触发——与ability99的param1/param3/param2三路不同"),
+         "applicability": domain + "：param3 全265条为1 → 当前域内实为 Skill 着弹即触发"
+                                "（APK侧例外50009=0.15在域外）",
+         "occurrences": 265},
+        {**base, "field_path": "/param7",
+         "meaning_zh": "受击目标攻击倍率的加算贡献",
+         "unit": "Support2攻击倍率增量；显示百分点",
+         "conversion": ("param7直接写目标_attack；普通/技能攻击同类汇总=clamp(1+Σ(_attack…))；"
+                        "单项-.3形成本类别因子.7，不乘Chain；负值=下降贡献"),
+         "applicability": domain + "：param7 全265条存在且活性；例外47000844（敌用）p7=+1为方向"
+                                "例外，涉该记录的行须逐行冲突披露（当前431行C1不含该载体）",
+         "occurrences": 265},
+        {**base, "field_path": "/param8",
+         "meaning_zh": "受击目标移动速度因子加算增量",
+         "unit": "速度倍率/加算增量；派生为百分比",
+         "conversion": "Support2移动因子=clamp(1+sum(_move))；本字段直接写_move；负值=下降贡献",
+         "applicability": domain + "：param8 存在258条（全活性、全负 -0.1..-0.5）；缺7条不填0",
+         "occurrences": 258},
+        {**base, "field_path": "/param9",
+         "meaning_zh": "受击目标受伤量倍率的加算贡献",
+         "unit": "Support2受伤量倍率增量；显示百分点",
+         "conversion": ("param9直接写目标_defense；同类受伤量汇总=clamp(1+Σ_defense)；"
+                        "单项+.3形成本类别因子1.3，不是固定防御减少30%，不乘Chain；正值="
+                        "受伤量因子上升——正文写作「防御力下がる」的表现层口径"),
+         "applicability": domain + "：param9 存在263条（全活性、全正 0.1..0.375）；缺2条不填0",
+         "occurrences": 263},
+    ]
+
+
+_B12_1095_SLOTS = (
+    # (field_path, occurrences, 边界/分布注记)
+    ("/param2", 407, "非中性135条、中性1×272条、非中性值域1.02–2.25"),
+    ("/param5", 211, "全211条>0、值域0.02–0.8；缺席=中性，不补零"),
+    ("/param6", 407, "非中性184条、中性1.5×223条、非中性值域1.51–4.5"),
+)
+
+
+def _b12_1095_domain_update(merged: list[dict]) -> list[dict]:
+    """批 12（1095 扩域）：把 skilllist|1095 的 param2/param5/param6 三键由
+    「已核 ID 数」口径（param2=65000001 计 1、param5=65000001 计 1、
+    param6=43023601+65000001 计 2）扩为与 param1/param3 同域同义的
+    「当前 v3 CACHE ability=1095 全部 407 条根记录的字段存在数」（407/211/407）。
+
+    语义依据无新反汇编，读点/运算均在既有片段且按 ability **类型**分派、无按
+    skill_id 数值分叉——与 param1/param3 的 occurrences=407 是同一结构论证：
+    * param2：movement/walk_self_dispatch.txt（0x1118a34 ``cmp w0,#0x447``）→
+      walk_small_types.txt（IsEnableAbility → get_param2 → 0x1118c48 ``fmul``）；
+    * param5：critical/chance_dispatch_and_add.txt（0x1105e40 get_param5 →
+      0x1105e5c ``fadd`` 直接加算，无 1.5 基准）；
+    * param6：critical/damage_baseline_and_dispatch.txt（get_param6 →
+      ``fmov #-1.5`` 入增量）＋ attack_critical_base.txt（0x153b6e4 加回基础 1.5）。
+
+    受控检查（批 12 追加，位于既有 32 项 p1/p3 检查之后）：9 项边界记录×资格真假
+    （p2 1.02/2.25、p5 0.02/0.8、p6 1.51/4.5，含 p6 空列表槽不读不写与基础 1.5 加回）
+    ＋全域公式核对（param2 407／param5 211／param6 407 条逐记录执行、逐条断言读取
+    来源与 float32 换算），见 ``output/ordinary_effects/ability1095/native_checks.json``
+    的 ``b12_extension``（无新反汇编）。被父 sub 引用的 230 条记录全部同时是根记录
+    （230⊂407），故不按 sub 另列分母；63 条有 param5 的根记录不被任何 sub 引用，
+    按存在数口径一并入域。conversion/target/status/evidence/origin 不变；旧「已核
+    ID 数」口径移入 limits 注记（历史保留，不静默覆盖）。param1/param3 两键及
+    param4/param7/param8（语义未推广）零改动。
+    """
+    patched = 0
+    for rule in merged:
+        if (rule.get("table"), rule.get("effect_type")) != ("skilllist", 1095):
+            continue
+        fp = rule.get("field_path")
+        slot = next((s for s in _B12_1095_SLOTS if s[0] == fp), None)
+        if slot is None:
+            continue
+        _, occurrences, spread = slot
+        rule["occurrences"] = occurrences
+        if fp == "/param2":
+            rule["applicability"] = ("当前v3 CACHE/skilllist中ability=1095的407条记录，"
+                                     "仅存在的有限数值param2；接受者已装有本能力且"
+                                     "IsEnableAbility资格通过时")
+            rule["limits"] = ((rule.get("limits") or "") + ""
+                              + "；批12扩域（2026-10-22）：occurrences由「已核ID数」"
+                                "（param2=65000001计1）改为当前v3 CACHE ability=1095全部"
+                                "407条根记录的param2字段存在数（与param1/param3同域同义；"
+                                + spread + "；被父sub引用的230条全部同时是根记录）。新增边界"
+                                "记录×资格真假受控检查与407条全域公式核对"
+                                "（../ordinary_effects/ability1095/，无新反汇编）。")
+        elif fp == "/param5":
+            rule["applicability"] = ("当前v3 CACHE/skilllist中ability=1095的407条记录，仅存在"
+                                     "的有限数值param5（211条）；接受者已装有本能力（进入暴击"
+                                     "概率能力列表）且类型分派命中ability=1095时")
+            rule["limits"] = ((rule.get("limits") or "") + ""
+                              + "；批12扩域（2026-10-22）：occurrences由「已核ID数」"
+                                "（param5=65000001计1）改为当前v3 CACHE ability=1095全部"
+                                "407条根记录的param5字段存在数211（与param1/param3同域同义；"
+                                + spread + "；63条有param5的根记录不被任何sub引用，按存在数"
+                                "口径一并入域）。新增边界记录受控检查与211条全域公式核对"
+                                "（../ordinary_effects/ability1095/，无新反汇编）。")
+        else:
+            rule["applicability"] = ("当前v3 CACHE/skilllist中ability=1095的407条记录，"
+                                     "仅存在的有限数值param6；接受者已装有本能力（进入暴伤"
+                                     "能力列表）且类型分派命中ability=1095时")
+            rule["limits"] = ((rule.get("limits") or "") + ""
+                              + "；批12扩域（2026-10-22）：occurrences由「已核ID数」"
+                                "（param6=43023601、65000001计2）改为当前v3 CACHE "
+                                "ability=1095全部407条根记录的param6字段存在数（与param1/"
+                                "param3同域同义；" + spread + "；被父sub引用的230条全部同时"
+                                "是根记录）。新增边界记录×资格真假（含空列表槽不读不写）受控"
+                                "检查与407条全域公式核对（../ordinary_effects/ability1095/，"
+                                "无新反汇编）；基础1.5在攻击侧另行加回（0x153b6e4）。")
+        patched += 1
+    assert patched == len(_B12_1095_SLOTS), patched
+    return merged
+
+
+_B13_APKEXT_KEYS = (
+    # (effect_type, field_path, occurrences_apk)——APK 侧存在数（output/base_master/_mdSkill.json
+    # 按「非零」计；APK 记录 schema 恒含 param0–9 全字段，0 与缺省不可区分。实测 2026-10-22）。
+    (99, "/param0", 196),   # 正值 160＋-1×36；0×3（17547/25510/28053）不计、披露
+    (99, "/param7", 157),   # 全负 -0.5…-0.05
+    (99, "/param8", 82),    # 全负 -0.4…-0.05（存在数口径；CACHE 侧仍为已核 ID 数 1）
+    (99, "/param9", 162),   # 全正 0.03…0.3
+    (2003, "/param0", 148),  # 正值 133＋-1×15
+    (2003, "/param3", 148),  # 147×1＋50009×0.15
+    (2003, "/param7", 114),  # 全负 -0.5…-0.05（无 +1 类例外）
+    (2003, "/param8", 75),   # 全负 -0.5…-0.15
+    (2003, "/param9", 140),  # 全正 0.05…0.4
+)
+
+
+def _b13_apkext_domain_update(merged: list[dict]) -> list[dict]:
+    """批 13（APK 扩域）：把 skilllist|99 四键与 skilllist|2003 五键的样本域由
+    「仅当前 v3 CACHE」扩为「CACHE＋APK 主表两域分源」，并新增伴生字段
+    ``occurrences_apk``（APK 侧存在数；``occurrences`` 保留 CACHE 存在数口径不变，
+    全部现有标量消费者不受影响）。
+
+    依据（规则域审计
+    ``output/character_skills/inference_inventory/b13_apkext_scope.md``，2026-10-22）：
+    APK 99×199／2003×148 全量分布复核 0 方向反例（p7≤0/p8≤0/p9≥0）；触发限定词↔
+    阈值组合逐行一致（PROMOTABLE 278 行 0 违例）；2003 处理器证据已含 APK 记录受控
+    实测（批 10 native_checks 31222712/50009）；99 处理器最小新增 2 条 APK 记录受控
+    检查（31020502 全路＋31221605 分数阈值）＋两型 APK 全域公式核对（99×199×3 路、
+    2003×148×Skill 路，0 失败；work/character_skills_b13_impl_apkext/，复用批 9/10
+    夹具，无新反汇编、未实机）。两域 5＋5 个同号记录中 7 组为真实参数值分歧、3 组
+    （99 侧 40840104/42060203、2003 侧 40840112）仅缺省/float32 表示差——命名空间
+    不合并、不得跨层取值（B13-R02 措辞精确化，20261022 实测逐组分列见 domain99/
+    domain2003 文案）。status/换算语义/evidence/occurrences 不变；旧 CACHE 单域口径移
+    limits 注记（历史保留，不静默覆盖）。origin 不变。
+    """
+    domain99 = ("样本域＝两域分源（批13扩域 2026-10-22）：①当前 v3 CACHE 普通 skilllist "
+                "ability==99 的 133 条记录（存在数见 occurrences）；②APK 主表 "
+                "output/base_master/_mdSkill.json ability==99 的 199 条记录（存在数见 "
+                "occurrences_apk）。两域分源保存、命名空间不合并；5 个同号记录"
+                "（40840104/42030603/42040503/42060203/42060307）中 42030603/42040503/"
+                "42060307 为两域真实参数值分歧（CACHE p7 -0.2/p8 -0.2/p9 0.2 vs APK "
+                "p7 -0.15/p8 0/p9 0.15；42040503 为 CACHE p7 -0.2/p8 -0.2/p9 0.2 "
+                "vs APK -0.15/-0.15/0.15；42060307 CACHE p0 60 vs APK 30，另 CACHE "
+                "p4/p5/p6=0.1/0.1/-0.1 vs APK 0）；40840104/42060203 两域 p7/p8/p9 值在 "
+                "float32 精度内相等（-0.15/-0.15/0.15 与 -0.3/-0.3/0.3，差异仅为 APK 侧 "
+                "float32 表示与缺省 vs 0，非值分歧）。无论何种，行侧载体一律按载体所在层"
+                "的域取值，不得跨层读取（B13-R02 措辞精确化，20261022 实测；42030603 "
+                "APK 侧多写的「-0.15」由批 14 R02b 删除——APK p8 为存储 0.0，非 -0.15）")
+    trig99 = ("；已进入 Attack 正返回伤害附加阶段并选出本能力时（触发阈值 p1/p3/p2 无规则键："
+              "句面限定词「通常攻撃時/クリティカル攻撃時/必殺技攻撃時/一定確率で」与载体阈值"
+              "组合逐行披露，概率值登记不分配）")
+    domain2003 = ("样本域＝两域分源（批13扩域 2026-10-22）：①当前 v3 CACHE 普通 skilllist "
+                  "ability2003（SA_PowerDrain）的 265 条记录（存在数见 occurrences）；②APK "
+                  "主表 output/base_master/_mdSkill.json ability==2003 的 148 条记录（存在数"
+                  "见 occurrences_apk）。两域分源保存、命名空间不合并；5 个同号记录"
+                  "（40840112/42013112/42020111/42030611/42040511）中 42013112/42020111/"
+                  "42030611/42040511 为两域真实参数值分歧（逐组元组——B13-R02b 由压缩列表改"
+                  "列，20261022 实测：42013112 CACHE p7 -0.275/p8 -0.275/p9 0.275 vs APK "
+                  "-0.25/0/0.25；42020111 CACHE p7 -0.275/p8 -0.275/p9 0.275 vs APK -0.25/0/"
+                  "0.25；42030611 CACHE p7 -0.275/p8 -0.275/p9 0.275 vs APK -0.15/0/0.15；"
+                  "42040511 CACHE p7 -0.275/p8 -0.275/p9 0.275 vs APK -0.2/-0.2/0.2）；"
+                  "40840112 两域 "
+                  "p7/p8/p9 同值（-0.25/-0.25/0.25），差异仅为缺省 vs 0 与 float32 表示，"
+                  "非值分歧。无论何种，行侧载体一律按载体所在层的域取值，不得跨层读取"
+                  "（B13-R02 措辞精确化，20261022 实测）。已进入 Attack 正返回伤害附加阶段"
+                  "（OnDamagedTo，伤害≥1）并触发本能力时")
+    limits_add = ("；批13扩域（2026-10-22）：APK 域为扩域样本：同处理器、同一 "
+                  "TimePowerUpData→setSupport2 数据路径（2003 侧批 10 受控检查已含 APK 记录"
+                  "实测；99 侧受控检查扩 APK 记录后成立：31020502 全路＋31221605 分数阈值"
+                  "两记录受控检查＋99×199×3 路、2003×148×Skill 路全域公式核对 0 失败，"
+                  "work/character_skills_b13_impl_apkext/，无新反汇编、未实机）；APK 特有"
+                  "形态披露：99 p0=0×3（17547/25510/28053，语义未核、登记不分配）、99 分数"
+                  "阈值×23、2003 p3=0.15×1（50009）；p0 新正值（4.5/5/10/15/18/20/25/45/50/"
+                  "90/120）按「正值=游戏秒原样存」口径，值域列表扩展未逐值实机核对。"
+                  "99/param8 的 APK 侧 82 条按存在数口径登记，其移动语义证据基座仍为已核 ID "
+                  "43023616 单条受控检查，外推披露不得升格。原 conditions 旧 CACHE 单域口径"
+                  "移本注记保留（历史口径，已被两域分源取代，occurrences 的 CACHE 存在数口径"
+                  "不变）。")
+    tails99 = {
+        "/param0": ("：param0 正值 CACHE 131 条（30×103/60×19/10×6/20×3）、-1×2；APK 正值 "
+                    "160 条（30×90/20×31/15×16/60×11/90×4/10×2、4.5/18/25/45/50/120 各 1）、"
+                    "-1×36、0×3（17547/25510/28053，语义未核、登记不分配）"),
+        "/param7": "：param7 活性 CACHE 126 条（全负 -0.5…-0.05）、APK 157 条（全负 -0.5…-0.05）",
+        "/param9": "：param9 活性 CACHE 123 条（全正 0.05…0.35）、APK 162 条（全正 0.03…0.3）",
+    }
+    tails2003 = {
+        "/param0": ("：正值 CACHE 255 条（30×251/60×2/90×1/300×1）、-1×10；APK 正值 133 条"
+                    "（30×94/20×22/15×7/25×3/10×2/5×2/90×2/45×1）、-1×15"),
+        "/param3": ("：param3 CACHE 全 265 条为 1；APK 147×1＋50009（伝授必殺技用アシュリー）"
+                    "×0.15——Skill 型着弹 15% 概率触发，涉该记录的行逐行披露"),
+        "/param7": ("：param7 CACHE 265 条存在且活性（例外 47000844 p7=+1 为方向例外，涉该"
+                    "记录的行须逐行冲突披露；该例外仅 CACHE 侧）；APK 114 条活性、全负 "
+                    "-0.5…-0.05（无 +1 类例外）"),
+        "/param8": ("：param8 CACHE 存在 258 条（全活性、全负 -0.1..-0.5）、缺 7 条不填 0；"
+                    "APK 75 条（全负 -0.5…-0.15）、缺 73 条不填 0"),
+        "/param9": ("：param9 CACHE 存在 263 条（全活性、全正 0.1..0.375）、缺 2 条不填 0；"
+                    "APK 140 条（全正 0.05…0.4）、缺 8 条不填 0"),
+    }
+    patched = 0
+    for rule in merged:
+        et, fp = rule.get("effect_type"), rule.get("field_path")
+        slot = next((s for s in _B13_APKEXT_KEYS
+                     if s[0] == et and s[1] == fp), None)
+        if slot is None:
+            continue
+        _, _, occ_apk = slot
+        rule["occurrences_apk"] = occ_apk
+        if et == 99:
+            if fp == "/param8":
+                rule["applicability"] = (domain99 + "；/param8 语义证据基座仍为已核 ID "
+                                         "43023616 单条受控检查（CACHE 侧 occurrences=1 保持"
+                                         "已核 ID 数口径，不因扩域改变）；APK 侧 82 条活性"
+                                         "（全负 -0.4…-0.05）按存在数口径登记、外推逐行披露"
+                                         "不得升格；安装/资格满足时；已进入 Attack 正返回伤害"
+                                         "附加阶段并选出本能力时")
+            else:
+                rule["applicability"] = domain99 + trig99 + tails99[fp]
+        else:
+            rule["applicability"] = domain2003 + tails2003[fp]
+        rule["limits"] = (rule.get("limits") or "") + limits_add
+        patched += 1
+    assert patched == len(_B13_APKEXT_KEYS), patched
+    return merged
+
+
+_B14_APKEXT_KEYS = (
+    # (effect_type, field_path, occurrences_apk)——APK 侧存在数（中性口径：存储 0.0＝中性
+    # 不计，与 CACHE「缺失不计入存在数」同语义；p2/p3=1.0、p6=1.5 中性与 CACHE 同口径
+    # 计入。output/base_master/_mdSkill.json 实测 2026-10-22，独立复算与审计投影一致）。
+    (2012, "/param0", 211),  # 全正 10.0–300.0（无 0/-1 形态）
+    (2012, "/param4", 132),  # 全>0 0.05–0.5；存储 0.0×79 中性不计
+    (2012, "/param5", 131),  # 全>0 0.05–0.3；存储 0.0×80 中性不计
+    (1095, "/param1", 52),   # 全>1 1.02–11.5
+    (1095, "/param2", 52),   # 1.0–2.25；中性 1.0×5 计入（CACHE 同口径）
+    (1095, "/param3", 52),   # 0.5–1.0；中性 1.0×5 计入（CACHE 同口径）
+    (1095, "/param5", 37),   # 全>0 0.2–0.75；存储 0.0×15 中性不计（CACHE 缺席=中性同口径）
+    (1095, "/param6", 52),   # 1.5–4.0；中性 1.5×21 计入（CACHE 同口径）
+)
+
+# 批 14 同号清单（B14-L02 措辞精确化后逐组元组直接写入 domain 文案；本清单保留为
+# 索引用途——同号全集 19 条＝实质值差 10（2012：42030112/42043614/42051013/42051212/
+# 42051412/42051413/42051414/42060715；1095：40232301/42070800）＋仅缺省/float32 表示差
+# 9（2012：40839912/40839913/42060312/42060313/42060318/42060713/42060714；1095：
+# 42063801/42071301）。两域逐字段原值实测：work/character_skills_b17_impl/
+# b14_l02_sameid_values.json ＋ work/character_skills_b14_audit/sameid_diff.json。
+_B14_SAMEID_2012 = ('40839912/40839913/42030112/42043614/42051013/42051212/42051412/'
+                    '42051413/42051414/42060312/42060313/42060318/42060713/42060714/'
+                    '42060715')
+_B14_SAMEID_1095 = '40232301/42063801/42070800/42071301'
+
+
+def _b14_apkext_domain_update(merged: list[dict]) -> list[dict]:
+    """批 14（APK 扩域第二批）：把 skilllist|2012 三键（param0/4/5）与 skilllist|1095
+    五键（param1/2/3/5/6）的样本域由「仅当前 v3 CACHE」扩为「CACHE＋APK 主表两域分源」，
+    新增伴生字段 ``occurrences_apk``（APK 侧存在数，中性口径见 _B14_APKEXT_KEYS 注释；
+    ``occurrences`` 保留 CACHE 存在数口径不变，全部现有标量消费者不受影响）。
+
+    依据（规则域审计 ``output/character_skills/inference_inventory/b14_apkext_scope.md``，
+    2026-10-22；实施检查 work/character_skills_b14_impl/）：
+    2012×211×3 键＋1095×52×5 键全域公式核对 0 违例（2012 经 SupportGuest 夹具逐条
+    replay——含 iParam0≠0×16 条以扩展夹具走 CheckJobFlag 真实体；1095 经批 12 同法五窗口
+    replay）；CheckJobFlag 非零分支体（0x13ab388–0x13ab458）片段提取（升级项，经主持
+    授权，自既有恢复的原生镜像提取，未开真机）＋职业过滤受控检查 6 项——iParam0≠0 时按
+    位图 (1<<成员职业)&iParam0 过滤味方成员（命中保留、未命中移出成员列表），与
+    ability1017/3000 元数据 JobType 位图同型；4＋3 条边界记录受控检查全过。
+    两域同号 19 条（15×2012＋4×1095，列表见 domain 文案）全部非本批 113 载体（载体与
+    CACHE 同号 0 交集）——分源不合并、行侧载体按载体所在层取值不得跨层读取（批 13 §2.2
+    先例）。中性口径：APK 2012 p4/p5 存储零（0.0×79/80）＝无贡献（getter 读 0 加 0），
+    与 CACHE 缺失不计入存在数同语义、不当作 +0 效果行；1095 p5=0.0×15 同理，p2/p3=1.0
+    ×5、p6=1.5×21 中性与 CACHE 同口径计入。iParam0 注记：CACHE 406 条全部缺失（getter
+    读 0 免职业过滤——旧 limits 句限定 CACHE 侧、不删史）；APK 211 条全部存在，≠0×16
+    （1×4、2×5、4×2、5×4、16×1），本批载体 8 条（1×4、2×2、5×2）职业过滤生效、涉行按
+    句面条件（condition_label）分组披露，域内非载体 8 条登记不分配。
+    status/换算语义/evidence/origin 不变；旧 CACHE 单域口径移 limits 注记（历史保留，
+    不静默覆盖）。
+    """
+    domain2012 = ("样本域＝两域分源（批14扩域 2026-10-22）：①当前 v3 CACHE 普通 ability2012 "
+                  "的 406 条记录（存在数见 occurrences）；②APK 主表 "
+                  "output/base_master/_mdSkill.json ability==2012 的 211 条记录（存在数见 "
+                  "occurrences_apk；APK 记录 schema 恒含 param0–9/iParam0/1 全字段，中性以"
+                  "存储 0.0 表示——与 CACHE 缺失不计入存在数同语义）。两域分源保存、命名空间"
+                  "不合并；同号记录 15 个——B14-L02 措辞精确化（20261023，逐组以两域记录"
+                  "原值为准）：实质值差 8 个（逐组元组 CACHE vs APK，param0/param4/param5："
+                  "42043614 30/0.25/0.25 vs 25.0/0.2/0.2；42051013 30/0.275/0.275 vs "
+                  "15.0/0.25/0.25；42051212 30/0.5/0.5 vs 30.0/0.25/0.25（同记录未登记键 "
+                  "param6 CACHE -0.325 vs APK -0.5 亦实质分歧）；42051412 30/0.25/0.25 vs "
+                  "15.0/0.0/0.15；42051413 30/0.275/0.275 vs 15.0/0.0/0.2；42051414 "
+                  "30/0.3/0.3 vs 15.0/0.0/0.25；42030112 30/缺失/缺失 vs 30.0/0.0/0.0"
+                  "（登记键无值差、同记录 param6 CACHE -0.33 vs APK -0.5 实质分歧）；"
+                  "42060715 30/缺失/缺失 vs 30.0/0.0/0.0（登记键无值差、同记录 param6 "
+                  "CACHE -0.325 vs APK -0.25 实质分歧））；仅缺省/float32 表示差 7 个"
+                  "（40839912 30/0.2/0.2 vs 30.0/0.20000000298023224/0.20000000298023224"
+                  "（p4/p5 float32 表示差）、42060313 30/0.275/0.275 vs "
+                  "30.0/0.2750000059604645/0.2750000059604645（float32）、42060318 "
+                  "30/0.3/0.3 vs 30.0/0.30000001192092896/0.30000001192092896（float32）、"
+                  "42060714 30/0.275/0.275 vs "
+                  "30.0/0.2750000059604645/0.2750000059604645（float32）；"
+                  "40839913/42060312/42060713 登记键逐字段"
+                  "同值、仅缺省 vs 存储 0.0 差——均非值差）。行侧载体一律按载体"
+                  "所在层的域取值，不得跨层读取；本批 86 载体与 CACHE 同号 0 交集。"
+                  "iParam0：CACHE 406 条全部缺失（getter 读 0 免职业过滤）；APK 211 条全部"
+                  "存在，其中 ≠0×16（1×4、2×5、4×2、5×4、16×1）——本批载体 8 条（1×4、2×2、"
+                  "5×2）职业过滤生效（CheckJobFlag 按位图 (1<<成员职业)&iParam0 过滤味方"
+                  "成员——b14_extension 片段＋受控检查），涉这些载体的行按句面条件"
+                  "（condition_label）条件分组披露、不并入基础值；域内非载体 8 条"
+                  "（30722611/12、30835411/12、31221911、30524211、40762313、40762413）"
+                  "登记不分配。已进入技能动作OnAction附加能力列表且目标选中时")
+    dist2012 = ("：param0 CACHE 406 条全正 22.5–300（30×373/300×16/100×8/60×3/24.15×4/"
+                "22.5×2）、APK 211 条全正 10.0–300.0（30×134/20×46/15×10/10×7/25×4/100×3/"
+                "90×2/60×2/300×2/120×1）；param4 活性 CACHE 308 条（全>0 0.05–0.5、缺失 98 "
+                "条中性不计）、APK 132 条（全>0 0.05–0.5；存储 0.0×79 中性不计）；param5 "
+                "活性 CACHE 311 条（全>0 0.05–0.5、缺失 95 条中性不计）、APK 131 条（全>0 "
+                "0.05–0.3；存储 0.0×80 中性不计）")
+    domain1095 = ("样本域＝两域分源（批14扩域 2026-10-22）：①当前 v3 CACHE/skilllist 中 "
+                  "ability=1095 的 407 条记录（存在数见 occurrences）；②APK 主表 "
+                  "output/base_master/_mdSkill.json ability==1095 的 52 条记录（存在数见 "
+                  "occurrences_apk；APK 记录 schema 恒含全字段，中性以存储值表示：p2/p3="
+                  "1.0×5、p6=1.5×21、p5=0.0×15——p2/p3/p6 与 CACHE 同口径计入存在数）。"
+                  "两域分源保存、命名空间不合并；同号记录 4 个——B14-L02 措辞精确化"
+                  "（20261023，逐组以两域记录原值为准）：实质值差 2 个（逐组元组 CACHE vs "
+                  "APK：40232301 param1 10 vs 7.5（param2 1.5/param6 2 两域等值，param3 "
+                  "0.6 vs 0.6000000238418579、param5 0.4 vs 0.4000000059604645 仅 float32 "
+                  "表示差）；42070800 param1 11 vs 7.5、param2 2.1 vs 1.5、param3 0.55 vs "
+                  "0.6499999761581421、param5 0.8 vs 0.4000000059604645、param6 3.5 vs 1.5"
+                  "——五键全实质分歧）；仅缺省/float32 表示差 2 个（42063801 param3 0.65 vs "
+                  "0.6499999761581421、param5 缺失 vs 存储 0.0，param1/2/6 两域等值；"
+                  "42071301 param3 0.65 vs 0.6499999761581421、param5 0.4 vs "
+                  "0.4000000059604645 仅 float32 表示差——均非值差）。"
+                  "行侧载体一律按载体所在层的域"
+                  "取值，不得跨层读取；本批 27 载体与 CACHE 同号 0 交集。APK 侧 iParam0 全 "
+                  "0（无职业过滤分支）、p4 全 1.0 中性（未推广槽）、param0/p7/p8 全中性零"
+                  "（无时限槽，与 CACHE p7/p8 23 条活性形态不同，登记不分配）")
+    dist1095 = {
+        "/param1": "：param1 APK 52 条全>1（1.02–11.5；CACHE 值域 1–18.5）",
+        "/param2": "：param2 APK 52 条（1.0–2.25；中性 1.0×5 计入；CACHE 值域同 2.25 上限）",
+        "/param3": "：param3 APK 52 条（0.5–1.0；中性 1.0×5 计入；CACHE 值域 0.4–1.0）",
+        "/param5": "：param5 APK 存在数 37（全>0 0.2–0.75；存储 0.0×15 中性不计；CACHE "
+                   "211 条 0.02–0.8）",
+        "/param6": "：param6 APK 52 条（1.5–4.0；中性 1.5×21 计入；CACHE 值域 1.5–4.5）",
+    }
+    tail1095 = {
+        "/param1": ("；接受者已装有本能力且IsEnableAbility资格通过时"),
+        "/param2": ("；接受者已装有本能力且IsEnableAbility资格通过时"),
+        "/param3": ("；接受者已装有本能力且IsEnableAbility资格通过时"),
+        "/param5": ("；接受者已装有本能力（进入暴击概率能力列表）且类型分派命中ability=1095时"),
+        "/param6": ("；接受者已装有本能力（进入暴伤能力列表）且类型分派命中ability=1095时"),
+    }
+    limits_add_2012 = ("；批14扩域（2026-10-22）：APK 域为扩域样本：同处理器、同一 "
+                       "TimePowerUpData→setSupport2 数据路径（APK 211 条×3 键全域公式核对 "
+                       "0 失败＋4 边界记录（40033812/41100413/40322511/40429211）＋6 项职业"
+                       "过滤受控检查经 work/character_skills_b14_impl/；CheckJobFlag 非零"
+                       "分支体片段 0x13ab388–0x13ab458＝升级项经主持授权自既有恢复的原生"
+                       "镜像提取（output/ordinary_effects/ability2012/checkjobflag_body.txt"
+                       "，b14_extension 节），无新反汇编来源镜像、未实机）；APK 特有形态披露："
+                       "param8=15×3（37000383/384/388【エネミー用】CQ 系）与 66×1（30921611）"
+                       "枚举语义未核、iParam0≠0 域内非载体 8 条、param7=0.0×2、p0 新正值"
+                       "（10/15/20/25/90/120，CACHE 值集外）按「正值=游戏秒原样存」口径、"
+                       "值域列表扩展未逐值实机核对——均登记不分配；param7 等未注册键不做解释"
+                       "不出值行。原 conditions 旧 CACHE 单域口径移本注记保留（历史口径，已被"
+                       "两域分源取代，occurrences 的 CACHE 存在数口径不变）；旧「当前 iParam0 "
+                       "均缺失，原生 getter 读 0 免额外职业过滤，不能当源字段 0」句自本批起"
+                       "仅对 CACHE 侧成立（APK 域 8 载体 iParam0≠0 职业过滤生效、按条件分组"
+                       "披露，见 conditions iParam0 注记）——旧句保留不删史。")
+    limits_add_1095 = ("；批14扩域（2026-10-22）：APK 域为扩域样本：同处理器、读点/运算均在"
+                       "既有片段且按 ability 类型分派、无按 skill_id 分叉（APK 52 条×5 键全域"
+                       "公式核对 260 项 0 失败＋3 边界记录受控检查（40034001 全活性/"
+                       "41123201 p5=0 中性/40033901 p6=1.5 中性），work/"
+                       "character_skills_b14_impl/b14_apk_checks_1095.json，无新反汇编、"
+                       "未实机）；APK 值域全落 CACHE 值域内、仅 float32 表示伪影（按 float32"
+                       " 回舍比较，不把表示差记为值差）。原 conditions 旧 CACHE 单域口径移本"
+                       "注记保留（历史口径，已被两域分源取代，occurrences 的 CACHE 存在数口径"
+                       "不变）。")
+    patched = 0
+    for rule in merged:
+        et, fp = rule.get("effect_type"), rule.get("field_path")
+        slot = next((s for s in _B14_APKEXT_KEYS if s[0] == et and s[1] == fp), None)
+        if slot is None:
+            continue
+        _, _, occ_apk = slot
+        rule["occurrences_apk"] = occ_apk
+        if et == 2012:
+            rule["applicability"] = domain2012 + dist2012
+            rule["limits"] = (rule.get("limits") or "") + limits_add_2012
+        else:
+            rule["applicability"] = domain1095 + dist1095[fp] + tail1095[fp]
+            rule["limits"] = (rule.get("limits") or "") + limits_add_1095
+        patched += 1
+    assert patched == len(_B14_APKEXT_KEYS), patched
+    return merged
+
+
+def _yg1_damage_dictionary(merged):
+    """Register the reviewed local formulas; row association remains separately gated."""
+    meanings = {(55, '/skillparam1'): '激光伤害输入倍率',
+                (74, '/skillparam5'): '首次直接范围伤害输入倍率'}
+    for rule in merged:
+        key = (_rule_effect_type(rule), rule.get('field_path'))
+        if rule.get('table') != 'bossskill' or key not in meanings:
+            continue
+        rule.update(meaning_zh=meanings[key], unit='倍（相对B）',
+            conversion='伤害输入 = floor/clamp(float32(B × '+key[1][1:]+'))',
+            base_definition='B=getBasicSkillAttack(true)，已包含Chain，不再重复乘Chain。',
+            target='该处理器选出的敌方目标；描述与载体需另行绑定',
+            applicability='当前已核原生版本的Boss类型处理器；CACHE记录逐源取值，charainfo仅记录级等价时作为副本。',
+            status='已确认（原生静态局部公式；描述归属另作推断）',
+            limits='非最终HP扣减；不证明命中次数、实际选档或完整技能。type74此槽不解释后续反响伤害。',
+            origin='scripts/character_skills/rules.py::_yg1_damage_dictionary')
+        rule['evidence'] = list(rule.get('evidence') or []) + [
+            {'report':'output/character_skills/yg1_batch1_20261024/REVIEW_SOURCE.md',
+             'scope':'type55 p1 / type74 p5局部公式与实际读取路径'}]
+        if key[0] == 74:
+            rule['applicability'] += ('正常有限float32(p5)>Mathf.Epsilon时才执行首次直接攻击；'
+                '0/负值/未过阈值不进入该段；缺失/null/非有限值不得补0套公式。')
+            rule['evidence'].append({'report':
+                'output/character_skills/yg1_batch2_20261024/独立报告/REVIEW_SOURCE.md',
+                'scope':'§2–3 Mathf.Epsilon直接攻击门槛'})
+    for field, meaning, unit, conversion in (
+        ('skillparam6', '激光段生成调度阈值', '游戏秒',
+         'float32(skillparam6)；FixedUpdate累计fixedDeltaTime达到阈值后减一次阈值，每步至多启用一段'),
+        ('skillparam0', '激光段启用上限（含首段）', '段',
+         'int32(trunc(float32(skillparam0)))；含Initialize启用的首段')):
+        merged.append(dict(table='bossskill', effect_type=55, field_path='/'+field,
+            meaning_zh=meaning, unit=unit, conversion=conversion,
+            base_definition='BulletSpiralLaser.Initialize / addBullet / FixedUpdate',
+            target='激光段调度配置',
+            applicability='已核原生版本Boss55；页面只消费已核父子引用的Y.G.载体。p6须有限且float32后为正；p0须正常有限且转换在int32内，页面仅展示正段数。',
+            status='已确认（静态配置读取链；描述归属另作推断）',
+            limits='非严格受伤间隔、保证命中次数、对象分配数或总伤害时长；首段启用不代表即时命中。缺失/null/0分开；p6=0每步至多一次，不表示无限次。',
+            evidence=[{'report':'output/character_skills/yg1_batch2_20261024/独立报告/REVIEW_SOURCE.md',
+                       'scope':'§2–3、6 有界原生读取链与配置语义'}],
+            origin='scripts/character_skills/rules.py::_yg1_damage_dictionary'))
+    return merged
+
+
 def rules() -> list[dict]:
     global _RULES
     if _RULES is None:
         merged = list(load_json(CARD_COMPARISON / "field_dictionary.json"))
         have = {(r.get("table"), _rule_effect_type(r), r.get("field_path")) for r in merged}
         for r in (_boss_extra_rules() + _skilllist_type_rules() + _boss_attack_type_rules()
-                  + _boss_heal_type_rules()
+                  + _boss_heal_type_rules() + _sa2003_rules()
                   + (load_json(Path('output/character_skills/remaining_five/field_dictionary.json'))
                      if Path('output/character_skills/remaining_five/field_dictionary.json').exists() else [])):
             key = (r["table"], r["effect_type"], r["field_path"])
             if key not in have:
                 merged.append(r)
                 have.add(key)
+        # 批 12（1095 扩域）：param2/param5/param6 三键扩域更新在合并后的规则层生效
+        # （card_comparison 字典属前线生成产物，其生成器 extend_1095 只覆盖 param1/param3）。
+        merged = _b12_1095_domain_update(merged)
+        # 批 13（APK 扩域）：99 四键＋2003 五键样本域扩为 CACHE＋APK 两域分源，
+        # 新增 occurrences_apk 伴生字段（occurrences 的 CACHE 口径不变）。
+        merged = _b13_apkext_domain_update(merged)
+        # 批 14（APK 扩域第二批）：2012 三键＋1095 五键样本域扩为 CACHE＋APK 两域分源，
+        # 新增 occurrences_apk 伴生字段（中性口径：存储 0.0 不计；同号 19 条分源不合并）。
+        merged = _b14_apkext_domain_update(merged)
+        merged = _yg1_damage_dictionary(merged)
         _RULES = merged
     return _RULES
 
@@ -1057,6 +1569,26 @@ def _prob(value):
         return None
 
 
+def laser_config(field_path, value):
+    """Normal finite positive Boss55 configuration; None does not mean zero."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    try:
+        f32 = struct.unpack('<f', struct.pack('<f', value))[0]
+    except (OverflowError, struct.error):
+        return None
+    if not math.isfinite(f32) or f32 <= 0:
+        return None
+    if field_path == '/skillparam6':
+        return dict(quantity_kind='激光段生成调度阈值', unit='游戏秒',
+            value_text=f'原值{value!r}；float32调度阈值{f32:.9g} 游戏秒（固定更新每步至多启用一段）',
+            note='调度阈值不是严格受伤间隔；首段启用不代表即时命中。')
+    if field_path == '/skillparam0' and 1 <= f32 < 2147483648:
+        return dict(quantity_kind='激光段启用上限（含首段）', unit='段',
+            value_text=f'{int(f32)} 段（float32后向零截断，含首段；非保证命中次数）')
+    return None
+
+
 def convert(table: str, effect_type, field_path: str, value, record: dict,
             rule: dict | None = None) -> dict | None:
     """Return a derived answer for one (table, effect_type, field_path, value).
@@ -1067,6 +1599,10 @@ def convert(table: str, effect_type, field_path: str, value, record: dict,
     """
     if table == "charainfo":
         return convert("bossskill", effect_type, field_path, value, record, rule)
+    if table == 'bossskill' and effect_type == 55 and field_path in ('/skillparam0', '/skillparam6'):
+        return laser_config(field_path, value) or dict(quantity_kind='激光配置未解释',
+            value_text=f'原值{value!r}不在本轮已确认的正常正值配置域，保留原值；不补零。',
+            answer_status='UNRESOLVED', unit=None)
     if not isinstance(value, (int, float)) or isinstance(value, bool):
         return {"quantity_kind": "非数值原值", "value_text": repr(value), "unit": None}
     # generated rules may declare their own answer kind: the critical accumulators put
@@ -1264,6 +1800,36 @@ def convert(table: str, effect_type, field_path: str, value, record: dict,
                 return _duration(value)
             if field_path == "/param8":
                 return _move(value, additive=True)
+        if a == 2003:
+            # 批 10（SA_PowerDrain）：与 99 同一 Support2 数据路径、不同处理器与触发门
+            # （仅 Skill 型着弹读 param3；Normal/Critical 永不触发——rules.py 2003 注册处）。
+            if field_path == "/param7":
+                d = value
+                return {"quantity_kind": "攻击加算增量",
+                        "value_text": (f"受击目标本项攻击项 {d:+.6g} → 因子 {1 + d:.6g}"
+                                       f"（{'降低' if d < 0 else '提高'} {abs(d) * 100:.6g}%；"
+                                       "同类汇总 = clamp(1+Σ)；不乘 Chain）"),
+                        "unit": "倍率加算"}
+            if field_path == "/param9":
+                d = value
+                return {"quantity_kind": "受伤量加算增量",
+                        "value_text": (f"受击目标本项受伤量项 {d:+.6g} → 因子 {1 + d:.6g}"
+                                       f"（{'增伤' if d > 0 else '减伤'} {abs(d) * 100:.6g}%；"
+                                       "不是固定防御减少）"),
+                        "unit": "倍率加算"}
+            if field_path == "/param0":
+                if value == -1:
+                    return {"quantity_kind": "持续时间", "value_text": "-1：无正计时标记，跳过正时间扣减（不按 0 秒处理）", "unit": "标记"}
+                return _duration(value)
+            if field_path == "/param8":
+                return _move(value, additive=True)
+            if field_path == "/param3":
+                return {"quantity_kind": "概率阈值",
+                        "value_text": (f"Skill 型着弹触发阈值 {value}：仅伤害类型==1（Skill）读本槽，"
+                                       f"Random.Range(0,1)≤{value}（加 Epsilon 静态门槛）时触发；"
+                                       "Normal/Critical 的阈值恒 0，永不触发"
+                                       "（与 ability99 的 param1/param3/param2 三路不同）"),
+                        "unit": "概率阈值"}
         if field_path == "/param7" and a == 7:
             return {"quantity_kind": "攻击间隔乘数",
                     "value_text": f"攻击间隔×{_num(value)}（原始 atkspeed 1.5 且其他因子中性时名义 {1.5 * value:.6g} 游戏秒）",

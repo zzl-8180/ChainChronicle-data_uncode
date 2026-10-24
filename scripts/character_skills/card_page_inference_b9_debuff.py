@@ -26,14 +26,17 @@ et13 换算器硬编码「+」方向（rules.py:1349-1365）。载体 2003（SA_
 * **P2 表与链**：行记录=skilllist（能力容器）/supporterskill；own sub_effect 链（行记录
   自身 sub 字段经 profiles 装配、link_kind='sub_effect' 的单层子记录）恰可达 skilllist
   ability=99 记录；**载体层==CACHE 且 id∈当前 v3 CACHE 普通 ability99 的 133 条样本域**
-  （APK 99×199 条域外→hint，批 8 G5/批 7 §6 E4 同口径，不静默扩域）；
+  （APK 99×199 条载体经批 13 扩域——rules.json 四键两域分源＋occurrences_apk——委托
+  card_page_inference_b13_apkext.handle_99_apk 按载体层域接管：晋级键 inference_b13 或
+  hint；扩域前的域外 hint 口径仅对批 13 之前有效）；
 * **P3 载体唯一**：恰 1 个 99 载体（0→hint:no-99-carrier；≥2→hint:multi-carrier）；
 * **P4 形状（双向）**：句 敵減益半句 攻撃力⇔/param7 活性、移動速度⇔/param8 活性、
   防御力⇔/param9 活性；载体活性 p7/p8/p9 槽不得超出句面主张（缺槽=缺失不补 0）；
   p1–p6 槽无规则，句外槽仅登记原值不分配（13 行 60 秒档 p4/p5/p6 活性照实披露；
   复合句「自身の…上がる」半句不属本批（fam11/自身バフ侧），登记不分配）；
 * **P4b 竞争句（批 6 G6 检测扩展）**：行记录正文内其它含「敵＋下降谓词＋本句同属性」的
-  下降句（本句除外）存在→归属歧义 hint（实测 35 行 0 例）；
+  下降句（本句除外）存在→归属歧义 hint（实测 35 行 0 例；20261022 B13-R01 修复：
+  frag/候选句同一 NFKC 规范化管线＋属性词边界感知（属性防御力≠防御力），伪竞争只减不增）；
 * **P5 方向（代码语义）**：p7/p8 活性值≤0（负值加算=下降；**加算池 Σ 汇总后 clamp，
   非乘数<1、非独立 debuff 槽**）；p9 活性值≥0（受伤量倍率加算=「防御力下がる」的表现
   层，按规则 conversion 原口径，不改写成固定防御减量）；p0>0=时长值行（游戏秒）、
@@ -189,14 +192,18 @@ def _ability_by_id(data, sid):
 # ---- P1：敵減益半句（首个下降谓词所在句段；B1 逐字对象门）----
 def _debuff_clause(j):
     """返回 (clause, attrs, subject_phrase)。clause=从「。」/「、」后到首个下降谓词（含）；
-    attrs=句段内的攻/防/移属性；subject=句段内「敵」为止的逐字短语（如「攻撃した敵」）。"""
+    attrs=句段内的攻/防/移属性；subject=句段内「敵」为止的逐字短语（如「攻撃した敵」）。
+    B13-R01b-residual 修复（20261022 批 14 重建）：frag 侧属性提取与候选句侧
+    _sentence_attrs 应用同一 ``(?<!属性)`` 负向断言（此前本函数仍用裸子串——「属性防御力」
+    会在 frag 侧构成「防御力」主张，与候选句侧边界感知不对称）。负向断言只收窄属性集：
+    only-shrink（全语料回归增大 0、已晋级行 0 翻转，见 work/character_skills_b14_impl/）。"""
     hits = [(j.find(w), w) for w in DOWN_WORDS if j.find(w) >= 0]
     if not hits:
         return None, [], None
     pos, word = min(hits, key=lambda x: x[0])
     start = max(j.rfind('。', 0, pos), j.rfind('、', 0, pos)) + 1
     clause = j[start:pos + len(word)]
-    attrs = [a for a in ATTRS3 if a in clause]
+    attrs = _sentence_attrs(clause)
     m = re.search(r'[^。、]*敵', clause)
     subject = m.group(0) if m else None
     return clause, attrs, subject
@@ -212,20 +219,45 @@ def _active(v):
 
 def _is_debuff_sentence(s):
     return ('敵' in s and any(w in s for w in DOWN_WORDS)
-            and any(a in s for a in ATTRS3) and '敵から受ける' not in s)
+            and _sentence_attrs(s) and '敵から受ける' not in s)
+
+
+def _norm_text(t):
+    """B13-R01a 修复（20261022 DeepSeek 定向审查）：fragment 侧与候选侧使用完全相同的
+    规范化管线（NFKC＋strip）。此前只对候选句做 NFKC、未规范化 frag——全角「！」在
+    NFKC 后变半宽，使「frag.strip() in NFKC(s)」对自身句为 False、自身句排除失败被
+    当竞争句（13029 确认误判根因）。规范化在两侧对称后，包含判定只可能多排除、
+    不可能新增竞争句（过匹配修正只减不增）。"""
+    return unicodedata.normalize('NFKC', t or '').strip()
+
+
+def _sentence_attrs(s):
+    """B13-R01b 修复（20261022 DeepSeek 定向审查）：属性词边界感知——「属性防御力」等
+    「属性」前缀复合词不构成攻/防/移主张（元素防御≠本批通用防御力；「属性攻撃力」
+    等其它属性 taxonomy 复合词同理排除，语料实测当前仅「属性防御力」出现：
+    CACHE 2 条/APK 13 条）。负向断言只收窄候选句属性集，不可能新增竞争句。"""
+    return [a for a in ATTRS3 if re.search(r'(?<!属性)' + re.escape(a), s)]
 
 
 def _competing_debuff_sentences(text, frag, attrs):
     """P4b（批 6 G6 竞争句检测扩展）：行记录正文内其它「敵＋下降谓词＋本句属性」下降句。
-    返回去重后的竞争句原文列表（含句号）。"""
+    返回去重后的竞争句原文列表（含句号）。
+
+    B13-R01 修复（20261022）：①frag 与候选句经同一 _norm_text 管线后再做自身句排除
+    （R01a）；②候选句属性集按 _sentence_attrs 边界感知提取、与 frag 侧主张属性集求交
+    才算竞争（R01b——「属性防御力」句不再冒充「防御力」竞争句，2290 误判根因）。
+    门的语义不变：竞争＝候选句与敵減益半句主张相同属性（交集非空）；两处修复均只会
+    减少伪竞争、不得新增任何竞争判定（已晋级行不受影响，重建实测 0 翻转）。"""
     want = set(attrs)
+    frag_n = _norm_text(frag)
     out = []
     for s in re.findall(r'[^。]*。', (text or '').replace('\\n', '\n')):
-        if frag.strip() and frag.strip() in unicodedata.normalize('NFKC', s):
+        s_n = _norm_text(s)
+        if frag_n and frag_n in s_n:
             continue
-        if not _is_debuff_sentence(s):
+        if not _is_debuff_sentence(s_n):
             continue
-        if want & {a for a in ATTRS3 if a in s}:
+        if want & set(_sentence_attrs(s_n)):
             out.append(s)
     return list(dict.fromkeys(out))
 
@@ -233,9 +265,15 @@ def _competing_debuff_sentences(text, frag, attrs):
 def _sample_domain_note(rule, param, occ_extra=''):
     occ = rule.get('occurrences')
     origin = _registered_rule(param).get('origin') or '未登记'
-    return (f'该规则登记已核出现 {occ} 次（origin {origin}；样本域＝当前 v3 CACHE 普通 '
-            f'ability99 的 133 条记录{occ_extra}）；本行来源载体记录未逐条核对，按规则适用'
-            '条件披露，不属逐记录确认')
+    occ_apk = rule.get('occurrences_apk')
+    return (f'该规则登记已核出现 {occ} 次（CACHE 存在数口径，批 13 未改）'
+            + (f'＋occurrences_apk={occ_apk}（APK 存在数）' if occ_apk is not None else '')
+            + f'（origin {origin}；样本域＝批 13 扩域后两域分源：①当前 v3 CACHE 普通 '
+            f'ability99 的 133 条记录；②APK 主表 output/base_master/_mdSkill.json '
+            f'ability99 的 199 条记录——命名空间不合并、5 个同号记录中 3 组为两域真实'
+            f'参数值分歧、2 组仅缺省/float32 表示差（逐组明细见 rules.json 九键 '
+            f'conditions；行侧载体按载体所在层取值不得跨层{occ_extra}）；本行来源载体记录未逐条核对，'
+            '按规则适用条件披露，不属逐记录确认')
 
 
 def _slots_note(crec, claimed_slots):
@@ -418,7 +456,8 @@ def _promote(frag, table, layer, record_id, cid, attrs, claims, subject_phrase, 
     extra.append(_slots_note(crec, set(claimed_slots)))
     claimed_sorted = sorted(set(claimed_slots))
     summary = (B9_TAG + '：敵デバフ值行来源＝' + chain_desc + '；值行全部「推断」，不升「确认」，'
-               '不进入整行确认。句→载体归属为数据侧结构对应：唯一 sub99 载体（133 条样本域）＋'
+               '不进入整行确认。句→载体归属为数据侧结构对应：唯一 sub99 载体（批 13 扩域后'
+               '两域分源样本域；本行载体为 CACHE 层）＋'
                '敵減益半句形状匹配＋方向按符号（p7/p8 负值加算下降、p9 正值受伤量加算＝「防御」'
                '表现层）；引擎侧装载路径无原生核实。'
                + (f'正文句序：本句位于第 {sent_no} 句／共 {sent_total} 句（以「。」切分）。'
@@ -577,12 +616,17 @@ def evaluate(record: dict, frag: str, table: str, layer: str | None = None, reco
                     '载体主张只认 sub_effect 链上的域内 99 记录，行自身参数不消费'
                     if own_ability == 99 else '')
         if apk99 and not c99:
-            return _hint(table, [f'P2：sub_effect 链上的 ability99 记录为 APK 层'
-                                 f'（{",".join(str(s) for s, _ in apk99[:4])}）——当前 v3 CACHE '
-                                 '普通 ability99 的 133 条样本域之外（APK 99×199 条域外，批 8 G5/'
-                                 '批 7 §6 E4 同口径，不静默扩域）（carrier-out-of-domain）'
-                                 + own_note],
-                         subject=subject, attrs=attrs, sent_no=sent_no, sent_total=sent_total)
+            # 批 13 APK 扩域（2026-10-22）：rules.json skilllist|99 四键样本域已扩至
+            # CACHE＋APK 两域分源（occurrences_apk 登记），本出口委托批 13 模块按载体层
+            # 域接管：单 APK 载体→P4/P5/P4b/P6 门控后晋级（行级键 inference_b13）或
+            # hint；多载体→hint multi-carrier。返回 dict 带 b13_ext 标记（行级键
+            # inference_b13/inference_b13_hint 替换本批旧域外 hint，不双登记）。
+            import card_page_inference_b13_apkext as B13
+            return B13.handle_99_apk(frag=j, table=table, layer=layer, record_id=record_id,
+                                     cid=cid, subject=subject, attrs=attrs,
+                                     sent_no=sent_no, sent_total=sent_total,
+                                     apk99=apk99, own_ability=record.get('ability'),
+                                     text=text)
         if not c99:
             sub_ids = [str(ch.get('record_id')) for ch in kids]
             return _hint(table, ['P2：own sub_effect 链上无 ability99 载体（no-99-carrier'

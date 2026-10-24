@@ -20,6 +20,7 @@ from card_page_policy import metrics,summary_text
 from card_page_cohorts import sha
 from card_page_dependencies import source_paths,data_paths
 from card_page_write import commit,reusable,state,retention,ArtifactWriteError
+from run_retention import reserve_run
 
 
 def aggregate(stats):
@@ -29,7 +30,11 @@ def aggregate(stats):
     for key in ('inference_pilot_promoted','inference_pilot_hinted','inference_b3_promoted','inference_b3_hinted',
                 'inference_b4_promoted','inference_b4_hinted','inference_b5_promoted','inference_b5_hinted',
                 'inference_b6_promoted','inference_b6_hinted','inference_b7_promoted','inference_b7_hinted',
-                'inference_b8_promoted','inference_b8_hinted','inference_b9_promoted','inference_b9_hinted'):
+                'inference_b8_promoted','inference_b8_hinted','inference_b9_promoted','inference_b9_hinted',
+                'inference_b10_promoted','inference_b10_hinted','inference_b11_promoted',
+                'inference_b11_hinted','inference_b12_promoted','inference_b13_promoted',
+                'inference_b13_hinted','inference_b14_promoted','inference_b15_promoted',
+                'inference_b15_hinted','inference_b17_promoted','inference_b17_hinted'):
         cov[key]=sum(s['coverage'].get(key,0) for s in stats)
     # H-01：整行确认的记录级/类型外推拆分随 cohort 聚合透传。
     scopes={}
@@ -129,20 +134,44 @@ def run(args):
     plan=dict(mode='EXECUTE' if args.execute else 'PLAN_ONLY',cohort=args.cohort,cids=cids,count=len(cids),expected=len(expected),
               subset=list(cids)!=list(expected),manifest_sha256=sha(manifest),source_signature=source_signature,generation_signature=generation,
               run_id=stamp,run_directory=run_dir.relative_to(out).as_posix(),review_required_cids=[cid for cid in cids if cid in m['review_cids']],
-              inference_layer='模板作用域推断层已启用八批（type1017 试点 337 行＋批 3 type8 严格子集 '
+              inference_layer='模板作用域推断层已启用十七批（type1017 试点 337 行＋批 3 type8 严格子集 '
                               'Tier1 40 行＋批 4 条件扩展候选 37 行＋批 5 跨表扩展 job_ability/'
                               'supporterskill 211 行＋批 6 必殺バフ bossskill type13 子记录解析 '
                               '1,349 行（B6-RV-01 修复：30 行同属性竞争句降级留 hint）＋批 7 共鳴 '
                               'sympathy ability3000 载体解析＋批 8 暴击 2012 链载体解析＋批 9 '
-                              '敵デバフ skilllist own sub_effect→ability99 载体解析；只升「推断」档；'
-                              '候选晋级及一般机制择句仍未实现）',
+                              '敵デバフ skilllist own sub_effect→ability99 载体解析＋批 10 '
+                              'SA_PowerDrain ability2003 载体解析（批 9 C1 遗留 431 行闭合，'
+                              'rules.py 2003 注册处五键）＋批 11 普通自身增益 skilllist 父 '
+                              'sub[]→ability1095 Always3 载体解析（tier A 34 行）＋批 12 '
+                              '1095 扩域（rules.json 三键 p2/p5/p6 occurrences 407/211/407 '
+                              '存在数口径后，批 11 tier B 94 行整行晋级、行级键 '
+                              'inference_b12 按行级替换批 11 tier B hint，不双登记）＋批 13 '
+                              'APK 扩域（rules.json 99 四键＋2003 五键样本域扩至 CACHE＋APK '
+                              '两域分源＋occurrences_apk 后，批 9 APK 域外 94 行与批 10 APK '
+                              '域外 192 行在 B9/B10 载体域门委托 B13 按载体层域接管：晋级 '
+                              '278 行键 inference_b13、8 行 multi-carrier 留 hint '
+                              'inference_b13_hint；不双登记）＋批 14 APK 扩域第二批'
+                              '（rules.json 2012 三键＋1095 五键样本域扩至 CACHE＋APK 两域'
+                              '分源＋occurrences_apk 后，批 8 APK 域外 196 行与批 11/12 APK '
+                              '域外 27 行在 B8 G5/B11 P2 域门委托 B14 按载体层域接管：晋级 '
+                              '212 行键 inference_b14、11 行按实际门（G6 对象词缺失 1＋P4 '
+                              '形状不符 10）留 hint；iParam0≠0 8 载体 27 行 condition_label '
+                              '条件分组披露；不双登记）＋批 15 并集归属（t13 槽∪2012 暴击链，'
+                              'U1–U5 门）＋批 17 P0 断点收尾（槽位分区/时长槽共享 D1 裁决/'
+                              'denju patternid 映射＋P2 溢出，行级键 inference_b17、'
+                              '不双登记）＋R1 整改（20261023 独立复审：HP 档位条件分支'
+                              '保留——denju patternid 全引用分档与 charainfo 同文 pattern/'
+                              'denju 直接行逐档出值，condition_label「HP 51–100%」式原值'
+                              '边界＋待核查注记，空 sinfo 不排除））；只升「推断」档；'
+                              '候选晋级及一般机制择句仍未实现',
               summary={k:dict(count=None,denominator=None,rate=None,status='NOT_GENERATED') for k in ('A','whole_row_confirmed','original_A','C')},
-              permission_boundary='本轮按任务卡 docs/tasks/20261021-character-skills-inference-b9-debuff.md '
-                                  '授权执行批 9 敵デバフ实施（skilllist/supporterskill 容器行 own '
-                                  'sub_effect 链→skilllist ability99 PowerDrain 载体解析；scope §5.1 '
-                                  '门控 P1–P6＋B1 防线，值行 rule_key 只允许 skilllist|99|/param0|'
-                                  '/param7|/param8|/param9；2003 载体形状同构但无规则一律留 hint、'
-                                  'pattern 行不经 sub_effect 伪影消费、我方增益句不挂敌方减益值）'
+              permission_boundary='本轮按任务卡 docs/tasks/20261023-character-skills-recheck-rectification.md '
+                                  '授权执行复审整改 R1（HP 条件分支）：b17 _run_multi 与 b6 '
+                                  '同文 pattern/denju 直接行路径改为沿源记录全部 pattern 引用'
+                                  '保留条件分支（空 sinfo 不排除），逐档位绑定出值；effect_ledger '
+                                  '分支覆盖完成判定＋S5 标志；rules.json 零改动；30236 基线'
+                                  '零触碰；批 8/14/15 及其余批 6 既有答案零触碰（8 行 HP 多档位'
+                                  '行按分支补齐）；'
                                   '四 cohort 全量重建')
     dump(run_dir/'plan.json',plan)
     if not args.execute:
@@ -151,6 +180,10 @@ def run(args):
     declared=[dict(path=p.relative_to(root).as_posix(),sha256=sha(p) if p.exists() else 'MISSING') for p in data_paths(root)]
     dependency_signature=hashlib.sha256(json.dumps(declared,sort_keys=True).encode()).hexdigest()
     signature=hashlib.sha256((generation+dependency_signature).encode()).hexdigest()
+    # Bound new backup growth; legacy runs remain untouched. Shared reservation
+    # is atomic across parallel cohorts and survives failed/interrupted builds.
+    retention_reservation=reserve_run(out,run_dir,[cid for cid in cids
+        if not (args.resume and reusable(out/str(cid),signature))])
     dump(run_dir/'signatures.json',dict(signature=signature,source_signature=source_signature,manifest_sha256=sha(manifest),dependency_signature=dependency_signature,data_dependencies=declared))
     try:data=Inputs(root,cids)
     except Exception as error:
@@ -177,7 +210,7 @@ def run(args):
             dump(out/'_batch'/args.cohort/'card_latest'/f'{cid}.json',{**attempts[-1],'run_directory':run_dir.relative_to(out).as_posix()})
     stats,audit,pending,invalid,latest_failures=inventory(out,m,args.cohort,signature);cov=aggregate(stats)
     failed=[a for a in attempts if a['status']=='FAILED']
-    result=dict(plan=plan,signature=signature,source_signature=source_signature,dependency_signature=dependency_signature,
+    result=dict(plan=plan,retention_reservation=retention_reservation,signature=signature,source_signature=source_signature,dependency_signature=dependency_signature,
                 manifest_sha256=sha(manifest),attempts=attempts,requested=len(cids),requested_completed=len(attempts)-len(failed),
                 completed=len(stats),expected=len(expected),subset=plan['subset'],cohort_complete=len(stats)==len(expected),
                 reused=reused,failed=failed,unresolved_latest_failures=latest_failures,pending_cids=pending,stale_or_invalid_cids=invalid,coverage=cov,summary=metrics(cov),
@@ -186,7 +219,10 @@ def run(args):
     dump(run_dir/'cohort_report.json',result);dump(run_dir/'audit_queue.json',audit)
     (run_dir/'cohort_report.md').write_text(summary_text(result['summary'])+f'\n本次请求{len(cids)}/{len(expected)}；本次成功{result["requested_completed"]}；失败{len(failed)}。当前同签名cohort累计完成{len(stats)}/{len(expected)}；cohort_complete={result["cohort_complete"]}；未核读卡{result["unreviewed_cards"]}。B={cov["B"]}；部分A={cov["partial_A"]}。\n推断层暂不启用；B0不代表无机制。\n',encoding='utf-8')
     dump(out/'_batch'/args.cohort/'latest.json',dict(report=(run_dir/'cohort_report.json').relative_to(out).as_posix(),audit_queue=(run_dir/'audit_queue.json').relative_to(out).as_posix()))
-    campaign(out,m,signature,args.cohort,result,run_dir)
+    # 并行驱动（card_page_batch_parallel.py，20261023）以 --defer-campaign 把唯一的跨
+    # cohort 共享写（_batch/campaign_latest.json 聚合）剥离出子进程，改由驱动在全部
+    # cohort 成功后单写者调用同一 campaign() 完成；不带该标志的串行行为逐字节不变。
+    if not getattr(args,'defer_campaign',False):campaign(out,m,signature,args.cohort,result,run_dir)
     return dict(completed=len(stats),expected=len(expected),requested_completed=result['requested_completed'],cohort_complete=result['cohort_complete'],
                 reused=reused,failed=len(failed),report=(run_dir/'cohort_report.json').relative_to(out).as_posix(),summary=result['summary'])
 
@@ -195,6 +231,7 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--input-root',type=Path,required=True);p.add_argument('--manifest',type=Path,required=True)
     p.add_argument('--cohort',choices=('ge60','40to59','20to39','remaining'),required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--execute',action='store_true');p.add_argument('--resume',action='store_true');p.add_argument('--cid',type=int,nargs='+',help='Explicit subset within the frozen cohort')
+    p.add_argument('--defer-campaign',action='store_true',help='Skip the cross-cohort campaign aggregation (card_page_batch_parallel.py runs it single-writer after all cohorts); serial behavior unchanged without this flag')
     print(json.dumps(run(p.parse_args()),ensure_ascii=True))
 
 

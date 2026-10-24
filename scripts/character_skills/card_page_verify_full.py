@@ -16,14 +16,25 @@
                         registry 形状按 table/layer 唯一定位；显式 UNKNOWN 定位单列；
                         字段缺失但来源声明显式登记 present:false → PASS-with-note，
                         记入 ok 并单列 noted 明细）
-  6 inference_source_coverage  推断答案逐答案 source 覆盖（M2 契约；代码已就绪、
-                        统一重建未执行前会以当前缺口数 FAIL，不静默）
+  6 inference_source_coverage  推断答案逐答案 source 覆盖（M2 契约；DS-GR-10 修复
+                        20261023：统计双侧——推断答案带 source 计 ok、不带计 fail，
+                        非"ok=0/failed=0"的 no-op）
   7 inference_value_equality   推断答案原值与来源记录字段值精确相等
   8 chip_evidence_colors       首屏 chip 颜色档位与 evidence 一致（逐行 chip 类多重集
                         == 按答案证据推导；并单列「推断→绿」「确认→橙」事件，应为 0）
   9 campaign_reconciliation    四联计数与 campaign 对账（逐卡 coverage 重新聚合 ==
                         campaign_report coverage/summary；逐卡 summary == policy.metrics）
  10 entry_pages         入口页指标与 run 指针一致（复用 card_page_index.entry_pages_consistency）
+ 11 ledger_row_coverage          每行账本入口存在（pages 行集合 ↔ ledger 描述入口，双向；P3）
+ 12 ledger_complete_no_unresolved 账本「完整」描述未解决项=0 且无拆分待核查标志（P3）
+ 13 ledger_answer_refs_resolve   账本答案引用可解析到 pages 现有 answers（P3）
+ 14 ledger_backlog_setdiff       正式待办集合差为空＋带 hint 行在账本有待办踪迹（P3）
+ 15 page_ledger_unresolved_sync  页面未解决区/拆分待核查呈现与账本行状态逐行一致
+                        （DS-GR-01 修复；DS-GR-R4 扩展 20261023：内容级——类型/方向/
+                        ダメージ对象标记多重集＋has_answer ダメージ效果的对象一致
+                        （答案对象 vs 主张子句对象，独立重derive；R1 口径））
+ （11–15 由目标整改 §三.4/A2/A3/A4/DS-GR-01/R4 要求新增；对账对象 --ledger 须先按当前
+   pages 重建）
 
 已知不检查（显式声明，不冒充全查）：source 中原始 .data5 字节范围/原始记录 sha256
 （属 work/ 原始文件字节层，不在本交付面重读范围）；details 折叠层文本逐字比对；
@@ -42,6 +53,7 @@ import json
 import re
 import sys
 import traceback
+import unicodedata
 from collections import Counter
 from pathlib import Path
 
@@ -53,6 +65,7 @@ from card_page_index import entry_pages_consistency, metric_values_from_summary
 
 DEFAULT_PAGES = Path("output/character_skills/pages")
 DEFAULT_OUT = Path("work/character_skills_phase2_20261021/verify_full_latest.json")
+DEFAULT_LEDGER = Path("output/character_skills/effect_ledger")
 MAX_DETAILS = 20
 
 # chip 颜色档位映射——与 card_page_render_v2.py:217 EVID_CLASS 及 :329 answer_chip
@@ -378,6 +391,133 @@ def html_chips_by_row(html_text: str):
     return rows
 
 
+# 行首屏未解决区（card_page_render_v2.unresolved_effects_html）：
+# <div class="unresolved-effects" data-unresolved="N"><span class="unres-item">…</span>…
+# （无未解决项时该 div 不渲染）
+UNRES_DIV_RE = re.compile(
+    r'<div class="unresolved-effects" data-unresolved="(\d+)">(.*?)</div>', re.S)
+UNRES_ITEM_RE = re.compile(r'<span class="unres-item">([^<]*)</span>')
+# 拆分待核查短句映射——与 card_page_render_v2._UNRES_FLAG_SHORT 同步（若改动须同改，
+# 否则第 15 项内容级核对会误报）。
+UNRES_FLAG_SHORT = {
+    'S1_zero_claims': '词表未识别出效果主张（不能排除词表外效果）',
+    'S2_unconfirmed_numbers': '原文数字语义未确认（如次数/阈值；含主张子句内数字——R2 整改）',
+    'S3_uncovered_clauses': '存在未被效果主张覆盖的子句（定性机制待核查）',
+    'S3b_residual_mechanisms': '正文含词表外机制词且无答案覆盖（状态异常等待核查——R2 整改）',
+    'S4_unconsumed_typed_answers': '存在未对应句面主张的答案（归属缺口）',
+    'S5_hp_branch_coverage': 'HP 档位分支覆盖不完整（R1 整改）',
+    'S5_hp_variation_unbound': '「随HP变化」句的增益答案缺 HP 档位绑定（R1 整改）',
+    'S6_unresolved_conditions': '概率类条件无载体映射与解析状态（R2 整改）',
+    'S7_same_cond_alt_t13': '同 HP 条件组内其余 pattern→t13 值不同、选取维度未解析（R1-High 复审整改）',
+}
+# 对象维度标记（R4 内容级；与账本 _clause_object/_answer_object 同语义的独立复刻——
+# 自伤/敌方分列；检查器不 import 账本实现，保持校验独立性）。
+R1_SELF_MARKS_ANSWER = ('自身受到伤害', '自分')
+R1_ENEMY_MARKS_ANSWER = ('对敌', '敵')
+R1_SELF_MARKS_CLAUSE = ('自身', '自分')
+R1_ENEMY_MARKS_CLAUSE = ('敵',)
+R1_DAMAGE_TYPES = frozenset({'ダメージ（词表外）', '受けるダメージ（词表外）',
+                             '与えるダメージ（词表外）'})
+CLAUSE_SPLIT_RE = re.compile(r'[^。、！？\n]+')
+
+
+def _r1_clause_object(clause: str):
+    """对象分类（账本 _clause_object 同语义的独立复刻）：与え→enemy、受け/負う→self、
+    DS-GR-R1b（20261023）：自身に/自分に…与える＝自我指向赋予→self（に格＝赋予对象；
+    「敵に」并存时保守维持 enemy 原口径）、动词缺失退回词面（自身/自分 ↔ 敵；
+    両存/均缺＝None）。"""
+    if "与え" in clause:
+        self_dat = "自身に" in clause or "自分に" in clause
+        if self_dat and "敵に" not in clause:
+            return "self"
+        return "enemy"
+    if "受け" in clause or "負う" in clause:
+        return "self"
+    has_self = any(m in clause for m in R1_SELF_MARKS_CLAUSE)
+    has_enemy = any(m in clause for m in R1_ENEMY_MARKS_CLAUSE)
+    if has_self and not has_enemy:
+        return "self"
+    if has_enemy and not has_self:
+        return "enemy"
+    return None
+
+
+def _r1_answer_object(quantity_kind, value):
+    text = (str(quantity_kind or '') + str(value or ''))
+    if any(m in text for m in R1_SELF_MARKS_ANSWER):
+        return 'self'
+    if any(m in text for m in R1_ENEMY_MARKS_ANSWER):
+        return 'enemy'
+    return None
+
+
+def html_unresolved_by_row(html_text: str):
+    """解析每行首屏未解决区：{row_id: (data-unresolved 计数, [item 短句文本])}
+    （无未解决区的行记 (0, [])）。R4 内容级核对用 item 原文。"""
+    rows = {}
+    divs = list(ROW_DIV_RE.finditer(html_text))
+    for i, m in enumerate(divs):
+        end = divs[i + 1].start() if i + 1 < len(divs) else len(html_text)
+        seg = html_text[m.end():end]
+        um = UNRES_DIV_RE.search(seg)
+        if um:
+            rows[m.group(1)] = (int(um.group(1)), UNRES_ITEM_RE.findall(um.group(0)))
+        else:
+            rows[m.group(1)] = (0, [])
+    return rows
+
+
+def r1_parent_chain_assert(row, branches):
+    """R1-Medium 复审整改（20261023，verify 第 16 项扩展）：HP 档位分支行的父链
+    provenance 与 condition_label 一致性。
+
+    依据：复审 recheck_rectification_20261023_deepseek R1-20332-PARENT-PROVENANCE——
+    同值 t13 跨档引用的行（20332 两行），numeric_source 父链与注记 reference_field/
+    「本档位 pattern 引用」段固定首档 patternid0/pattern0，与该答案 condition_label
+    对应的档位 pattern 矛盾（每行 16 答案中 12 个）。原第 16 项只核对 t13 槽值/来源/
+    标签，未覆盖父链文本。断言（逐答案，按标签分组——同档多 pattern 时任一即可）：
+      ①numeric_source 须含「<patternN>→bosspattern|<该档 pattern id>|」（逐档父链）；
+      ②注记 reference_field 短语（denju 形「bosspattern[pid].slotN」／charainfo 形
+        「经 pattern 记录（bosspattern|pid|）」）中的 pattern id 须属该标签的档位集合；
+      ③注记「本档位 pattern 引用：」段须列出该标签档位集合的全部 pattern 记录键。
+    branches＝第 16 项的 (fld, pid, blay, (hpstart, hpend), t13s) 元组列。
+    返回违例文本列表（空＝通过）。"""
+    import re as _re
+    by_lab = {}
+    for f, pid, blay, cond, t13s in branches:
+        lab = "HP %s–%s%%" % (cond[0] if cond[0] is not None else "?",
+                              cond[1] if cond[1] is not None else "?")
+        by_lab.setdefault(lab, []).append((f, pid, blay))
+    bad = []
+    for a in row.get("answers") or []:
+        lab = a.get("condition_label")
+        if lab not in by_lab:
+            continue
+        cands = by_lab[lab]
+        pids = {str(p) for _f, p, _l in cands}
+        ns = str(a.get("numeric_source") or "")
+        if not any(f"{f}→bosspattern|{pid}|" in ns for f, pid, _l in cands):
+            bad.append(f"{lab}: numeric_source 父链未引用本档 pattern "
+                       f"（须含 {' 或 '.join(f'{f}→bosspattern|{p}|' for f, p, _ in cands)}；"
+                       f"实际 {ns[:160]}）")
+        note = str(a.get("note") or "")
+        m_ref = _re.search(r"「bosspattern\[(\d+)\]\.", note)
+        if m_ref and m_ref.group(1) not in pids:
+            bad.append(f"{lab}: 注记 reference_field 短语固定 bosspattern[{m_ref.group(1)}]"
+                       f"，不属本档 {sorted(pids)}")
+        m_pat = _re.search(r"经 pattern 记录（bosspattern\|(\d+)", note)
+        if m_pat and m_pat.group(1) not in pids:
+            bad.append(f"{lab}: 注记 pattern 记录短语固定 bosspattern|{m_pat.group(1)}|"
+                       f"，不属本档 {sorted(pids)}")
+        seg = note.split("本档位 pattern 引用：", 1)
+        seg = seg[1].split("；")[0] if len(seg) == 2 else ""
+        miss = [f"＝bosspattern|{p}|" for p in sorted(pids)
+                if f"＝bosspattern|{p}|" not in seg]
+        if seg and miss:
+            bad.append(f"{lab}: 注记「本档位 pattern 引用」段缺 {miss}")
+    return bad
+
+
 def aggregate(stats):
     """与 card_page_batch.aggregate（card_page_batch.py:22-36）同口径的逐卡聚合。"""
     cov = {k: sum(s["coverage"][k] for s in stats) for k in ("N_all", "E", "N_num", "A", "B", "C", "original_A", "partial_A")}
@@ -387,7 +527,12 @@ def aggregate(stats):
                 "inference_b4_promoted", "inference_b4_hinted", "inference_b5_promoted", "inference_b5_hinted",
                 "inference_b6_promoted", "inference_b6_hinted", "inference_b7_promoted", "inference_b7_hinted",
                 "inference_b8_promoted", "inference_b8_hinted",
-                "inference_b9_promoted", "inference_b9_hinted"):
+                "inference_b9_promoted", "inference_b9_hinted",
+                "inference_b10_promoted", "inference_b10_hinted",
+                "inference_b11_promoted", "inference_b11_hinted",
+                "inference_b12_promoted", "inference_b13_promoted", "inference_b13_hinted",
+                "inference_b14_promoted", "inference_b15_promoted", "inference_b15_hinted",
+                "inference_b17_promoted", "inference_b17_hinted"):
         cov[key] = sum(s["coverage"].get(key, 0) for s in stats)
     scopes = {}
     for s in stats:
@@ -403,6 +548,9 @@ def main():
     ap.add_argument("--root", type=Path, default=Path("."))
     ap.add_argument("--pages", type=Path, default=DEFAULT_PAGES)
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    ap.add_argument("--ledger", type=Path, default=DEFAULT_LEDGER,
+                    help="效果账本目录（P3 新增检查 11–14 的对账对象；须先由 "
+                         "scripts/character_skills/effect_ledger.py 按当前 pages 重建）")
     ap.add_argument("--max-details", type=int, default=MAX_DETAILS)
     args = ap.parse_args()
     root = args.root.resolve()
@@ -536,6 +684,7 @@ def main():
     stats = []
     total_rows = 0
     row_class_totals = Counter()
+    html_unres = {}   # 行 row_id → 首屏未解决区 data-unresolved 计数（检查 15 用）
     for cid in disk_cids:
         folder = pages / str(cid)
         try:
@@ -564,6 +713,7 @@ def main():
         row_class_totals.update(rcc)
         # card.json 行集合 == HTML 行锚点集合
         html_rows = html_chips_by_row(html_text)
+        html_unres.update(html_unresolved_by_row(html_text))
         if None in html_rows.values():
             bad = [k for k, v in html_rows.items() if v is None]
             c8.add(False, f"{cid}: HTML 行缺 chips 容器：{bad[:5]}")
@@ -610,9 +760,16 @@ def main():
                         c5.note(f"{cid}/{r['row_id']} 答案source：{d}")
                     else:
                         c5.add(False, f"{cid}/{r['row_id']} 答案source：{d}")
-                elif a.get("numeric_evidence") == "推断":
-                    c6.add(False, f"{cid}/{r['row_id']}（numeric_source={a.get('numeric_source')!r}）推断答案无 source",
-                           inference_answers_without_source=1)
+                # 检查 6（DS-GR-10 修复 20261023）：M2 契约双侧统计——推断答案必须带
+                # source（带=ok、不带=fail，非 no-op）；非推断答案带不带 source 均登记。
+                if a.get("numeric_evidence") == "推断":
+                    if (isinstance(src, dict) and src) or (isinstance(src, list) and src):
+                        c6.add(True, None, inference_with_source=1)
+                    else:
+                        c6.add(False, f"{cid}/{r['row_id']}（numeric_source={a.get('numeric_source')!r}）推断答案无 source",
+                               inference_answers_without_source=1)
+                elif (isinstance(src, dict) and src) or (isinstance(src, list) and src):
+                    c6.add(True, None, non_inference_with_source=1)
                 else:
                     c6.add(True, None, non_inference_without_source=1)
                 if a.get("numeric_evidence") == "推断" and isinstance(src, dict) and src:
@@ -653,7 +810,8 @@ def main():
     c4.counters["cards"] = len(disk_cids)
     c4.counters["row_class_totals"] = dict(row_class_totals)
     c4.add(False, f"总行数 {total_rows} ≠ campaign N_all {campaign['summary']['N_all']}") if total_rows != campaign["summary"]["N_all"] else c4.add(True)
-    c6.counters["note"] = "推断答案无 source 属阶段一已就绪、统一重建未执行的已知缺口（M2 契约）"
+    c6.counters["note"] = ("检查 6 双侧统计（DS-GR-10 修复）：inference_with_source=带 source 的"
+                           "推断答案（M2 契约覆盖数）；inference_answers_without_source 应为 0")
     checks.append(c4.done())
     for c in (c5, c6, c7, c8):
         checks.append(c.done())
@@ -713,6 +871,378 @@ def main():
     c10.counters["entry_status"] = entry["status"]
     checks.append(c10.done())
 
+    # ---- 11–14 效果账本一致性（P3，20261023 目标整改 §三.4/A2/A3/A4；新增检查，
+    #      不删既有 10 项、不扩大豁免、不降低证据规则。对账对象＝--ledger 目录下的
+    #      ledger.jsonl/backlog.json，须先按当前 pages 重建；本节独立重读两侧数据，
+    #      不复用 effect_ledger 生成路径的中间状态。） ----
+    ledger_dir = (root / args.ledger) if not args.ledger.is_absolute() else args.ledger
+    ledger_path = ledger_dir / "ledger.jsonl"
+    backlog_path = ledger_dir / "backlog.json"
+    c11 = Check("ledger_row_coverage", "每行账本入口存在（pages 行集合 ↔ ledger 描述入口，双向）")
+    c12 = Check("ledger_complete_no_unresolved", "账本「完整」描述未解决项=0 且无拆分待核查标志")
+    c13 = Check("ledger_answer_refs_resolve", "账本答案引用可解析到 pages 现有 answers")
+    c14 = Check("ledger_backlog_setdiff", "正式待办集合差为空（未解决∪拆分待核查 ↔ backlog，双向）")
+    c15 = Check("page_ledger_unresolved_sync",
+                "页面未解决区与账本逐行一致（计数＋内容级：类型/方向/对象；"
+                "DS-GR-01＋DS-GR-R4 修复；对象错配自伤/敌方分列）")
+    if not ledger_path.is_file() or not backlog_path.is_file():
+        for c in (c11, c12, c13, c14, c15):
+            c.add(False, f"效果账本文件缺失：{ledger_path} / {backlog_path}（请先重建账本）")
+            checks.append(c.done())
+    else:
+        ledger_desc, ledger_eff = {}, []
+        for line in ledger_path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            rec = json.loads(line)
+            if rec.get("record_type") == "description":
+                ledger_desc[rec["row_id"]] = rec
+            elif rec.get("record_type") == "effect":
+                ledger_eff.append(rec)
+        pages_rows = {}
+        pages_answers = {}
+        for cid in disk_cids:
+            card = load_json(pages / str(cid) / "card.json")
+            for g in card["groups"]:
+                for s in g["skills"]:
+                    for r in s["rows"]:
+                        pages_rows[r["row_id"]] = r
+                        pages_answers[r["row_id"]] = [
+                            (a.get("field_path"), a.get("raw_value")) for a in r.get("answers", [])]
+        # c11：行集合双向一致
+        only_pages = sorted(set(pages_rows) - set(ledger_desc))
+        only_ledger = sorted(set(ledger_desc) - set(pages_rows))
+        if only_pages:
+            c11.add(False, f"pages 行缺账本入口 {len(only_pages)} 条（例：{only_pages[:5]}）")
+        if only_ledger:
+            c11.add(False, f"账本入口无对应 pages 行 {len(only_ledger)} 条（例：{only_ledger[:5]}）")
+        if not only_pages and not only_ledger:
+            c11.add(True)
+        c11.counters.update(pages_rows=len(pages_rows), ledger_desc=len(ledger_desc),
+                            only_pages=len(only_pages), only_ledger=len(only_ledger))
+        # c12：完整描述未解决项=0（独立从账本条目重算）
+        bad_complete, bad_split = [], 0
+        for rid, d in ledger_desc.items():
+            if d.get("ledger_row_status") == "完整":
+                if d.get("effect_status_counts", {}).get("unresolved", 0) > 0 or d.get("split_flags"):
+                    bad_complete.append(rid)
+            if d.get("ledger_row_status") == "拆分待核查" and not d.get("split_flags"):
+                bad_split += 1
+        if bad_complete:
+            c12.add(False, f"账本「完整」描述含未解决项/拆分标志 {len(bad_complete)} 条（例：{bad_complete[:5]}）")
+        else:
+            c12.add(True)
+        if bad_split:
+            c12.add(False, f"「拆分待核查」行无 split_flags {bad_split} 条")
+        else:
+            c12.add(True)
+        c12.counters.update(complete_rows=sum(1 for d in ledger_desc.values()
+                                              if d.get("ledger_row_status") == "完整"),
+                            complete_with_unresolved=len(bad_complete))
+        # c13：答案引用可解析（row_id+field_path+raw_value+answer_index，页面侧独立重读）
+        bad_refs = 0
+        resolved = 0
+        for e in ledger_eff:
+            for ref in e.get("answer_refs") or []:
+                k = ref.get("resolvable_key") or {}
+                triples = pages_answers.get(k.get("row_id"))
+                idx = k.get("answer_index")
+                if triples is None or not isinstance(idx, int) or not (0 <= idx < len(triples)):
+                    bad_refs += 1
+                    if bad_refs <= MAX_DETAILS:
+                        c13.add(False, f"账本效果 {e['effect_id']} 答案引用不可解析（行缺/index 越界）")
+                    continue
+                fp, rv = triples[idx]
+                if fp == k.get("field_path") and rv == k.get("raw_value"):
+                    resolved += 1
+                else:
+                    bad_refs += 1
+                    if bad_refs <= MAX_DETAILS:
+                        c13.add(False, f"账本效果 {e['effect_id']} 答案引用不一致：账本 "
+                                      f"{k.get('field_path')!r}/{k.get('raw_value')!r} ≠ 页面 {fp!r}/{rv!r}")
+        if bad_refs == 0:
+            c13.add(True)
+        c13.counters.update(resolved=resolved, failures=bad_refs, effects=len(ledger_eff))
+        # c14：backlog 集合差双向为空（账本独立重算 vs backlog.json）
+        unresolved_ids = {e["effect_id"] for e in ledger_eff if e.get("status") == "unresolved"}
+        split_ids = {rid for rid, d in ledger_desc.items()
+                     if d.get("ledger_row_status") == "拆分待核查"}
+        backlog = json.loads(backlog_path.read_text(encoding="utf-8"))
+        bl_eff = {b["backlog_id"] for b in backlog if b.get("kind") == "effect"}
+        bl_split = {b["row_id"] for b in backlog if b.get("kind") == "description_split_check"}
+        missing = (unresolved_ids - bl_eff) | (split_ids - bl_split)
+        extra = (bl_eff - unresolved_ids) | (bl_split - split_ids)
+        if missing or extra:
+            c14.add(False, f"待办集合差非空：缺 {len(missing)}（例 {sorted(missing)[:3]}）、"
+                           f"多 {len(extra)}（例 {sorted(extra)[:3]}）")
+        else:
+            c14.add(True)
+        # hint 变化不丢待办（A9 口径的机器侧）：带 hint 的行必须有未解决效果或拆分标志
+        lost = [rid for rid, r in pages_rows.items()
+                if any(k.startswith("inference_") and k.endswith("_hint") for k in r)
+                and rid in ledger_desc
+                and ledger_desc[rid].get("effect_status_counts", {}).get("unresolved", 0) == 0
+                and ledger_desc[rid].get("ledger_row_status") != "拆分待核查"
+                and not ledger_desc[rid].get("effect_ids")]
+        if lost:
+            c14.add(False, f"带 hint 键但账本无任何待办踪迹 {len(lost)} 行（例：{lost[:5]}）")
+        else:
+            c14.add(True)
+        c14.counters.update(backlog_items=len(backlog), unresolved=len(unresolved_ids),
+                            split_check=len(split_ids), missing=len(missing), extra=len(extra))
+        # c15 v2（DS-GR-R4 扩展，20261023 复验）：内容级核对——不再只比 data-unresolved 计数：
+        # ① 计数：页面未解决区计数 == 账本 未解决效果数＋拆分标志数（原口径）；
+        # ② 内容：页面未解 item 多重集（类型＋方向＋ダメージ 类对象标记）== 账本未解决效果
+        #    （effect_type＋direction＋对象）——对象由检查器从页面行日文子句独立重derive
+        #    （NFKC＋账本同法子句切分＋对象词面；不 import 账本实现，保持校验独立），
+        #    自伤/敌方分列（DS-GR-R1：修复前 9 行在此 FAIL，修复后 0）；
+        # ③ 对象一致（R1 捕获口径）：has_answer 的ダメージ 类效果，其匹配答案的对象
+        #    （页面答案 quantity_kind/value 独立分类）须与主张子句对象一致——对象不可判
+        #    不设限；修复前 9 行「自身受到伤害」答案错配敌方主张在此 FAIL。
+        ledger_eff_by_row = {}
+        for e in ledger_eff:
+            ledger_eff_by_row.setdefault(e["description_ref"], []).append(e)
+        pages_answer_full = {
+            rid: [(a.get("quantity_kind"), a.get("value")) for a in r.get("answers", [])]
+            for rid, r in pages_rows.items()}
+        bad_sync, r1_violations = [], []
+        page_shows = ledger_todo = 0
+        for rid, d in ledger_desc.items():
+            actual = html_unres.get(rid)
+            cnt, items = actual if actual is not None else (None, [])
+            row = pages_rows.get(rid)
+            clauses = []
+            if row is not None:
+                t_n = unicodedata.normalize("NFKC", row.get("japanese") or "")
+                clauses = CLAUSE_SPLIT_RE.findall(t_n)
+
+            def _clause_obj(e):
+                ci = e.get("clause_index")
+                if not isinstance(ci, int) or not (0 <= ci < len(clauses)):
+                    return None
+                return _r1_clause_object(clauses[ci])
+
+            expected_items = []
+            for e in ledger_eff_by_row.get(rid, []):
+                if e["status"] != "unresolved":
+                    continue
+                dirword = {"up": "上升", "down": "下降"}.get(e.get("direction"), "")
+                objmark = ""
+                if e["effect_type"] in R1_DAMAGE_TYPES:
+                    cobj = _clause_obj(e)
+                    if cobj:
+                        objmark = "（自身）" if cobj == "self" else "（敵）"
+                expected_items.append("未解：" + e["effect_type"] + dirword + objmark)
+            for f in d.get("split_flags") or []:
+                expected_items.append("拆分待核查：" + UNRES_FLAG_SHORT.get(f["code"], f["code"]))
+            if actual is None:
+                bad_sync.append(f"{rid}: 行未出现在页面 HTML")
+                continue
+            # 归一：仅对「未解：」项剥离末尾一段成对（…）＝render 的候选段（候选段可含
+            # 嵌套括号，如「（候选 bossskill type13 槽（并集归属），核查中）」，须按
+            # 平衡括号剥离；「拆分待核查：」短句文本本身含（…）注记，不剥离）。
+            norm_items = []
+            for it in items:
+                if it.startswith("未解：") and it.endswith("）"):
+                    depth = 0
+                    for pos in range(len(it) - 1, -1, -1):
+                        ch = it[pos]
+                        if ch == "）":
+                            depth += 1
+                        elif ch == "（":
+                            depth -= 1
+                            if depth == 0:
+                                it = it[:pos]
+                                break
+                norm_items.append(it)
+            if cnt != len(expected_items):
+                bad_sync.append(f"{rid}: 页面未解决区 {cnt} ≠ 账本 {len(expected_items)}")
+            if Counter(norm_items) != Counter(expected_items):
+                only_pg = sorted(set(norm_items) - set(expected_items))[:3]
+                only_ld = sorted(set(expected_items) - set(norm_items))[:3]
+                bad_sync.append(f"{rid}: 未解决区内容不一致（仅页面 {only_pg}／仅账本 {only_ld}）")
+            if cnt > 0:
+                page_shows += 1
+            if d.get("ledger_row_status") != "完整":
+                ledger_todo += 1
+        # ③ 对象一致（R1 捕获口径；账本 effect.object 未设的旧账本同样可查——对象从子句重derive）
+        for e in ledger_eff:
+            if e.get("effect_type") in R1_DAMAGE_TYPES and e.get("status") == "has_answer":
+                row = pages_rows.get(e["description_ref"])
+                if row is None:
+                    continue
+                clauses = CLAUSE_SPLIT_RE.findall(
+                    unicodedata.normalize("NFKC", row.get("japanese") or ""))
+                ci = e.get("clause_index")
+                cobj = (_r1_clause_object(clauses[ci])
+                        if isinstance(ci, int) and 0 <= ci < len(clauses) else None)
+                if cobj is None:
+                    continue
+                for ref in e.get("answer_refs") or []:
+                    k = ref.get("resolvable_key") or {}
+                    triples = pages_answer_full.get(k.get("row_id")) or []
+                    idx = k.get("answer_index")
+                    if not isinstance(idx, int) or not (0 <= idx < len(triples)):
+                        continue   # 引用可解析性归第 13 项
+                    aobj = _r1_answer_object(*triples[idx])
+                    if aobj is not None and aobj != cobj:
+                        r1_violations.append(dict(
+                            effect_id=e["effect_id"], claim_object=cobj, answer_object=aobj,
+                            answer_value=str(triples[idx][1])[:60]))
+        extra_rows = [rid for rid, (c, _it) in html_unres.items()
+                      if rid not in ledger_desc and c]
+        if extra_rows:
+            bad_sync.append(f"页面显示未解决但账本无入口 {len(extra_rows)} 行（例：{extra_rows[:5]}）")
+        if bad_sync:
+            c15.add(False, f"页面未解决区与账本不一致 {len(bad_sync)} 条（例：{bad_sync[:5]}）")
+        else:
+            c15.add(True)
+        if r1_violations:
+            c15.add(False, f"ダメージ 效果对象错配（自伤/敌方分列，DS-GR-R1 口径）"
+                           f"{len(r1_violations)} 条（例：{r1_violations[:3]}）")
+        else:
+            c15.add(True)
+        c15.counters.update(rows=len(ledger_desc), page_shows_unresolved=page_shows,
+                            ledger_noncomplete=ledger_todo, mismatches=len(bad_sync),
+                            content_rows_checked=len(ledger_desc),
+                            r1_object_violations=len(r1_violations),
+                            html_rows_parsed=len(html_unres))
+        # ---- 16 R1 定向：HP 档位分支行逐档绑定原始 t13 值（独立重读 bossinfo/charainfo/
+        #      denju 原始记录，不 import 推断/账本实现——_r1_clause_object 独立复刻先例） ----
+        c16 = Check("r1_hp_branch_binding",
+                    "R1 定向：hp_branch_conditions_expected 行的每档位值行与原始 bossinfo "
+                    "t13 槽值逐项相等（来源/标签/条件绑定）")
+        n16 = 0
+        _BOSS_DOC = {}
+        for _lay, _p in (("APK", "output/base_master/_mdBossInfo.json"),
+                         ("CACHE", "output/cache_full_20261015_v3/decoded/bossinfo.data5.json.raw")):
+            _doc = load_json(root / _p)
+            _bb = _doc["bossinfo"] if "bossinfo" in _doc else _doc
+            _BOSS_DOC[_lay] = ({r["patternid"]: r for r in _bb["bosspattern"]},
+                               {r["skillid"]: r for r in _bb["bossskill"]})
+        _CHA_DOC = {"APK": load_json(root / "output/base_master/_mdCharacter.json")["charainfo"],
+                    "CACHE": load_json(root / "output/cache_full_20261015_v3/decoded/charainfo.data5.json.raw")["charainfo"]}
+        _DEN_DOC = {"CACHE": load_json(root / "output/cache_full_20261015_v3/decoded/denju.data5.json.raw")["denju"]}
+        for rid, row in pages_rows.items():
+            expected_labels = row.get("hp_branch_conditions_expected") or []
+            if not expected_labels:
+                continue
+            n16 += 1
+            src = row.get("source") or {}
+            layer = src.get("layer")
+            cid16 = row.get("cid")
+            # 命名空间记录与 pattern 引用（charainfo=patternN；denju=patternidN；分源不跨层）
+            if "denju" in rid.split("-", 2)[1:2] + [""] or (src.get("source_key") or "").endswith("denju.data5.json.raw"):
+                rec0 = next((r for r in _DEN_DOC["CACHE"] if r["denju_id"] == cid16), None)
+                flds = [f"patternid{i}" for i in range(9)]
+            else:
+                rec0 = next((r for r in _CHA_DOC.get(layer, []) if r["cid"] == cid16), None)
+                flds = [f"pattern{i}" for i in range(9)]
+            if rec0 is None:
+                c16.add(False, f"{rid}: 命名空间记录未定位（cid={cid16} layer={layer}）")
+                continue
+            branches = []
+            for f in flds:
+                pid = rec0.get(f)
+                if not pid:
+                    continue
+                blay = "CACHE" if pid in _BOSS_DOC["CACHE"][0] else "APK"
+                prec = _BOSS_DOC[blay][0].get(pid)
+                if prec is None:
+                    continue
+                t13s = []
+                for j in range(8):
+                    sid = prec.get(f"skillid{j}")
+                    if not sid:
+                        continue
+                    s = _BOSS_DOC[blay][1].get(sid)
+                    if s and s.get("skillid0") == 13:
+                        t13s.append((sid, blay, s))
+                branches.append((f, pid, blay, (prec.get("hpstart"), prec.get("hpend")), t13s))
+            got_labels = sorted({a.get("condition_label") for a in row.get("answers") or []
+                                 if a.get("condition_label")})
+            exp_labels = sorted({"HP %s–%s%%" % (b[3][0] if b[3][0] is not None else "?",
+                                                 b[3][1] if b[3][1] is not None else "?")
+                                 for b in branches})
+            if got_labels != exp_labels or got_labels != sorted(expected_labels):
+                c16.add(False, f"{rid}: 档位标签 集 answers={got_labels} ≠ 记录分档={exp_labels} "
+                              f"≠ 行 expected={sorted(expected_labels)}")
+                continue
+            # 每档位：答案值行逐槽等于该档 t13 原值（float32 口径），来源记录逐字一致
+            import struct as _st
+
+            def _f32(x):
+                return _st.unpack("f", _st.pack("f", float(x)))[0]
+            bad = []
+            for f, pid, blay, cond, t13s in branches:
+                lab = "HP %s–%s%%" % (cond[0] if cond[0] is not None else "?",
+                                      cond[1] if cond[1] is not None else "?")
+                cand_t13 = [t for t in t13s]
+                if len(cand_t13) != 1:
+                    bad.append(f"{lab}: t13 候选 {len(cand_t13)} 个")
+                    continue
+                sid, tlay, s = cand_t13[0]
+                for q in (1, 2, 3, 6):
+                    rv = s.get(f"skillparam{q}")
+                    if not (isinstance(rv, (int, float)) and not isinstance(rv, bool) and rv != 0):
+                        continue
+                    a = next((a for a in row["answers"]
+                              if a.get("condition_label") == lab
+                              and a.get("field_path") == f"/skillparam{q}"), None)
+                    if a is None:
+                        bad.append(f"{lab}: /skillparam{q} 无值行")
+                    elif _f32(a.get("raw_value")) != _f32(rv):
+                        bad.append(f"{lab}: /skillparam{q} 答案 {a.get('raw_value')!r} ≠ 原值 {rv!r}")
+                    elif (a.get("source") or {}).get("record_key") != f"bossskill|{sid}|{tlay}":
+                        bad.append(f"{lab}: /skillparam{q} 来源 {((a.get('source') or {}).get('record_key'))} "
+                                   f"≠ bossskill|{sid}|{tlay}")
+            if bad:
+                c16.add(False, f"{rid}: " + "；".join(bad[:6]))
+            else:
+                c16.add(True)
+            # 第 16 项扩展（R1-Medium 复审整改 20261023）：父链文本与 condition_label
+            # 一致性——numeric_source 父链/注记「本档位 pattern 引用」段须引用该档实际
+            # pattern（不得固定首档；修复前数据上 FAIL，见
+            # work/character_skills_recheck_rectification/parent_chain_prefix_fail_evidence.json）。
+            pc_bad = r1_parent_chain_assert(row, branches)
+            if pc_bad:
+                c16.add(False, f"{rid}: 父链注记与条件标签不一致（R1-Medium）"
+                               f"{len(pc_bad)} 处：" + "；".join(pc_bad[:4]))
+        c16.counters.update(hp_branch_rows=n16)
+        checks.append(c16.done())
+
+        # ---- 17 R2 定向：完成判定与当前代码重算一致（账本新鲜度；语义正反例由
+        #      a7/r2 回归与 r2_screen 承担——本检查不 import 账本实现以外的捷径，
+        #      analyze_row 即账本实现本身：检测账本是否由当前代码/当前 pages 重建） ----
+        c17 = Check("r2_completion_recompute",
+                    "R2 定向：ledger 行状态/拆分标志 == 当前代码 analyze_row 全量重算"
+                    "（检测账本与 pages/代码不同步）")
+        import effect_ledger as _EL
+        bad17 = []
+        n17 = 0
+        for rid, dsc in ledger_desc.items():
+            row = pages_rows.get(rid)
+            if row is None:
+                continue
+            n17 += 1
+            res = _EL.analyze_row(row, table=(dsc.get("namespace") or {}).get("table"))
+            flags_now = sorted(f["code"] for f in res["split_flags"])
+            flags_led = sorted(f["code"] for f in dsc.get("split_flags") or [])
+            st_now = (dsc.get("ledger_row_status"))
+            if flags_now != flags_led:
+                bad17.append(f"{rid}: 拆分标志 {flags_led} ≠ 重算 {flags_now}")
+            elif st_now == "完整" and res["split_flags"]:
+                bad17.append(f"{rid}: 账本完整但重算有标志 {flags_now}")
+        if bad17:
+            c17.add(False, f"重算不一致 {len(bad17)} 行（例：{bad17[:5]}）")
+        else:
+            c17.add(True)
+        c17.counters.update(rows_recomputed=n17, mismatches=len(bad17))
+        checks.append(c17.done())
+
+        for c in (c11, c12, c13, c14, c15):
+            checks.append(c.done())
+
     # ---- 汇总 ----
     verdict = "PASS" if all(c["status"] == "PASS" for c in checks) else "FAIL"
     result = dict(tool="scripts/character_skills/card_page_verify_full.py",
@@ -729,7 +1259,10 @@ def main():
                   notes=[
                       "不检查：source 内原始 .data5 字节范围/raw_record_sha256（原始字节层，不在本交付面）",
                       "不检查：details 折叠层文本逐字比对、浏览器渲染与交互",
-                      "检查 6 在统一重建（阶段一代码已就绪）前会以当前无 source 推断答案数 FAIL，属如实反映",
+                      "检查 6 为双侧统计（DS-GR-10 修复 20261023）：推断答案带 source 计 ok、"
+                      "不带计 fail，不再是 ok=0/failed=0 的 no-op；检查 15 为内容级核对"
+                      "（DS-GR-R4 扩展）：页面未解决区与账本逐行计数＋类型/方向/对象多重集"
+                      "一致，且 has_answer ダメージ效果对象一致（DS-GR-R1 口径）",
                   ])
     out = (root / args.out) if not args.out.is_absolute() else args.out
     out.parent.mkdir(parents=True, exist_ok=True)
