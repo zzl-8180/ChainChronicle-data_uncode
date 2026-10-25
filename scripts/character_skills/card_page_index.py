@@ -45,8 +45,8 @@ from pathlib import Path
 DEFAULT_PAGES = Path("output/character_skills/pages")
 DEFAULT_MANIFEST = Path("output/character_skills/r2_preparation/cohorts/manifest.json")
 
-# YG1第二批20261024内存全库预估：40行C→A，A17522/C24143/推断3397；原文A与确认不变。
-# 下列批17说明保留历史依据；本轮依据见yg1_batch2_20261024/preview_full.json及最终差异。
+# YG1第三批20261024内存全库预估：100行C→A，A17622/C24043/推断3674；原文A与确认不变。
+# 下列批17说明保留历史依据；本轮依据见yg1_batch3_20261024/preview_full.json.gz及最终差异。
 # 指标基线（M1，20261021 独立审查整改）：对齐当前 campaign run（pages/_batch/
 # campaign_latest.json 所指，批 17 重建后实测——A 17,476/C 24,189/
 # 整行推断 3,351＝批 15 后 3,318＋33（批 17 晋级 92 行中 59 行原为 b8/b14 推断行
@@ -57,13 +57,13 @@ DEFAULT_MANIFEST = Path("output/character_skills/r2_preparation/cohorts/manifest
 # 现值交叉核对，任何一项不一致都显式失败，不允许静默写出过期数值。
 EXPECTED_CAMPAIGN = {
     "N_all": 41665,
-    "A": 17522,
+    "A": 17685,
     "whole_row_confirmed": 266,
     "scope_record": 18,
     "scope_by_type_extrapolated": 248,
     "original_A": 13859,
-    "C": 24143,
-    "whole_row_inferred": 3397,
+    "C": 23980,
+    "whole_row_inferred": 3737,
 }
 # 缺图 cid 清单（README §16.2 / 迁移任务卡 §2；59103 三类皆缺，故单列集合不含它）
 MISSING_CARD = {

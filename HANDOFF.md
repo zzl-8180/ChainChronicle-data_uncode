@@ -1,4 +1,6 @@
-> **YG1第二批已收口（2026-10-24）**：55/74同类公式复用及55调度配置已整合，Sol high独立最终验收PASS_WITH_EXPLICIT_SCOPE_LIMITS，阻塞0、必需修复0。交付 `output/character_skills/yg1_batch2_20261024/README.md`；当前数字与下一步只看 `docs/tasks/character-skills-progress.md`。本批已停止，其他专项未启动；下文旧批次数字为历史。
+> **攻速／间隔第三批与三批方向复核已收口（2026-10-25）**：7效果补答＋1条件贡献，原205池剩117；两项独立最终结论带限制通过、阻塞0。交付`output/character_skills/attack_interval_batch3_20261025/README.md`，当前数字／版本见进度页顶部。新周期0/3，后续待用户安排，UI独立样稿未整合。
+
+
 
 > **入口（2026-10-24）**：当前执行规则＝`docs/角色技能完整解读实施方案.md`（2026-10-24 版，含 §8.1 存储治理要求）；当前状态与接手摘要＝`docs/tasks/character-skills-progress.md` 顶部。**已知 R3 归属/选题整改链已关闭**：原 Codex 最终复验 `output/character_skills/review/r3_selfobj_codex_final_20261024/`（PASS_WITH_EXPLICIT_SCOPE_LIMITS）＋总指挥最终确认 `output/20261024-project-review/incident_command_20261024/selfobj_final_confirmation_r1/`；事故本轮处置已按残留缺口收口（已恢复7,980／缺4,072），永久防误删设计定稿、未实施；唯一事故边界见 `output/20261024-project-review/incident_command_20261024/README.md` 顶部，交付见同目录 `incident_closeout_20261024.md`。事故不作为批18/YG1等主线前置，主线由主持推进。**存储治理（防误删＋防堆积）已入方案 §8.1，代码待用户安排启动**（分工与启动条件见任务卡 `docs/tasks/20261024-storage-governance-plan.md`）。下列各条含历史记录（其「当前/进行中」表述以各时点为准）。
 

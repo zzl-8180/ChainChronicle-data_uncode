@@ -23,8 +23,9 @@ def source_paths(root):
 def data_paths(root):
     relative=['output/character_skills/'+p for p in ('profiles/profiles.jsonl','profiles/records.jsonl','profiles/rules.json','links/character_skills.jsonl','type1082/native_checks.json',
               'skilllist_types/field_dictionary.json','skilllist_types/filter_dictionary.json','boss_attack_types/field_dictionary.json','boss_heal_types/field_dictionary.json','remaining_five/field_dictionary.json')]
-    relative+=['output/cache_full_20261015_v3/decoded/'+p+'.data5.json.raw' for p in ('charainfo','skilllist','bossinfo','jobabilityinfo','worldinfo','homelist','extraabilitylist','passivelist','denju_lblist')]
+    relative+=['output/cache_full_20261015_v3/decoded/'+p+'.data5.json.raw' for p in ('charainfo','skilllist','bossinfo','jobabilityinfo','worldinfo','homelist','extraabilitylist','passivelist','denju_lblist','sympathy_skilllist')]
     relative+=['output/base_master/'+p for p in ('_mdSkill.json','_mdCharacter.json','_mdBossInfo.json','_mdSAbirity.json')]
     relative+=['output/card_comparison_cid30236/'+p+'.json' for p in ('description_effects','field_dictionary','verified_parameter_views','movement/trace')]
-    relative+=['output/boss_heal/field_dictionary.json','output/ordinary_effects/ability7/trace.json']
+    relative+=['output/boss_heal/field_dictionary.json','output/ordinary_effects/ability7/trace.json',
+               'output/cache_full_20261015_v3/records.jsonl']
     return [root/p for p in relative]

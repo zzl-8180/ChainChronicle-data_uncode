@@ -51,6 +51,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import math
 import datetime
 import hashlib
 import json
@@ -264,7 +265,7 @@ _RULE_KEY_EFFECT = {
     'skilllist|3000|/param1': '攻撃力', 'skilllist|3000|/param2': '攻撃力',
     'skilllist|3000|/param8': 'クリティカル威力', 'skilllist|3000|/param6': '継続時間',
 }
-_BREAKPOINT_CRIT_PREFIX = 'skilllist|2012|'
+_BREAKPOINT_CRIT_KEYS = frozenset({'skilllist|2012|/param4', 'skilllist|2012|/param5'})
 # P4（A2 复核修正，20261023）：99/2003 的 /param9＝「防御力下がる」的表现层（受伤量倍率
 # 加算，正值→受伤量因子上升；批 9 映射表 card_page_inference_b9_debuff.py:11-12/:57 已
 # 确认该对应）——方向按此固定，不用原值符号猜（原值符号对 p9 恰好反向）。
@@ -321,6 +322,10 @@ def _direction(clause: str):
 def _answer_effect_type(answer: dict):
     """答案→效果类型映射；返回 (type|None, basis)。"""
     rk = answer.get('rule_key')
+    if (rk in ('skilllist|7|/param7', 'skilllist|2012|/param6', 'skilllist|1016|/param6',
+               'skilllist|56|/param9','bossskill|68|/skillparam9','bossskill|118|/skillparam9')
+            or answer.get('quantity_kind') == '攻击间隔乘数'):
+        return '攻撃間隔（词表外）', '攻速字段精确键；速度词面归属须受控行绑定'
     if rk:
         hit = _RULE_KEY_EFFECT.get(rk)
         if hit:
@@ -331,6 +336,71 @@ def _answer_effect_type(answer: dict):
                 return eff, (f'quantity_kind/value 词面回退（关键词「{kw}」；'
                              '审查 goal_alignment.py:10 taxonomy 同法）')
     return None, None
+
+
+def _attack_interval_binding(row, answer_index, answer):
+    """Only producer-validated source/span bindings may consume attack cadence claims."""
+    marker = row.get('attack_interval') or {}
+    if marker.get('contribution_only'):
+        return None  # StopUp does not establish the preceding unconditional base interval.
+    if marker.get('scope') not in ('ATTACK_INTERVAL_BATCH1_LOCAL_FORMULA_ONLY',
+                                   'ATTACK_INTERVAL_BATCH2_LOCAL_FORMULA_ONLY',
+                                   'ATTACK_INTERVAL_BATCH3_LOCAL_FORMULA_ONLY'):
+        return None
+    original_source = answer.get('source') or {}
+    allowed = {'skilllist|7|/param7': '/param7', 'skilllist|2012|/param6': '/param6'}
+    if marker.get('scope') == 'ATTACK_INTERVAL_BATCH2_LOCAL_FORMULA_ONLY':
+        allowed['skilllist|1016|/param6'] = '/param6'
+    if marker.get('scope') == 'ATTACK_INTERVAL_BATCH3_LOCAL_FORMULA_ONLY':
+        allowed={'skilllist|56|/param9':'/param9',
+            'bossskill|68|/skillparam9':'/skillparam9','bossskill|118|/skillparam9':'/skillparam9'}
+    matches = []
+    text = _nfkc(row.get('japanese'))
+    for b in marker.get('bindings', []):
+        key = answer.get('rule_key')
+        source = original_source
+        raw = answer.get('raw_value')
+        if isinstance(source, list):
+            # The reviewed legacy answer is immutable and carries field proofs
+            # in a list rather than top-level raw/rule fields.
+            if (answer.get('effect_id') != 'other_a2_attack_interval'
+                    or answer.get('quantity_kind') != '攻击间隔乘数'
+                    or answer.get('numeric_evidence') != '确认'
+                    or b.get('rule_key') != 'skilllist|7|/param7'):
+                continue
+            proofs = [s for s in source if isinstance(s, dict)
+                      and s.get('present') is True and s.get('ability_type') == 7
+                      and s.get('field_path') == '/param7'
+                      and s.get('record_key') == b.get('record_key')]
+            if len(proofs) != 1:
+                continue
+            source = proofs[0]; raw = source.get('raw_value');key = b['rule_key']
+        field = allowed.get(key)
+        if (not isinstance(source, dict) or field is None or isinstance(raw, bool)
+                or not isinstance(raw, (int, float)) or not math.isfinite(raw)
+                or source.get('layer') != 'CACHE' or source.get('table') != key.split('|')[0]
+                or source.get('field_path') != field):
+            continue
+        if (key == 'skilllist|7|/param7' and raw <= 0
+                or key=='skilllist|56|/param9' and not 0<raw<1
+                or key in ('skilllist|2012|/param6','skilllist|1016|/param6',
+                           'bossskill|68|/skillparam9','bossskill|118|/skillparam9') and raw >= 0):
+            continue  # This batch's source-qualified acceleration domain only.
+        if (b.get('answer_index') != answer_index or b.get('row_id') != row.get('row_id')
+                or b.get('rule_key') != key or b.get('effect_type') not in
+                ('攻撃間隔（词表外）', '攻撃速度（词表外）')):
+            continue
+        if any(b.get(k) != source.get(k) or source.get(k) is None
+               for k in ('layer', 'table', 'record_id', 'field_path', 'record_key')):
+            continue
+        span = b.get('span')
+        if (not isinstance(span, list) or len(span) != 2
+                or not all(isinstance(x, int) for x in span)
+                or not 0 <= span[0] < span[1] <= len(text)
+                or text[span[0]:span[1]] != b['effect_type'].split('（')[0]):
+            continue
+        matches.append(b)
+    return matches[0] if len(matches) == 1 else None
 
 
 def _answer_direction(answer: dict):
@@ -706,6 +776,9 @@ def analyze_row(row: dict, table: str | None = None):
     answer_refs = []
     for idx, a in enumerate(row['answers']):
         etype, basis = _answer_effect_type(a)
+        attack_binding = _attack_interval_binding(row, idx, a)
+        if attack_binding:
+            etype, basis = attack_binding['effect_type'], '攻速消费者精确来源＋行/词span绑定'
         src = a.get('source') if isinstance(a.get('source'), dict) else None
         # R1 整改（20261023）：HP 档位分支标签随答案引用保留（条件绑定可对账）。
         _cl = a.get('condition_label')
@@ -721,8 +794,9 @@ def analyze_row(row: dict, table: str | None = None):
             numeric_source=a.get('numeric_source'),
             source_record=(None if src is None else
                            {k: src.get(k) for k in ('table', 'record_id', 'layer', 'record_key')}),
-            mapped_effect_type=etype, mapping_basis=basis, direction=_answer_direction(a),
-            matched_effect_id=None))
+            mapped_effect_type=etype, mapping_basis=basis,
+            direction=None if attack_binding else _answer_direction(a),
+            matched_effect_id=None, attack_interval_binding=attack_binding))
 
     # 逐类型贪心匹配：先同方向，再无方向答案；不跨方向消费。
     # DS-GR-R1（20261023 复验）：ダメージ 类主张与答案加对象约束——自伤答案只配
@@ -750,10 +824,17 @@ def analyze_row(row: dict, table: str | None = None):
         answer = row['answers'][ref['answer_index']]
         source = answer.get('source') or {}
         carrier = answer.get('binding') or {}
+        pattern_ids = row.get('inference_yg1', {}).get('pattern_ids', [])
+        multihit = row.get('inference_yg1_multihit') or {}
+        if (carrier.get('scope') == 'YG1_BATCH3_MULTIHIT_FORMULA_ONLY'
+                and multihit.get('scope') == carrier['scope']
+                and carrier.get('type') in (105, 110, 3, 22)
+                and answer.get('rule_key') == f"bossskill|{carrier['type']}|/skillparam1"):
+            pattern_ids = multihit.get('pattern_ids', [])
         if (binding.get('row_id') == row_id and binding.get('effect_type') == claim['effect_type']
                 and binding.get('span') == claim['span'] and binding.get('pattern_id') is not None
                 and binding.get('pattern_id') == carrier.get('pattern_id')
-                and binding.get('pattern_id') in row.get('inference_yg1', {}).get('pattern_ids', [])
+                and binding.get('pattern_id') in pattern_ids
                 and all(answer.get(k) == source.get(k) and source.get(k) is not None
                         for k in ('table', 'record_id', 'layer', 'field_path'))
                 and ref.get('condition_label') and ref.get('source_record')
@@ -770,8 +851,16 @@ def analyze_row(row: dict, table: str | None = None):
             cand_pool = ([r for r in pool if r.get('object') in (None, cobj)]
                          if constrain and cobj is not None else pool)
             # Explicit bindings never fall back to the unbound greedy path.
-            cand_pool = [r for r in cand_pool if r.get('effect_binding') is None
+            cand_pool = [r for r in cand_pool if r.get('attack_interval_binding')
+                        or r.get('effect_binding') is None
                          or _explicit_variant(r, claims[i])]
+            # These source-qualified cadence answers never use greedy matching.
+            cand_pool = [r for r in cand_pool if
+                         ((r.get('rule_key') not in ('skilllist|7|/param7', 'skilllist|2012|/param6', 'skilllist|1016|/param6',
+                              'skilllist|56|/param9','bossskill|68|/skillparam9','bossskill|118|/skillparam9')
+                           and r.get('quantity_kind') != '攻击间隔乘数')
+                          or (r.get('attack_interval_binding') and
+                              r['attack_interval_binding']['span'] == claims[i]['span']))]
             pick = None
             if cdir:
                 pick = next((r for r in cand_pool if r['direction'] == cdir), None)
@@ -1188,6 +1277,69 @@ def analyze_row(row: dict, table: str | None = None):
                            'effect_ledger._MECHANISM_PREDICATES）；建立值/证据/状态有效'
                            '的结构化答案后本待办可解除（不一律判未知）')))
 
+    # F1: a lexical cue alone is not coverage. Only source-bound, consumed
+    # answers can resolve these two complete qualifier forms; other clauses
+    # and every other split flag retain their existing semantics.
+    qualifier_resolutions = {}
+    consumed_indices = {r['answer_index'] for r in answer_refs
+                        if r.get('matched_effect_id') is not None}
+    def qualifier_answer_valid(a):
+        return (a.get('status') != 'unresolved'
+                and a.get('value') not in (None, '', '未知', '未解析')
+                and all(a.get(k) and '未知' not in str(a[k])
+                        for k in ('numeric_evidence', 'association_evidence')))
+
+    if effects and all(e['status'] == 'has_answer' for e in effects):
+        used = [(i, row['answers'][i]) for i in sorted(consumed_indices)]
+        for u in unclassified_clauses:
+            ci, clause = u['clause_index'], u['text']
+            bound = []
+            if clause == '自身の場合' and row.get('group') == 'ability':
+                bound = [i for i, a in used if qualifier_answer_valid(a)
+                         and a.get('target') == '自身'
+                         and _attack_interval_binding(row, i, a)]
+            elif (clause == '【共鳴アビリティ】自身を含む<味方>が≪共鳴必殺≫を発動するたび'
+                  and row.get('group') == 'sympathy'
+                  and str(row.get('reference_field', '')).startswith('sympathy_skill_info[')
+                  and row.get('source', {}).get('source_key') == 'CACHE/skilllist.data5.json.raw'):
+                # Existing confirmed 3000 answers preserve per-field raw-byte
+                # locations. Accept their exact M -> M+1 carrier relation only;
+                # a text-only condition, an APK source or a different receiver
+                # cannot stand in for this proof.
+                for i, a in used:
+                    src = a.get('source')
+                    if not (qualifier_answer_valid(a) and a.get('table') == 'skilllist'
+                            and a.get('target') == '战场味方'
+                            and '3000共鸣技能开始事件' in str(a.get('conditions', ''))
+                            and isinstance(a.get('record_id'), int)
+                            and isinstance(src, list) and src):
+                        continue
+                    if all(isinstance(s, dict) and s.get('table') == 'skilllist'
+                           and s.get('layer') == 'CACHE' and s.get('ability_type') == 3000
+                           and s.get('record_id') == a['record_id'] + 1
+                           and s.get('present') is True
+                           and s.get('field_path') in ('/param0', '/param1', '/param2', '/param6', '/param8')
+                           and isinstance(s.get('raw_value'), (int, float))
+                           and not isinstance(s['raw_value'], bool) and math.isfinite(s['raw_value'])
+                           and len(str(s.get('location', {}).get('raw_record_sha256', ''))) == 64
+                           for s in src) and any(s['field_path'] == '/param0' and s['raw_value'] == 1 for s in src):
+                        bound.append(i)
+                if (set(bound) != consumed_indices
+                        or not any('含自身味方发动共鸣必杀' in str(a.get('conditions', ''))
+                                   for i, a in used if i in bound)):
+                    bound = []
+            if bound:
+                resolution = dict(status='bound_qualifier', answer_indices=bound,
+                    effect_ids=[e['effect_id'] for e in effects
+                                if any(r['answer_index'] in bound for r in e['answer_refs'])],
+                    basis='整子句仅为限定；已消费答案的对象/触发披露及限定来源满足F1窄门；不确认实机装载。')
+                qualifier_resolutions[ci] = resolution
+                refs.append(dict(ref_id=f'r{ci:02d}#bound', kind='bound_qualifier',
+                                 clause_index=ci, span=u['span'], text=clause,
+                                 resolution=resolution))
+        unclassified_clauses = [u for u in unclassified_clauses
+                                if u['clause_index'] not in qualifier_resolutions]
+
     # ---- 拆分待核查标志（在答案消费完成后计算；NA 子句不重复计 S1/S3）----------------
     unconsumed_typed = [r for r in answer_refs
                         if r['mapped_effect_type'] and r['matched_effect_id'] is None]
@@ -1327,7 +1479,7 @@ def analyze_row(row: dict, table: str | None = None):
                     for b in _sc['branches']]))
 
     # ---- 断点识别（批 6×批 8/14 跨批衔接断点，GOAL_ALIGNMENT.md G01 同构）--------------
-    has_crit_2012 = any(r['rule_key'] and str(r['rule_key']).startswith(_BREAKPOINT_CRIT_PREFIX)
+    has_crit_2012 = any(r['rule_key'] in _BREAKPOINT_CRIT_KEYS
                         for r in answer_refs)
     unresolved_core = [e for e in effects
                        if e['status'] == 'unresolved' and e['effect_type'] in BREAKPOINT_CLAIM_TYPES]
@@ -1464,10 +1616,8 @@ def _unresolved_detail(eff, row, row_meta):
         gap = (f"句面主张{eff['effect_type']}{direction_txt}（片段「{eff['snippet']}」），"
                '但该行逐描述答案中没有可归属到该效果类型的条目')
         if row_meta['breakpoint']:
-            candidate = ['跨批衔接断点类候选：bossskill type13 载体 /skillparam1（攻）'
-                         '/skillparam2（防）/skillparam6（移）/skillparam3（时长）槽'
-                         '（批 6 形状门）∪ 既有 2012 暴击链答案（批 8/14）——句主张属性集'
-                         '按属性分别归属，各答案各注来源载体，不合并不乘积']
+            candidate = ['已有2012 /param4或/param5暴击答案；其他核心效果的候选载体须由本行'
+                         'source链或实际hint另行定位，暴击断点本身不证明存在type13']
             if b15_hint_text:
                 # DS-GR-08 修复：blocker＝批 15/17 逐门失败原因（键值逐字，含 promoted_b8
                 # 行并入的批 6 原注记）；next_step 按命中门具体化。通用批 6 G4 文本不再
@@ -1482,11 +1632,9 @@ def _unresolved_detail(eff, row, row_meta):
                           + '——唯一 t13 前提不成立，批 15 并集归属未评估'
                 next_step = _MULTI_T13_STEP
             else:
-                blocker = ('批 6 形状门遇含クリティカル句整行留 hint'
-                           '（card_page_inference_b6_bossbuff.py:33）；批 8/14 经 s_ability→2012 '
-                           '补暴击段后无环节回评非暴击段（GOAL_ALIGNMENT.md G01）')
-                next_step = ('按 P2 通用规则核对：行链 type13 载体活性槽 ∪ 2012 链，'
-                             '与句面属性集按属性分别归属后补值；归属不成立的逐项登记具体缺口')
+                blocker = '已有暴击答案，但其他核心效果尚无已证明的字段归属；不能由断点优先级推定载体类型'
+                next_step = ('从本行source记录链核对剩余主张的对象、条件与活性字段；实际找到候选后'
+                             '逐项绑定，未找到则保留未知，不预设type13')
         else:
             candidate = ([f'既有 hint 线索（{k}）' for k in hint_keys]
                          or ['从行记录 source 链定位候选载体记录（先 own sub/s_ability，后跨表）'])
@@ -1925,7 +2073,7 @@ def render_readme(metrics: dict) -> str:
 
 ## 优先级规则（backlog.priority）
 
-- **P0 衔接断点**：行已有 2012 暴击链答案（`skilllist|2012|*`）而句面攻/防/移/时长主张
+- **P0 衔接断点**：行已有 2012 暴击答案（仅精确键 `skilllist|2012|/param4` 或 `/param5`）而句面攻/防/移/时长主张
   未解决（批 6 形状门×批 8/14 断点，GOAL_ALIGNMENT.md G01；349/6335 属此类）；
 - **P1 Y.G.**：Y.G. 卡的其余未解决/待核查；
 - **P2 其他**：非 Y.G.、非断点。

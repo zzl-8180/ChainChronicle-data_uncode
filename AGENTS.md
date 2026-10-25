@@ -35,7 +35,7 @@
 | 普通效果证据 | `output/ordinary_effects/ability<类型>/` |
 | 必杀／治疗证据 | `output/boss_chain/`、`output/boss_heal/` |
 | 角色图片 | `output/card_images/<cid>/`，查看绑定证据和完整／局部标记 |
-| 查询入口 | `scripts/query_effect_dictionary.py`，先查看用法和已有实现 |
+| 查询入口 | `scripts/query_effect_dictionary.py` 查询既有30236参数视图及records，**不读取当前profiles/rules.json或角色页新答案**；当前规则读取 `output/character_skills/profiles/rules.json`，逐卡答案读取 `output/character_skills/pages/<cid>/card.json`，规则生产消费者为 `scripts/character_skills/card_page_data.py`→`rules.answer_for`。统一只读CLI尚未交付 |
 | 分享包 | `output/share_bundle/`；现有 `CC_analysis_*_20261016.zip` 是分析材料包，不是完整解包发行包；后续版本按第8节注明类别与范围 |
 | 可复现性审计 | `docs/tasks/20261016-reproducibility-audit.md`；第三方独立解包依赖链、阻塞点、已验证／推断／未验证结论与隔离测试记录 |
 | 他人下游项目分析 | `output/reference_analysis/claude_cc_site_pages/README.md`；对象 `其他人的参考/claude_cc_site_pages/`（只读）；含 1610 行参数表逐条核对、冲突与候选清单 |

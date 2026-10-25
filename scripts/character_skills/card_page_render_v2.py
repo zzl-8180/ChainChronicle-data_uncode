@@ -431,12 +431,12 @@ def unresolved_effects_html(row):
             objmark = '（自身）' if e['object'] == 'self' else '（敵）'
         if etype in EFFECT_LEDGER._OUTSIDE_TYPES:
             cand = '效果类型在当前词表外，待语义核查'
-        elif res['breakpoint']:
-            cand = '候选 bossskill type13 槽（并集归属），核查中'
         elif row.get('inference_b15_hint'):
             cand = '并集归属未成立（见批15 hint），核查中'
         elif row.get('inference_b17_hint'):
             cand = '批17 收尾归属未成立（见批17 hint），核查中'
+        elif res['breakpoint']:
+            cand = '已有暴击答案，其他效果来源待核查'
         else:
             cand = '候选来源定位中'
         parts.append(f'未解：{etype}{dirword}{objmark}（{cand}）')

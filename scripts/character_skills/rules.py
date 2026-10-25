@@ -706,6 +706,76 @@ def _yg1_damage_dictionary(merged):
     return merged
 
 
+def _attack_interval_dictionary(merged: list[dict]) -> list[dict]:
+    """One newly proved CACHE configuration field; row binding is a separate gate."""
+    merged = [({**r,
+                'applicability': 'CACHE普通ability7已核5个YG源ID：43011009/43023407/43023607/43025107/43025707；param0地形资格通过且param7>0；实际安装另论',
+                'conversion': '间隔因子乘param7；同类能力因子汇总默认限幅[0.5,2]。名义等待须用该卡真实atkspeed及其他实际因子，不固定基数1.5',
+                'occurrences': 5,
+                'evidence': [{'report':'output/character_skills/attack_interval_batch1_20261024/native/type7_extension_checks.json',
+                              'scope':'4个新增YG实际来源×资格通过/不通过8项；原30236证据及64条地形资格证据复用'}],
+                'limits': '仅本项无量纲间隔因子及5源域；地形资格/安装/其他支持因子与动画周期分开；缺失/null/非正param7不产生加速答案。'}
+               if (r.get('table'), r.get('effect_type'), r.get('field_path')) == ('skilllist', 7, '/param7') else r)
+              for r in merged]
+    key = ('skilllist', 2012, '/param6')
+    if any((r.get('table'), r.get('effect_type'), r.get('field_path')) == key for r in merged):
+        return merged
+    return merged + [dict(
+        table='skilllist', effect_type=2012, field_path='/param6',
+        meaning_zh='临时攻击间隔因子加算增量', unit='间隔因子增量',
+        conversion='param6 → TimePowerUpData._atkSpeedUp；同类局部因子=clamp(1+Σparam6,下界,上界)，默认[0.5,2]；不乘Chain',
+        base_definition='相对基础攻击等待时间的局部因子；其他来源/资格/summary安装另论',
+        target='2012实际目标选择、职业筛选及人数限制内的对象',
+        applicability='CACHE skilllist ability2012、原字段存在且为有限数值；本批源域97条、5个负值；描述接入仅经YG精确源链和句内绑定。APK未扩域。',
+        occurrences=97, status='已确认（字段与局部原生计算；描述归属另作推断）',
+        limits='缺失/null不补0；默认上下界仅限未提供自定义限制对象。不是最终攻速、动画/连击每击周期；无1秒硬下限主张。',
+        evidence=[{'report':'output/character_skills/attack_interval_batch1_20261024/native/checks.json',
+                   'scope':'25项有界原生检查；trace.json三窗口共712字节，旧support_target片段复用'}],
+        origin='scripts/character_skills/rules.py::_attack_interval_dictionary')]
+
+
+_STOPUP_IDS = frozenset({40035003, 40431604, 43020503, 43022303, 43030803, 43033703})
+_POSITION_INTERVAL_IDS = frozenset({43022002, 43030707})
+_MANA_INTERVAL_IDS = {43030101:118, 43030104:118, 43031510:118, 40725110:68, 43033808:68}
+
+
+def _cadence_batch3_dictionary(merged):
+    evidence=[{'report':'output/character_skills/attack_interval_batch3_20261025/native/native_checks.json',
+               'scope':'六窗2160B；Position p9乘法、ManaCycle p9加法及原始基础值赋值，夹具及缺口见报告'}]
+    shared=dict(status='已确认（字段与有界局部运算；描述归属为推断）',evidence=evidence,
+        target='能力持有者／Boss技能发起者自身',
+        limits='仅CACHE列明源记录；安装、运行时选档、失效和最终动作周期未完整验证；不把固有基础值当技能增幅。',
+        origin='scripts/character_skills/rules.py::_cadence_batch3_dictionary')
+    rows=[dict(shared,table='skilllist',effect_type=56,field_path='/param9',
+        meaning_zh='位置条件成立时的攻击间隔乘数',unit='间隔倍率',occurrences=2,
+        conversion='位置资格成立时，Position汇总的_attackSpeed乘param9；不改变基础atkspeed。随后乘入能力因子并按实际汇总路径限幅。',
+        base_definition='相对当前Position间隔因子的乘数；非绝对秒数',
+        applicability='仅43022002/43030707，type56、flag=0、param0=1、param6=4.5、0<param9<1；句到敌阵条件另核。')]
+    for typ in (68,118):
+        rows.append(dict(shared,table='bossskill',effect_type=typ,field_path='/skillparam9',
+            meaning_zh='Boss自身攻击间隔中间因子的加算增量',unit='间隔因子增量',
+            occurrences=sum(v==typ for v in _MANA_INTERVAL_IDS.values()),
+            conversion='initManaCycle将skillparam9写工作对象+0x2c；能力汇总先乘停止/位置因子，再加此增量；其他项中性时为1+skillparam9，默认最终限幅[0.5,2]。不乘Chain。',
+            base_definition='中间间隔因子的加算项；不同于普通56乘数及2012的支持汇总层',
+            applicability=('仅CACHE'+('/'.join(str(sid) for sid, t in _MANA_INTERVAL_IDS.items() if t == typ))
+                +f'(type{typ})，负p9、p0=3、iparam1=31；p4只作计时阈值支持信息。')))
+    return merged+rows
+
+
+def _stopup_dictionary(merged):
+    return merged + [dict(table='skilllist', effect_type=1016, field_path='/param6',
+        meaning_zh='停止增强每档攻击间隔因子增量', unit='每档间隔因子增量',
+        conversion='n=trunc(停止计时/param1)，正整数上限trunc(param0)；移动超过位置容差则计时清零。单项局部因子clamp(1+n*param6,0,2)，再进入能力汇总默认限幅[0.5,2]',
+        base_definition='StopUp局部配置；param1与传入delta累计时间同单位，调用端到秒的映射尚未核实；非最终动画周期',
+        target='该普通能力持有者自身',
+        applicability='仅CACHE已核六条1016载体40035003/40431604/43020503/43022303/43030803/43033703；p1=1.5，p0=1或2，负p6；安装/句归属另作推断。',
+        occurrences=6,status='已确认（字段读取与有界局部运算；安装和描述归属为推断）',
+        limits='未执行根装载分派或实机；位置、delta及其他能力中性为夹具。固定基础atkspeed不作为技能收益；不同类型同参号不借公式，APK和其他1016形状未扩域。',
+        evidence=[{'report':'output/character_skills/attack_interval_batch2_20261025/native/native_checks.json',
+                   'scope':'六真实载体36项、4合成边界；四窗口2440B，trace列地址及SHA-256；有界执行边界与夹具逐项披露'}],
+        origin='scripts/character_skills/rules.py::_stopup_dictionary')]
+
+
 def rules() -> list[dict]:
     global _RULES
     if _RULES is None:
@@ -729,6 +799,9 @@ def rules() -> list[dict]:
         # 新增 occurrences_apk 伴生字段（中性口径：存储 0.0 不计；同号 19 条分源不合并）。
         merged = _b14_apkext_domain_update(merged)
         merged = _yg1_damage_dictionary(merged)
+        merged = _attack_interval_dictionary(merged)
+        merged = _stopup_dictionary(merged)
+        merged = _cadence_batch3_dictionary(merged)
         _RULES = merged
     return _RULES
 
@@ -1599,6 +1672,17 @@ def convert(table: str, effect_type, field_path: str, value, record: dict,
     """
     if table == "charainfo":
         return convert("bossskill", effect_type, field_path, value, record, rule)
+    if ((table,effect_type,field_path)==('skilllist',56,'/param9')
+            and isinstance(value,(int,float)) and not isinstance(value,bool) and math.isfinite(value)):
+        return dict(quantity_kind='攻击间隔乘数',unit='间隔倍率',
+            value_text=f'自身在敌阵且此项加成生效时，单看这项加成，攻击间隔缩短{(1-value)*100:.6g}%（变为原来的{value*100:.6g}%）。基础间隔、其他加成及实际解除时机仍待确认。',
+            answer_status='CONFIRMED_FORMULA_ONLY')
+    if (table=='bossskill' and effect_type in (68,118) and field_path=='/skillparam9'
+            and isinstance(value,(int,float)) and not isinstance(value,bool) and math.isfinite(value)):
+        factor=max(.5,min(2.,1+value))
+        return dict(quantity_kind='Boss攻击间隔因子加算增量',unit='间隔因子增量',
+            value_text=f'这项加成单独生效时，自身攻击间隔缩短{(1-factor)*100:.6g}%（变为原来的{factor*100:.6g}%）。实际叠加结果与结束时机仍待确认。',
+            answer_status='CONFIRMED_FORMULA_ONLY')
     if table == 'bossskill' and effect_type == 55 and field_path in ('/skillparam0', '/skillparam6'):
         return laser_config(field_path, value) or dict(quantity_kind='激光配置未解释',
             value_text=f'原值{value!r}不在本轮已确认的正常正值配置域，保留原值；不补零。',
@@ -1765,7 +1849,19 @@ def convert(table: str, effect_type, field_path: str, value, record: dict,
                 return _pp(value, kind="暴击概率加算贡献", label="暴击率")
             if field_path == "/param5":
                 return _crit_dmg(value)
+        if a == 1016 and field_path == '/param6':
+            cap = int(record['param0'])
+            factors = '；'.join(f'第{n}档：{max(.5,min(2.,1+n*value)):.6g}倍' for n in range(cap+1))
+            return {'quantity_kind':'停止增强攻击间隔每档贡献', 'unit':'间隔因子',
+                    'value_text':f'每停止累计{record["param1"]:g}传入delta单位增加一档，上限{cap}档；{factors}。移动后恢复第0档；其他能力中性时的局部因子，非最终动作周期',
+                    'answer_status':'CONFIRMED_FORMULA_ONLY'}
         if a == 2012:
+            if field_path == "/param6":
+                return {"quantity_kind": "攻击间隔因子加算增量",
+                        "value_text": (f"本项间隔因子增量 {_num(value)}；其他同类项中性且默认限幅时"
+                                       f"因子 {min(2, max(.5, 1 + value)):.6g}。同类汇总 clamp(1+Σparam6,0.5,2)，"
+                                       "本项不乘Chain；非最终动作周期"),
+                        "unit": "间隔因子增量"}
             if field_path == "/param0":
                 return _duration(value)
             if field_path == "/param4":
@@ -1832,7 +1928,7 @@ def convert(table: str, effect_type, field_path: str, value, record: dict,
                         "unit": "概率阈值"}
         if field_path == "/param7" and a == 7:
             return {"quantity_kind": "攻击间隔乘数",
-                    "value_text": f"攻击间隔×{_num(value)}（原始 atkspeed 1.5 且其他因子中性时名义 {1.5 * value:.6g} 游戏秒）",
+                    "value_text": f"攻击间隔因子×{_num(value)}（资格满足时；名义等待须另乘该卡真实基础atkspeed及其他支持因子，非实际每击周期）",
                     "unit": "间隔倍率"}
         if a == 29:
             if field_path == "/param0":
@@ -1964,8 +2060,40 @@ def convert(table: str, effect_type, field_path: str, value, record: dict,
     return None
 
 
-def answer_for(table: str, effect_type, field_path: str, value, record: dict) -> dict | None:
+def answer_for(table: str, effect_type, field_path: str, value, record: dict,
+               *, source_layer: str | None = None) -> dict | None:
     """Full answer row for one field of one record, or None when no rule exists."""
+    if (table,effect_type,field_path)==('skilllist',56,'/param9'):
+        if (source_layer!='CACHE' or record.get('skillid') not in _POSITION_INTERVAL_IDS
+                or record.get('ability')!=56 or record.get('flag')!=0
+                or type(record.get('param0')) not in (int,float) or record['param0']!=1
+                or record.get('param6')!=4.5 or record.get('param9')!=value
+                or isinstance(value,bool) or not isinstance(value,(int,float))
+                or not math.isfinite(value) or not 0<value<1):return None
+    if table in ('bossskill','charainfo') and effect_type in (68,118) and field_path=='/skillparam9':
+        if (table!='bossskill' or source_layer!='CACHE'
+                or _MANA_INTERVAL_IDS.get(record.get('skillid'))!=effect_type
+                or record.get('skillid0')!=effect_type or record.get('skillparam9')!=value
+                or record.get('skillparam0')!=3 or record.get('iparam1')!=31 or record.get('skillparam4')!=30
+                or isinstance(value,bool) or not isinstance(value,(int,float))
+                or not math.isfinite(value) or value>=0):return None
+    if (table, effect_type, field_path) == ('skilllist', 1016, '/param6'):
+        if (source_layer != 'CACHE' or record.get('ability') != 1016
+                or record.get('skillid') not in _STOPUP_IDS or record.get('flag') != 0
+                or isinstance(record.get('param0'),bool) or record.get('param0') not in (1,2)
+                or isinstance(record.get('param1'),bool) or record.get('param1') != 1.5
+                or 'param6' not in record or record['param6'] != value
+                or isinstance(value,bool) or not isinstance(value,(int,float))
+                or not math.isfinite(value) or value >= 0):
+            return None
+    # This new rule is only source-qualified by the explicit attack consumer.
+    # Legacy callers have no layer proof and must not silently expand APK/all rows.
+    if (table, effect_type, field_path) == ('skilllist', 2012, '/param6'):
+        if (source_layer != 'CACHE' or record.get('ability') != 2012
+                or 'param6' not in record or record['param6'] != value
+                or isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value)):
+            return None
     rule = rule_for(table, effect_type, field_path)
     if rule is None:
         return None

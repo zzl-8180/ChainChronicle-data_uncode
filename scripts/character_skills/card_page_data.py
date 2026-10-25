@@ -29,6 +29,11 @@ import card_page_inference_b15_union as B15
 import card_page_inference_b17_p0finale as B17
 import card_page_inference_yg1 as YG1
 import card_page_inference_yg1_timing as YG1_TIMING
+import card_page_inference_yg1_multihit as YG1_MULTIHIT
+import card_page_inference_yg1_multihit_timing as YG1_MULTIHIT_TIMING
+import card_page_inference_attack_interval as ATTACK_INTERVAL
+import card_page_inference_attack_interval2 as ATTACK_INTERVAL2
+import card_page_inference_attack_interval3 as ATTACK_INTERVAL3
 from card_page_policy import metrics,INFERENCE_STATUS
 from card_page_basic import apply_basic_display
 from card_page_positions import fragment_positions,position_identity
@@ -455,6 +460,7 @@ class Inputs:
         self.raw_docs={}
         # Existing converters use root-relative source files: declare/rebind that root explicitly.
         C.ROOT=self.root; C.DECODED=self.decoded; C.BASE_MASTER=self.apk; C.CARD_COMPARISON=self.root/'output/card_comparison_cid30236'
+        C.RECORDS_JSONL=self.decoded.parent/'records.jsonl'
         R.DECODED=self.decoded; R.CARD_COMPARISON=C.CARD_COMPARISON
         os.chdir(self.root)
         self.old_answers={}
@@ -1761,6 +1767,11 @@ def build_card(data:Inputs,cid):
         groups.append(group)
     YG1.apply_to_groups(data,cid,groups)
     YG1_TIMING.apply_to_groups(data,cid,groups)
+    YG1_MULTIHIT.apply_to_groups(data,cid,groups)
+    YG1_MULTIHIT_TIMING.apply_to_groups(data,cid,groups)
+    ATTACK_INTERVAL.apply_to_groups(data,cid,groups)
+    ATTACK_INTERVAL2.apply_to_groups(data,cid,groups)
+    ATTACK_INTERVAL3.apply_to_groups(data,cid,groups)
     counts=collections.Counter(r['row_class'] for r in allrows); cross={c:{e:0 for e in ('确认','推断','未知')} for c in ('A','B','C')}
     for r in allrows: cross[r['row_class']][r['evidence']]+=1
     total=len(allrows); chains=[f for g in groups for s in g['skills'] for f in s['forward_links']]
