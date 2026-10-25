@@ -1302,6 +1302,37 @@ def analyze_row(row: dict, table: str | None = None):
                   and row.get('group') == 'sympathy'
                   and str(row.get('reference_field', '')).startswith('sympathy_skill_info[')
                   and row.get('source', {}).get('source_key') == 'CACHE/skilllist.data5.json.raw'):
+                identity = row.get('merge_key')
+                row_source = row.get('source') or {}
+                position = row.get('source_position') or {}
+                parent_id = None
+                if (isinstance(identity, list) and len(identity) == 12
+                        and identity[:3] == [row.get('cid'), 'sympathy', 'sympathy']
+                        and identity[3:6] == [row_source.get('source_key'), row_source.get('field_json_pointer'), 'skilllist']
+                        and isinstance(identity[6], int) and not isinstance(identity[6], bool)
+                        and isinstance(identity[9], dict)
+                        and identity[9].get('reference_slot') == row.get('reference_field')
+                        and position.get('field_pointer') == row_source.get('field_json_pointer')
+                        and position.get('source_key') == row_source.get('source_key')
+                        and identity[10:] == position.get('raw_span')):
+                    parent_id = identity[6]
+                # This legacy composite answer has no generic parent-child
+                # binding object. Pin the independently verified source version,
+                # not a CID or a numerically similar donor. No new runtime input
+                # or unverified neighbouring record is introduced.
+                pinned_parent = (row_source.get('source_key'), row_source.get('field_json_pointer'),
+                                 parent_id, row_source.get('raw_record_sha256'),
+                                 row_source.get('byte_begin'), row_source.get('byte_end_exclusive'),
+                                 row_source.get('layer'), row_source.get('record_key'), row_source.get('json_pointer'))
+                if pinned_parent != ('CACHE/skilllist.data5.json.raw', '/skilllist/6407/text',
+                        43023610, '12b291dfb4ad2d9b629d56056283be7b2b080d853014aedbd7932a0dab7aca42',
+                        3247656, 3248985, 'CACHE',
+                        'CACHE/skilllist.data5.json.raw#/skilllist/6407', '/skilllist/6407'):
+                    continue
+                pinned_child_pointer = '/skilllist/6408'
+                pinned_child_hash = '386af4d2f041049ab60f9f540d3ae01c36543a8c602a884f972fd17af8917fb2'
+                pinned_fields = {'/param0': 1, '/param1': 0.1, '/param2': 0.1,
+                                 '/param6': 45, '/param8': 0.1}
                 # Existing confirmed 3000 answers preserve per-field raw-byte
                 # locations. Accept their exact M -> M+1 carrier relation only;
                 # a text-only condition, an APK source or a different receiver
@@ -1311,7 +1342,10 @@ def analyze_row(row: dict, table: str | None = None):
                     if not (qualifier_answer_valid(a) and a.get('table') == 'skilllist'
                             and a.get('target') == '战场味方'
                             and '3000共鸣技能开始事件' in str(a.get('conditions', ''))
-                            and isinstance(a.get('record_id'), int)
+                            and parent_id is not None
+                            and a.get('record_id') == parent_id
+                            and a.get('baseline_declared_description_id') == parent_id
+                            and a.get('evidence_scope') == 'REVIEWED_RECORD'
                             and isinstance(src, list) and src):
                         continue
                     if all(isinstance(s, dict) and s.get('table') == 'skilllist'
@@ -1321,7 +1355,14 @@ def analyze_row(row: dict, table: str | None = None):
                            and s.get('field_path') in ('/param0', '/param1', '/param2', '/param6', '/param8')
                            and isinstance(s.get('raw_value'), (int, float))
                            and not isinstance(s['raw_value'], bool) and math.isfinite(s['raw_value'])
-                           and len(str(s.get('location', {}).get('raw_record_sha256', ''))) == 64
+                           and s.get('record_key') == 'CACHE/skilllist.data5.json.raw#' + pinned_child_pointer
+                           and s.get('json_pointer') == pinned_child_pointer + s['field_path']
+                           and s.get('location', {}).get('json_pointer') == pinned_child_pointer
+                           and s.get('location', {}).get('ordinal_zero_based') == 6408
+                           and s.get('location', {}).get('raw_record_sha256') == pinned_child_hash
+                           and s.get('location', {}).get('byte_begin') == 3248986
+                           and s.get('location', {}).get('byte_end_exclusive') == 3249344
+                           and s['raw_value'] == pinned_fields[s['field_path']]
                            for s in src) and any(s['field_path'] == '/param0' and s['raw_value'] == 1 for s in src):
                         bound.append(i)
                 if (set(bound) != consumed_indices
