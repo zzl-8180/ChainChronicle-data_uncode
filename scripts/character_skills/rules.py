@@ -776,6 +776,207 @@ def _stopup_dictionary(merged):
         origin='scripts/character_skills/rules.py::_stopup_dictionary')]
 
 
+def _kyoumei_ab_shell_dictionary(merged):
+    """共鳴必殺A/B 批（2026-10-25）：5 个现存空壳键的规则化。
+
+    与 ``scripts/character_skills/card_page_inference_kyoumei_ab.py::RULE_UPGRADES`` 同源
+    （单一事实来源），只更新已存在的键，不新增、不删除、不改其他键。``rules.json`` 由
+    ``profiles.register_rule`` 生成，它把 ``rule["applicability"]`` 写进 ``conditions``；
+    因此这里用同一段文本同时填 ``conditions``（规则层口径）与 ``applicability``（生成链口径）。
+    55 p1 / 74 p5 已于 2026-10-24 批 1/批 2 升级，不在此列。
+    """
+    try:
+        import card_page_inference_kyoumei_ab as K
+    except ImportError:  # 以包方式导入时的兜底
+        from character_skills import card_page_inference_kyoumei_ab as K
+    index = {(r.get("table"), _rule_effect_type(r), r.get("field_path")): r for r in merged}
+    applied = []
+    for key, patch in K.RULE_UPGRADES.items():
+        table, etype, field_path = key.split("|")
+        rule = index.get((table, int(etype), field_path))
+        if rule is None:
+            raise RuntimeError(f"共鳴A/B 批：规则键不存在，拒绝静默跳过：{key}")
+        shaped = {k: v for k, v in patch.items() if k in K.RULE_JSON_FIELDS}
+        rule.update(json.loads(json.dumps(shaped, ensure_ascii=False)))
+        rule["applicability"] = patch["conditions"]
+        applied.append(key)
+    if len(applied) != len(K.RULE_UPGRADES):
+        raise RuntimeError(f"共鳴A/B 批：应用数不符 {len(applied)} != {len(K.RULE_UPGRADES)}")
+    return merged
+
+
+def _mana_b_param5_dictionary(merged):
+    """マナB档（2026-10-26）：主持裁决②新增 ``skilllist|26|/param5`` 条件/标志键。
+
+    与 ``scripts/character_skills/card_page_inference_mana_b.py::RULE_ADDITIONS`` 同源
+    （单一事实来源）。只新增缺失键；已存在时必须与模块定义逐字段相等，否则抛错。
+    证据：``type26_mana/native_evidence.json`` slices[5]（param0 产线 isBoost=(param5==1)）；
+    类型级推断，不升确认；不写业务含义。
+    """
+    try:
+        import card_page_inference_mana_b as MB
+    except ImportError:  # 以包方式导入时的兜底
+        from character_skills import card_page_inference_mana_b as MB
+    index = {(r.get("table"), _rule_effect_type(r), r.get("field_path")): r for r in merged}
+    for key, patch in MB.RULE_ADDITIONS.items():
+        table, etype, field_path = key.split("|")
+        shaped = {k: v for k, v in patch.items() if k in MB.RULE_JSON_FIELDS}
+        shaped["applicability"] = patch["conditions"]
+        hit = index.get((table, int(etype), field_path))
+        if hit is None:
+            merged.append(shaped)
+            index[(table, int(etype), field_path)] = shaped
+            continue
+        if any(hit.get(k) != v for k, v in shaped.items() if k != "applicability"):
+            raise RuntimeError(f"マナB批：规则键已存在且内容不同，拒绝静默覆盖：{key}")
+        hit["applicability"] = patch["conditions"]
+    return merged
+
+
+# ---------------------------------------------------------------------------
+# 规则登记批（2026-10-28）：100/102/19/1033 四键由模块 RULE_SPECS 正式登记
+# ---------------------------------------------------------------------------
+# 第四周期第三方向审查范围限制①（`docs/tasks/20261028-cycle4-review-closeout.md` §二）：
+# `skilllist|100|/param0`、`skilllist|102|/param0`（金币/经验 (p0−1)×100%）、
+# `skilllist|19|/param2`、`skilllist|1033|/param3`（两段回复间隔乘数）四个已出数键族原先只
+# 写在 `card_page_inference_gold_exp.RULE_SPECS` / `card_page_inference_heal_interval.RULE_SPECS`，
+# 跨批消费者只查 rules.json/answer_for 会误判这些槽位无规则。本批按 register_rule 序列化
+# 正式登记，**数值零变化**：换算文本、条件、限制、证据与模块内声明逐字相同，仅登记状态字段
+# 由「未登记」改为「已登记」。
+#
+# 单一事实源（本批选择）：规则正文移入本处，两个批次模块改为**从 rules 读取**
+# （`rule_for(key)`），模块内不再保留第二份 RULE_SPECS 文本，故不存在双写漂移；模块另在
+# `registration_assertions()` 保留结构化断言（键存在／单位／换算关键片段／状态含「已登记」），
+# 由批目录 scratch 调用验证。登记文本的来源与逐字对照见批目录
+# `output/character_skills/rule_registration_20261028/`（precheck 记录前置模块声明与哈希）。
+_REGISTRATION_20261028_KEYS = ('skilllist|100|/param0', 'skilllist|102|/param0',
+                               'skilllist|19|/param2', 'skilllist|1033|/param3')
+
+_GOLD_EXP_EVIDENCE = {
+    100: ['output/character_skills/skilllist_types/dispatch_map.json#ability_type_enum:100=Gold',
+          'output/base_master/_mdSkill.json#/skilllist/1727（5001 商才 1.1「戦闘で獲得する'
+          'ゴールドが増える。」）',
+          'output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw#/skilllist/6610'
+          '（43024607 ability100 param0=2.5）',
+          'output/reference_analysis/cc_20261027/rule_candidates.jsonl#R09'],
+    102: ['output/character_skills/skilllist_types/dispatch_map.json#ability_type_enum:102=Experience',
+          'output/base_master/_mdSkill.json#/skilllist/1730（5004 祝福 1.1「戦闘で獲得する'
+          '経験値が増える。」）',
+          'output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw#/skilllist/6611'
+          '（43024608 ability102 param0=1.5）',
+          'output/reference_analysis/cc_20261027/rule_candidates.jsonl#R10'],
+}
+
+_HEAL_INTERVAL_EVIDENCE = {
+    19: ['output/character_skills/skilllist_types/dispatch_map.json#'
+         'ability_type_enum:19=StrengthHealer',
+         'output/base_master/_mdSkill.json#/skilllist/4049（30121303 ability19 '
+         'param0=6.0/param1=1.6/param2=0.95；text「…通常回復の回復量と回復速度が上がり、'
+         '回復範囲が広がる。戦場に<斬>武器の味方がいると効果が上がる。」）',
+         'output/base_master/_mdSkill.json#/skilllist/8012（31121700 ability19 '
+         'param2=1.0；text「通常回復の回復量が上がり、回復後の攻撃までの硬直時間が'
+         '短縮される。」——不提速度）',
+         'output/reference_analysis/cc_20261027/merge_recommendations.md#A7',
+         'output/reference_analysis/cc_20261027/conflicts.md#C5'],
+    1033: ['output/character_skills/skilllist_types/dispatch_map.json#'
+           'ability_type_enum:1033=HeroOneHeal',
+           'output/base_master/_mdSkill.json#/skilllist/4050（30121304 ability1033 '
+           'param1=4.0/param3=0.95）',
+           'output/base_master/_mdSkill.json#/skilllist/8013,8014（31121701 param1=5.0／'
+           '31121702 param1=3.5，两者 param3=1.0）',
+           'output/reference_analysis/cc_20261027/conflicts.md#C6'],
+}
+
+
+def _registration_20261028_specs() -> list[dict]:
+    """四键完整定义（登记正文；与批前模块 RULE_SPECS 逐字相同，仅 status 记已登记）。"""
+    registered = '；规则登记批 2026-10-28 已登记 profiles/rules.json 该键'
+    origin = ('scripts/character_skills/rules.py::_registration_20261028_specs'
+              '（正文源自批 2/3 模块 RULE_SPECS，2026-10-28 规则登记批迁移）')
+    return [
+        dict(table='skilllist', effect_type=100, field_path='/param0',
+             meaning_zh='战斗获得金币倍率',
+             unit='倍率（相对战斗结算基准）',
+             conversion='金币 = 基准 × param0；本项增加百分比 = (param0−1)×100%',
+             base_definition='战斗结算的金币基准值（未含其他加成）',
+             target='获得金币的一方（玩家队伍结算）',
+             applicability='战斗结算时；本记录被该角色装载',
+             conditions='战斗结算时；本记录被该角色装载',
+             status=('已确认（枚举名 Gold＋APK/CACHE 正文「戦闘で獲得するゴールドが増える」'
+                     + registered + '）'),
+             limits=('多条同类记录是否连乘未证（本句仅绑定唯一载体）；不承诺结算后实际数额；'
+                     '不含任务奖励/活动/宝箱等其它来源。'),
+             evidence=list(_GOLD_EXP_EVIDENCE[100]),
+             occurrences=None, origin=origin),
+        dict(table='skilllist', effect_type=102, field_path='/param0',
+             meaning_zh='战斗获得经验值倍率',
+             unit='倍率（相对战斗结算基准）',
+             conversion='经验值 = 基准 × param0；本项增加百分比 = (param0−1)×100%',
+             base_definition='战斗结算的经验值基准值（未含其他加成）',
+             target='获得经验值的一方（玩家队伍结算）',
+             applicability='战斗结算时；本记录被该角色装载',
+             conditions='战斗结算时；本记录被该角色装载',
+             status=('已确认（枚举名 Experience＋APK/CACHE 正文「戦闘で獲得する経験値が増える」'
+                     + registered + '）'),
+             limits=('多条同类记录是否连乘未证（本句仅绑定唯一载体）；不承诺结算后实际数额；'
+                     '不含任务奖励/活动加成。'),
+             evidence=list(_GOLD_EXP_EVIDENCE[102]),
+             occurrences=None, origin=origin),
+        dict(table='skilllist', effect_type=19, field_path='/param2',
+             meaning_zh='通常回复间隔倍率（第 1 段：基础段）',
+             unit='无量纲倍率（时间间隔乘数）',
+             conversion='通常回复间隔 = 基础间隔 × param2（本段）；本段间隔相对变化 = '
+                        '(1−param2)×100%（<1 表示间隔缩短＝回复更快）',
+             base_definition='通常回复的基础间隔（游戏内秒数未确认；用户提供的基础间隔工作值本批'
+                             '不采用、不换算）',
+             target='自身（通常回復行动的一方）',
+             applicability='本能力装载时恒常（段 1）；条件段见同能力 type1033 记录',
+             conditions='本能力装载时恒常（段 1）；条件段见同能力 type1033 记录',
+             status=('推断（槽位语义：1213 句面「回復速度が上がり」↔19.p2=0.95、'
+                     '1033.p3=0.95；11217 句面不提速度↔两段均 1.0' + registered + '）'),
+             limits=('只登记两段乘数结构与「基础×两段乘数」的形式，不写秒数；Class 0.5 不作'
+                     '统一乘数；基础间隔秒数未确认；条件段的条件内容（flag 位图）未解码。'),
+             evidence=list(_HEAL_INTERVAL_EVIDENCE[19]),
+             occurrences=None, origin=origin),
+        dict(table='skilllist', effect_type=1033, field_path='/param3',
+             meaning_zh='通常回复间隔倍率（第 2 段：条件段）',
+             unit='无量纲倍率（时间间隔乘数）',
+             conversion='通常回复间隔 = 基础间隔 × param2（段1）× param3（本段，条件成立时）；'
+                        '本段间隔相对变化 = (1−param3)×100%',
+             base_definition='通常回复的基础间隔（游戏内秒数未确认；用户提供的基础间隔工作值本批'
+                             '不采用、不换算）',
+             target='自身（通常回復行动的一方）',
+             applicability='该 sub 记录（type1033）的条件成立时；条件内容以原句为准，flag 位图未解码',
+             conditions='该 sub 记录（type1033）的条件成立时；条件内容以原句为准，flag 位图未解码',
+             status=('推断（槽位语义：1213 1033.p3=0.95 与句面「<斬>武器の味方がいると効果が'
+                     '上がる」对应；11217 两条 1033 的 p3 均 1.0 且句面不提速度' + registered + '）'),
+             limits=('只登记段值与「基础×两段乘数」的形式，不写秒数；type1033 param1 的'
+                     '「回复范围」只是推断（1213 反例：19.p0=6.0 → p1=4.0 缩小），不作范围答案；'
+                     'param1/param2 等其他槽位本批不出数。'),
+             evidence=list(_HEAL_INTERVAL_EVIDENCE[1033]),
+             occurrences=None, origin=origin),
+    ]
+
+
+def _rule_registration_20261028_dictionary(merged: list[dict]) -> list[dict]:
+    """登记批：把四键完整定义并入规则层（幂等；已存在时必须逐字段相等）。"""
+    index = {(r.get("table"), _rule_effect_type(r), r.get("field_path")): r for r in merged}
+    for spec in _registration_20261028_specs():
+        key = (spec["table"], spec["effect_type"], spec["field_path"])
+        hit = index.get(key)
+        if hit is None:
+            merged.append(spec)
+            index[key] = spec
+            continue
+        diff = [f for f in sorted(set(hit) | set(spec))
+                if f not in ("applicability", "conditions") and hit.get(f) != spec.get(f)]
+        if diff:
+            raise RuntimeError(f"规则登记批：规则键已存在且内容不同，拒绝静默覆盖：{key} {diff}")
+        hit["applicability"] = spec["applicability"]
+        hit["conditions"] = spec["conditions"]
+    return merged
+
+
 def rules() -> list[dict]:
     global _RULES
     if _RULES is None:
@@ -799,6 +1000,13 @@ def rules() -> list[dict]:
         # 新增 occurrences_apk 伴生字段（中性口径：存储 0.0 不计；同号 19 条分源不合并）。
         merged = _b14_apkext_domain_update(merged)
         merged = _yg1_damage_dictionary(merged)
+        # 共鳴必殺A/B 批（2026-10-25）：5 个现存空壳键规则化（与批次模块 RULE_UPGRADES 同源）。
+        merged = _kyoumei_ab_shell_dictionary(merged)
+        # マナB 批（2026-10-26）：主持裁决②新增 skilllist|26|/param5 条件/标志键（唯一新增）。
+        merged = _mana_b_param5_dictionary(merged)
+        # 规则登记批（2026-10-28）：100/102/19/1033 四键由模块 RULE_SPECS 正式登记
+        # （第四周期范围限制①；数值零变化，正文与批前模块声明逐字相同，仅状态记已登记）。
+        merged = _rule_registration_20261028_dictionary(merged)
         merged = _attack_interval_dictionary(merged)
         merged = _stopup_dictionary(merged)
         merged = _cadence_batch3_dictionary(merged)
@@ -1689,6 +1897,30 @@ def convert(table: str, effect_type, field_path: str, value, record: dict,
             answer_status='UNRESOLVED', unit=None)
     if not isinstance(value, (int, float)) or isinstance(value, bool):
         return {"quantity_kind": "非数值原值", "value_text": repr(value), "unit": None}
+    # --- 规则登记批（2026-10-28）：金币/经验倍率＋两段回复间隔乘数 ---
+    # 换算文本与批 2/3 模块逐字一致（登记只改登记状态字段，数值零变化）。判据用
+    # (table, effect_type, field_path) 而非规则的 answer_kind：register_rule 不序列化
+    # answer_kind，rules.json 消费者取不到它。
+    if (table, effect_type, field_path) in (('skilllist', 100, '/param0'),
+                                            ('skilllist', 102, '/param0')):
+        label = '金币' if effect_type == 100 else '经验值'
+        delta = (float(value) - 1.0) * 100
+        pct = ('±0%' if abs(delta) < 5e-6
+               else f'{"+" if delta > 0 else "-"}{abs(delta):.6g}')
+        return {"quantity_kind": f'{label}获得倍率',
+                "unit": (rule or {}).get('unit'),
+                "value_text": f'{label}获得 ×{float(value):.6g}（本项 {pct}%）'}
+    if (table, effect_type, field_path) in (('skilllist', 19, '/param2'),
+                                            ('skilllist', 1033, '/param3')):
+        seg, seg_label = (1, '基础段') if effect_type == 19 else (2, '条件段')
+        raw = float(value)
+        delta = (1.0 - raw) * 100
+        gone = ('±0%' if abs(delta) < 5e-6
+                else f'{"缩短" if delta > 0 else "延长"} {abs(delta):.6g}%')
+        cond = '，条件成立时' if effect_type == 1033 else ''
+        return {"quantity_kind": '通常回復間隔乘數（時間倍率）',
+                "unit": (rule or {}).get('unit'),
+                "value_text": f'通常回复间隔 ×{raw:.6g}（第{seg}段：{seg_label}{cond}；间隔{gone}）'}
     # generated rules may declare their own answer kind: the critical accumulators put
     # *different slots* on the rate/damage paths (param4/param5/param6/param7 depending on
     # the type), so the dispatch has to come from the rule row, not from the field name
@@ -2091,6 +2323,20 @@ def answer_for(table: str, effect_type, field_path: str, value, record: dict,
     if (table, effect_type, field_path) == ('skilllist', 2012, '/param6'):
         if (source_layer != 'CACHE' or record.get('ability') != 2012
                 or 'param6' not in record or record['param6'] != value
+                or isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value)):
+            return None
+    # 规则登记批（2026-10-28）：四键登记后仍只对**显式声明来源层**的消费者取值，与上一段
+    # 2012/param6 先例同型。理由：card_page_data.field_answers 对 record_evidence 逐字段调用
+    # answer_for（不带 source_layer），当前页面里有 141 卡 / 157 条 ability∈{100,102,19,1033}
+    # 的记录；若无条件返回答案，重建会在这些记录上追加 BY_TYPE_EXTRAPOLATED 树答案，越出本批
+    # 「白名单外零变化」。批次模块与等价性重算均显式传 layer，仍可取值。
+    if (table, effect_type, field_path) in (('skilllist', 100, '/param0'),
+                                            ('skilllist', 102, '/param0'),
+                                            ('skilllist', 19, '/param2'),
+                                            ('skilllist', 1033, '/param3')):
+        if (source_layer not in ('APK', 'CACHE') or record.get('ability') != effect_type
+                or field_path[1:] not in record or record[field_path[1:]] != value
                 or isinstance(value, bool) or not isinstance(value, (int, float))
                 or not math.isfinite(value)):
             return None

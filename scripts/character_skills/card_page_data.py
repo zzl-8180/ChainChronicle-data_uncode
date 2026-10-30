@@ -34,6 +34,31 @@ import card_page_inference_yg1_multihit_timing as YG1_MULTIHIT_TIMING
 import card_page_inference_attack_interval as ATTACK_INTERVAL
 import card_page_inference_attack_interval2 as ATTACK_INTERVAL2
 import card_page_inference_attack_interval3 as ATTACK_INTERVAL3
+import card_page_inference_yg1_remaining_ab as YG1_REMAINING_AB
+import card_page_inference_yg1_multistage as YG1_MULTISTAGE
+import card_page_inference_b18_duration as B18_DURATION
+import card_page_inference_kyoumei_ab as KYOUMEI_AB
+import card_page_inference_mana as MANA_BATCH
+import card_page_inference_mana_b as MANA_B
+import card_page_inference_s5 as S5
+import card_page_inference_s5_terrain as S5_TERRAIN
+import card_page_inference_crit_absorb as CRIT_ABSORB
+import card_page_inference_type67 as TYPE67
+import card_page_inference_gold_exp as GOLD_EXP
+import card_page_inference_heal_interval as HEAL_INTERVAL
+import card_page_inference_g0_g7b0 as G0_G7B0
+import card_page_inference_type80_96 as TYPE80_96
+import card_page_inference_g1_b1 as G1_B1
+import card_page_inference_g1_structure as G1_STRUCTURE
+import card_page_inference_g7_b1 as G7_B1
+import card_page_inference_c7_p2_denju as C7_P2_DENJU
+import card_page_inference_c7_p3_denju as C7_P3_DENJU
+import card_page_inference_c8_p1_denju as C8_P1_DENJU
+import card_page_inference_c8_p1_t27 as C8_P1_T27
+import card_page_inference_c9_p1_t99 as C9_P1_T99
+import card_page_inference_c9_p1_t64 as C9_P1_T64
+import card_page_inference_c10_p1_mirror as C10_P1_MIRROR
+import effect_ledger as B18_WORDFACE
 from card_page_policy import metrics,INFERENCE_STATUS
 from card_page_basic import apply_basic_display
 from card_page_positions import fragment_positions,position_identity
@@ -1772,6 +1797,118 @@ def build_card(data:Inputs,cid):
     ATTACK_INTERVAL.apply_to_groups(data,cid,groups)
     ATTACK_INTERVAL2.apply_to_groups(data,cid,groups)
     ATTACK_INTERVAL3.apply_to_groups(data,cid,groups)
+    YG1_REMAINING_AB.apply_to_groups(data,cid,groups)
+    YG1_MULTISTAGE.apply_to_groups(data,cid,groups)
+    B18_DURATION.apply_to_groups(data,cid,groups)
+    KYOUMEI_AB.apply_to_groups(data,cid,groups)
+    MANA_BATCH.apply_to_groups(data,cid,groups)
+    MANA_B.apply_to_groups(data,cid,groups)
+    S5.apply_to_groups(data,cid,groups)
+    S5_TERRAIN.apply_to_groups(data,cid,groups)
+    CRIT_ABSORB.apply_to_groups(data,cid,groups)
+    # type67 人数阶梯（2026-10-28 批1）：「…が多いほど」句按原始 67 记录组逐条累乘/累加出数；
+    # 法珠/敌数/职业种类/状态异常等非原生计数域与形状不符行只留 hint（模块内门控）。
+    TYPE67.apply_to_groups(data,cid,groups)
+    # 金币/经验倍率（2026-10-28 批2）：句面点名ゴールド/経験値的行按同层唯一载体记录出数
+    # （param0−1）×100%；CACHE/APK 同 skillid 不跨层取值，无载体/形状不符只留 hint。
+    GOLD_EXP.apply_to_groups(data,cid,groups)
+    # 回复间隔两段乘数（2026-10-28 批3）：句面「回復速度」行按同层链内 19.param2（基础段）与
+    # 1033.param3（条件段）逐段登记乘数结构；不写秒数、不乘 Class 0.5，中性/无载体只留 hint。
+    HEAL_INTERVAL.apply_to_groups(data,cid,groups)
+    # G0-B1／G7-B0 合并小批（2026-10-28 批5）：只对预检冻结注册表的 31 行出数——
+    # G0 bond 行（supporterskill abiN 含 106001 → skilllist|29|/param0，域门仅
+    # {106001,43023615} 内置，answer_for 对域外 ID 也返回 CONFIRMED_NUMERIC）与
+    # 30110 地形句（CACHE 1008 43011008 → p1 攻击×1.1／p2 移动×1.1；p3 受伤量不映射）。
+    # 注册表外的同形句（24 行非 YG 地形句、ability 侧必殺威力）零触碰、不写 hint。
+    G0_G7B0.apply_to_groups(data,cid,groups)
+    # type80（HoldMana 一次性玛那条件增益）／type96（ManaCountUp 逐珠线性）成对批
+    # （2026-10-28 批4）：句面「〜マナを所持している」类按同层唯一载体出一次性系数；
+    # 「マナ／スクラップが多いほど」类按同层唯一载体出逐珠线性（计数对象与上限写进答案）。
+    # 两族语义严格分开：80 不得写成每颗 n%，96 不得写成一次性固定值；96 攻击
+    # param2/param3 本批 0 答案（调用级择槽未证）；无载体/形状不符/多点名对象只留 hint。
+    TYPE80_96.apply_to_groups(data,cid,groups)
+    # G1-B1 必殺ダメージ镜像行绑定（2026-10-29 批2）：只对 25 行冻结准入表（21 卡，全 Y.G.）
+    # 出数——传授行按 denju.patternid0、skilltext 行按 charainfo.pattern0 定源到 bossskill，
+    # 片段判别（N回→105/110 param6==N；大/中→3/22/55/74 恰 1 条）后写入行级绑定答案；
+    # 值必须与同卡基础档位行同 rule_key 答案同值（不新增唯一数值），链外档位值登记排除。
+    # 范围外行零触碰、不写 hint；30236/30239 零触碰。
+    G1_B1.apply_to_groups(data,cid,groups)
+    # G1 结构族推广（C7-P1／C7-B1，2026-10-29）：G1-B1 把 25 行冻结成 row_id 名单，本模块把
+    # 「哪一行可以出」换成可核对的结构规则（R1 记录身份／R2 引用链／R3 文本同一／R4 对象·
+    # 方向·子句形态／R5 形态→类型／R6 单发型注入性／R7 类型→已确认伤害槽与空值分档／
+    # R8 同卡交叉核／R9 幂等），不按卡号与原值名单挑记录。本批实测只新增 30247/30258 两行
+    # 伤害倍率答案（0 新增唯一数值，同值已在同卡 pattern0 行披露）；7251 skilltext f2 已有
+    # yg1_multihit 的 40725101=0.83 同值答案 → 只写行级 marker 披露「同值异记录」，不新增
+    # 同值答案。账本沿用 binding.g1_b1_binding（scope＝G1_B1_MIRROR_20261029）与 6 键。
+    # 范围外行零触碰；30236/30239 零触碰；不读 APK 表；不改 rules.json／rules.py。
+    G1_STRUCTURE.apply_to_groups(data,cid,groups)
+    # G7-B1 首段味方全体增益（2026-10-29 批3）：只对 3 行冻结准入表（4316／30105／30111 的
+    # denju 首句行，全 Y.G.）出数——denju.patternid0 → bosspattern → 链内 type13 恰 2 条，
+    # 取执行列表第 0 项（skillid0，首段）的 t13 四槽（param1 攻击／param2 固定防御系数／
+    # param3 持续游戏秒／param6 移动）写入 4 条答案；次段（skillid2）逐行披露为排除值；
+    # 暴击两项载体 t116 在 rules 中 0 键，保持未知、不借 type13/2012 其他链补。
+    # 同卡 pattern0 首句行同 rule_key 同值已披露（不新增唯一数值）；范围外行零触碰、不写 hint；
+    # 30236/30239 零触碰；不改 rules.json／rules.py／effect_ledger 映射。
+    G7_B1.apply_to_groups(data,cid,groups)
+    # C7-B2 传授同记录绑定（2026-10-30，2 行 5 效果，全 Y.G.）：只对 7250／30310 的 denju
+    # 首句行出数——denju.patternid0 → bosspattern 原始链 slot0（7250 t13 四槽 .6/.3/30/.3、
+    # 30310 t64 param1=1.5），要求 charainfo.pattern0 基础档子记录序列与本行链序列逐位相同、
+    # charainfo 对应槽逐位相等、同卡 pattern0 行已披露同规则键同记录同原值；超共鳴档只作
+    # 排除分支，链内其余槽不绑定，暴击 t116 保持未知。不新增规则键/唯一数值；
+    # 范围外行零触碰；不改 rules.json／rules.py／effect_ledger 映射。
+    C7_P2_DENJU.apply_to_groups(data,cid,groups)
+    # C7-B3 传授伤害镜像首段（2026-10-30，28 行 28 效果，全 Y.G.）：只对 denju 首句行按
+    # G1 结构规则（denju.patternid0 原始链可达且唯一／sinfo==stext／首句／N回→105·110 且
+    # param6==N／大中一定間隔→单发型恰 1 条／槽值 FINITE>0／charainfo.pattern0 槽序列与本行
+    # 链逐位相同）出 damage 倍率；同卡基档句面＝「共鳴必殺/＋本行标签」（逐字）只作辅助
+    # 交叉核（主持裁定不作 R8 主证），超共鳴档位值逐行登记排除，30336 基础档 slot1 漂移拒绝。
+    # 账本沿用 binding.g1_b1_binding（scope＝G1_B1_MIRROR_20261029）与 6 个既有伤害键；
+    # 0 新增规则键/唯一数值；范围外行零触碰；30236/30239 零触碰；不读 APK 表；
+    # 不改 rules.json／rules.py／effect_ledger 映射。
+    C7_P3_DENJU.apply_to_groups(data,cid,groups)
+    # C8-B1 传授伤害镜像**余量**（2026-10-30，3 行 3 效果，全 Y.G.）：denju 首句伤害镜像的
+    # 剩余项——30104（t51 /skillparam0=0.5，准入依据是「同卡基档行已用同记录同值」的基档
+    # 先例，不是 G7 形态分类）、30336（t110 /skillparam1=5，只绑 slot0，基档 slot1 的 t13
+    # 记录不同逐行披露、不绑增益）、7251（t105 /skillparam1=0.83，链内两条同 param6 记录值
+    # 唯一，记录选取不唯一按基档句序定首段、不升级为唯一来源）。
+    # 账本沿用 binding.g1_b1_binding（scope＝G1_B1_MIRROR_20261029）与既有 6 个伤害键；
+    # C7-P3 已交付的 28 行因同键同记录同值而幂等跳过。0 新增规则键/唯一数值；
+    # 范围外行零触碰；30236/30239 零触碰；不读 APK 表；不改 rules.json／rules.py／账本映射。
+    C8_P1_DENJU.apply_to_groups(data,cid,groups)
+    # C8-B2 t27 周期回复（2026-10-30，15 行 15 效果，全 Y.G.）：冻结准入表 15 行——每行在
+    # 本行执行链（patternN 或 denju.patternid0）里恰有 1 条 type27，p1 单次回复量系数写入
+    # 答案；p2 回复间隔/p3 回复次数只作已确认字段值披露（不写答案、不换算实机秒数）。
+    # 账本只经本批新增的**来源限定窄映射**（binding.c8_p1_t27_binding，
+    # scope＝C8_P1_T27_HEAL_20261030）消费 bossskill|27|/skillparam1 → 回復（词表外）；
+    # 不整族映射 type27、不改 rules.json／rules.py、不新增规则键；同卡 0 披露，关联仍标推断。
+    C8_P1_T27.apply_to_groups(data,cid,groups)
+    # C9-B1 t99 敵デバフ余量（2026-10-30，4 行 16 效果，全 Y.G.）：只对冻结的 4 个 ability 行
+    # （30101 f2／30302 f4／30305 f3／30333 f5）生效——它们各已有一条原文数字答案，因此被
+    # 上方 `not answers` 的 b9 调用守卫跳过；本批不改该守卫、不全局放宽，只在行构建后逐行
+    # 重新调用既有 B9.evaluate 并要求 promote（载体 43010103／43030204／43030504／43033303，
+    # p7=-0.3／p9=+0.3／p8=-0.3／p0=30），答案对象原样复用批 9 口径（含 p9「受伤量倍率+0.3
+    # →受伤量因子 1.3、不是固定防御−30%」与 p8 已核样本域仅 1 条的披露）。
+    # 账本走既有 skilllist|99| 全局映射；0 新增规则键/映射；非 Y.G. 连带 0。
+    C9_P1_T99.apply_to_groups(data,cid,groups)
+    # C9-B2 t64 受击回复（2026-10-30，7 行 7 效果，全 Y.G.）：冻结准入表 7 行——每行在本行
+    # 执行链（patternN 或 denju.patternid0）里恰有 1 条 type64，skillparam1 写为 reactive heal
+    # 基值系数；判据为 t27 同级「规则已确认＋链内载体唯一＋句面机制唯一」，同卡 0 披露显式
+    # 登记、跨卡 30310 先例不作放行依据。对象/触发只由句面给出（原生 target_selection 为空），
+    # 不写最终 HP/超上限比例/触发次数/实机间隔。账本沿用既有 bossskill|64|/skillparam1 映射；
+    # 不改 rules.json／rules.py／effect_ledger.py。
+    C9_P1_T64.apply_to_groups(data,cid,groups)
+    # C10-B1 skilltext 同卡镜像整理（2026-10-30，6 行 6 效果，全 Y.G.）：只对冻结的 6 个
+    # skilltext 行（353 f3／30104 f2／30257 f3：t27 p1=1.25/1.5/1.25 @40035303/43010401/43025702；
+    # 30110 f2／30203 f1／30223 f1：t64 p1=1.5 @43011002/43020301/43022301）生效——行句面与
+    # 同卡【共鳴必殺】基础档位 pattern 行逐字相同，且该基档行已披露同 rule_key＋同记录＋同原值；
+    # 同文超共鳴行记录/原值不同，逐行披露、不并入；0 新增唯一数值/公式/规则键。
+    # t27 账本走本批新增的来源限定窄映射（binding.c10_p1_mirror_binding，
+    # scope＝C10_P1_T27_SKILLTEXT_MIRROR_20261030），t64 走既有全局映射；
+    # 不改 rules.json／rules.py；不写最终 HP/超上限/触发次数/实机间隔；
+    # 范围外行零触碰；30236/30239 零触碰。
+    C10_P1_MIRROR.apply_to_groups(data,cid,groups)
+    # Enter own-record answers in pages before the same ledger consumes them.
+    B18_WORDFACE.apply_to_groups(data,cid,groups)
     counts=collections.Counter(r['row_class'] for r in allrows); cross={c:{e:0 for e in ('确认','推断','未知')} for c in ('A','B','C')}
     for r in allrows: cross[r['row_class']][r['evidence']]+=1
     total=len(allrows); chains=[f for g in groups for s in g['skills'] for f in s['forward_links']]

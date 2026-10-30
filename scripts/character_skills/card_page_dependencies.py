@@ -26,6 +26,8 @@ def data_paths(root):
     relative+=['output/cache_full_20261015_v3/decoded/'+p+'.data5.json.raw' for p in ('charainfo','skilllist','bossinfo','jobabilityinfo','worldinfo','homelist','extraabilitylist','passivelist','denju_lblist','sympathy_skilllist')]
     relative+=['output/base_master/'+p for p in ('_mdSkill.json','_mdCharacter.json','_mdBossInfo.json','_mdSAbirity.json')]
     relative+=['output/card_comparison_cid30236/'+p+'.json' for p in ('description_effects','field_dictionary','verified_parameter_views','movement/trace')]
+    relative+=['output/character_skills/boss_heal_types/type_rules.json',
+               'output/character_skills/boss_heal_types/native_checks.json']
     relative+=['output/boss_heal/field_dictionary.json','output/ordinary_effects/ability7/trace.json',
                'output/cache_full_20261015_v3/records.jsonl']
     return [root/p for p in relative]

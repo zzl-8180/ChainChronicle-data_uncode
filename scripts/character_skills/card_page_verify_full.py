@@ -9,7 +9,7 @@
   1 receipt_signature   receipt 状态与签名一致（SUCCESS、无 reuse_blocked、四签名字段
                         等于当前 campaign、run_id 等于所在 cohort run）
   2 artifact_hashes     产物哈希（receipt.files 的 card.json/index.html sha256 == 盘上）
-  3 dependencies_31     31 项声明数据依赖存在且哈希未变，dependency_signature 可复算
+  3 dependencies_31     33 项声明数据依赖存在且哈希未变，dependency_signature 可复算（保留旧检查ID）
   4 rows_rowids         行集合：每卡 row_id 唯一、row_class 计数==coverage、
                         HTML data-row-id 集合==card.json 行集合、总量==campaign N_all
   5 source_dereference  行级/逐答案 source 解引用（指针落到真实记录；字段存在；
@@ -638,8 +638,8 @@ def main():
     checks.append(c1.done())
     checks.append(c2.done())
 
-    # ---- 3 31 项声明数据依赖（新增CACHE records及sympathy原始表） ----
-    c3 = Check("dependencies_31", "31 项声明数据依赖存在、哈希未变、dependency_signature 可复算")
+    # ---- 3 33 项声明数据依赖（含已审type_rules及native_checks） ----
+    c3 = Check("dependencies_31", "33 项声明数据依赖存在、哈希未变、dependency_signature 可复算")
     deps = data_paths(root)
     declared = [dict(path=p.relative_to(root).as_posix(), sha256=file_sha(p) if p.is_file() else "MISSING") for p in deps]
     dep_sig_now = hashlib.sha256(json.dumps(declared, sort_keys=True).encode()).hexdigest()
@@ -650,8 +650,8 @@ def main():
             c3.add(False, f"依赖缺失：{d['path']}")
         else:
             c3.add(True)
-    if len(deps) != 31:
-        c3.add(False, f"声明依赖数 {len(deps)} ≠ 31")
+    if len(deps) != 33:
+        c3.add(False, f"声明依赖数 {len(deps)} ≠ 33")
     else:
         c3.add(True)
     if dep_sig_now != run_sigs.get("dependency_signature"):

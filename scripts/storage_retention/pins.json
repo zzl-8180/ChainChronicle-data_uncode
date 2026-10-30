@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "pins": [
+    {
+      "path": "work/character_skills_recheck_rectification/replay_final",
+      "reason": "保留一套曾经独立复验 PASS_WITH_EXPLICIT_SCOPE_LIMITS 的完整历史页面/账本基线；不是最新正确性承诺，后续 R2/R3 审查缺陷仍以各自报告为准。run backup 是替换前内容，不能仅按 run 自身签名代替这份实存基线。",
+      "evidence": [
+        "output/character_skills/review/recheck_rectification_20261023_deepseek/recheck_20261023/REPORT.md",
+        "work/character_skills_recheck_rectification/replay_final/replay_result.json"
+      ],
+      "pages_path": "work/character_skills_recheck_rectification/replay_final/pages",
+      "campaign_signature": "0b66de961401c7c1e81d26c4ba47187c09ce2f6c1c068237f8f9150c60db61cb"
+    }
+  ]
+}

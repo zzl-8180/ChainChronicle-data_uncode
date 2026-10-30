@@ -75,15 +75,23 @@ CORE_TYPES = ('攻撃力', '防御力', '移動速度', 'クリティカル発�
               'HP回復', '継続時間')
 NA_TYPE = '定性机制'
 BREAKPOINT_CLAIM_TYPES = ('攻撃力', '防御力', '移動速度', '継続時間')
+CRIT_ATTACK_MECHANISM = 'クリティカル攻撃机制（非暴击率/暴伤）'
+_CRIT_POWER_RATE_SENTINEL = '__crit_power_and_rate__'
 
 # 词面→效果类型（长词优先：正则交替按表序，命中即消费，避免「クリティカル威力」被「威力」
 # 重复命中）。词表取自 B6._ATTRS（批 6 :112-114）＋「ダメージ/威力/回復」泛化项；
 # 标注（词表外）的类型属已识别主张但当前效果词表未收录，一律未解决并登记词表扩展需求。
 _WORD_TABLE = [
+    # 批18词面三修（候选）：最长明确形先消费；裸 crit 仅作其余真实未知的回退。
+    ('クリティカル攻撃時の威力と発生率', _CRIT_POWER_RATE_SENTINEL),
+    ('クリティカル攻撃時の威力', 'クリティカル威力'),
+    ('クリティカル攻撃の威力', 'クリティカル威力'),
+    ('クリティカルの威力', 'クリティカル威力'),
+    ('クリティカルの発生率', 'クリティカル発生率'),
     ('クリティカル発生率', 'クリティカル発生率'),
     ('クリティカル威力', 'クリティカル威力'),
-    ('クリティカル率', 'クリティカル（発生率/威力未区分）'),
-    ('クリティカル', 'クリティカル（発生率/威力未区分）'),   # 后随「時」时不构成主张（守卫）
+    ('クリティカル率', 'クリティカル発生率'),
+    ('クリティカル', 'クリティカル（発生率/威力未区分）'),   # 其余真实未知保留；攻撃机制另分流
     ('通常攻撃威力', '通常攻撃威力（词表外）'),
     ('攻撃間隔', '攻撃間隔（词表外）'),
     ('攻撃速度', '攻撃速度（词表外）'),
@@ -113,6 +121,195 @@ _CLAUSE_RE = re.compile(r'[^。、！？\n]+')
 _SENT_RE = re.compile(r'[^。！？\n]*[。！？]?')
 # 连接词剥离（批 6 :119 同法；子句切分不含「、」本字，故带顿号与不带顿号两种形态都剥）。
 _CONNECTIVES = tuple(B6._CONNECTIVES) + tuple(c.rstrip('、') for c in B6._CONNECTIVES)
+# S5 非地形段（2026-10-26，主持裁决①）：概率玛那获得——来源限定消费。
+# 只消费带 ``binding.s5_binding``（scope=S5_NONTERRAIN_20261026）的答案；无合格答案行
+# 不新增主张、不改拆分。30236/30239 无本批答案，自然零触碰。
+# S5 地形段（2026-10-26 批2）：独立 scope S5_TERRAIN_20261026，只收 param4/param5（地形附加），
+# 与批次1 的 param0/1/2 答案池互不相交；主张只覆盖地形条件子句＋其后的玛那子句，
+# 不覆盖本行前面的击杀基础概率子句（5092/7546 仍留 S3）。
+S5_CHANCE_TYPE = '確率マナ獲得'
+S5_SCOPE = 'S5_NONTERRAIN_20261026'
+S5_TERRAIN_SCOPE = 'S5_TERRAIN_20261026'
+S5_RULE_SLOTS = {'skilllist|28|/param0': 'param0',
+                 'skilllist|28|/param1': 'param1',
+                 'skilllist|28|/param2': 'param2'}
+S5_TERRAIN_RULE_SLOTS = {'skilllist|28|/param4': 'param4',
+                         'skilllist|28|/param5': 'param5'}
+_S5_SCOPE_SLOTS = {S5_SCOPE: S5_RULE_SLOTS, S5_TERRAIN_SCOPE: S5_TERRAIN_RULE_SLOTS}
+# 获珠相对句批（2026-10-29，主持授权 dwfq-0e41fa8d-1）：来源限定窄映射。相对句
+# 「必殺技で倒すと獲得しやすくなる。」句面无「マナ」二字，既有 _S5_MANA_RX 不匹配；
+# 本批答案带 ``binding.s5_relative_binding`` 标记，**只对该标记行**新增一条「確率マナ獲得」
+# 主张（覆盖句面相对子句），使行级归位答案可被既有 S5 槽位映射消费。无标记行
+# （含全部旧页与其他族）行为零变化；不整族映射 type28、不改 S5_RULE_SLOTS。
+S5_RELATIVE_MARK = 's5_relative_binding'
+_S5_RELATIVE_RX = re.compile(r'獲得しやすくな|獲得しやすく')
+# G1-B1 必殺ダメージ镜像行绑定批（2026-10-29）：来源限定窄映射。只消费本批模块
+# （card_page_inference_g1_b1.py）写入、带 ``binding.g1_b1_binding``
+# （scope＝G1_B1_MIRROR_20261029）的答案，且 rule_key / field_path / record_id / layer
+# 与标记逐项一致；只补 6 个既有确认规则键 → ダメージ（词表外）。
+# 不整族映射 bossskill 3/22/55/74/105/110（其余伤害键 76/112/51/47 不由本批消费、不登记）；
+# 无标记行（含全部旧页与其他族）行为零变化；不改 _RULE_KEY_EFFECT / S5_RULE_SLOTS。
+G1B1_SCOPE = 'G1_B1_MIRROR_20261029'
+G1B1_RULE_EFFECT = {
+    'bossskill|3|/skillparam1': 'ダメージ（词表外）',
+    'bossskill|22|/skillparam1': 'ダメージ（词表外）',
+    'bossskill|55|/skillparam1': 'ダメージ（词表外）',
+    'bossskill|74|/skillparam5': 'ダメージ（词表外）',
+    'bossskill|105|/skillparam1': 'ダメージ（词表外）',
+    'bossskill|110|/skillparam1': 'ダメージ（词表外）',
+}
+# C8-P1 t27 周期回复批（2026-10-30，主持裁决）：来源限定窄映射。只消费本批模块
+# （card_page_inference_c8_p1_t27.py）写入、带 ``binding.c8_p1_t27_binding``
+# （scope＝C8_P1_T27_HEAL_20261030）的答案，且 rule_key / field_path / table / record_id /
+# layer 与标记逐项一致；只把 ``bossskill|27|/skillparam1`` 绑到句面已有的「回復（词表外）」
+# 词表主张（不新增规则键、不改 rules.json）。
+# **不整族映射 type27**（p2 回复间隔 / p3 回复次数 / skillflag0_1 均不映射），无标记行
+# （含全部旧页与其他族）映射行为零变化；不改 _RULE_KEY_EFFECT / G1B1_RULE_EFFECT。
+C8P1_T27_SCOPE = 'C8_P1_T27_HEAL_20261030'
+C8P1_T27_RULE_KEY = 'bossskill|27|/skillparam1'
+C8P1_T27_EFFECT = '回復（词表外）'
+# C10-P1 skilltext 同卡镜像整理批（2026-10-30，主持裁决）：来源限定窄映射。只消费本批模块
+# （card_page_inference_c10_p1_mirror.py）写入、带 ``binding.c10_p1_mirror_binding``
+# （scope＝C10_P1_T27_SKILLTEXT_MIRROR_20261030）的答案，且 rule_key / field_path / table /
+# record_id / layer 与标记逐项一致；只把 ``bossskill|27|/skillparam1`` 绑到句面已有的
+# 「回復（词表外）」词表主张（不新增规则键、不改 rules.json）。
+# **不整族映射 type27**，不改 C8 的 C8P1_T27 分支、_RULE_KEY_EFFECT／G1B1_RULE_EFFECT；
+# 无标记行（含全部旧页与其他族）映射行为零变化。t64 走既有全局映射，不在此表。
+C10P1_T27_SCOPE = 'C10_P1_T27_SKILLTEXT_MIRROR_20261030'
+C10P1_T27_RULE_KEY = 'bossskill|27|/skillparam1'
+C10P1_T27_EFFECT = '回復（词表外）'
+# type67 阶梯批（2026-10-28）：来源限定的槽位↔主张类型映射。只消费本批模块写入、
+# 带 binding.type67_binding（scope＝TYPE67_BATCH_20261028）的答案；不整族映射 type67，
+# 不改既有 P3B9/P3B10 等单记录条件答案的映射路径。
+_T67_SCOPE = 'TYPE67_BATCH_20261028'
+_T67_SLOT_EFFECT = {'param1': '攻撃力', 'param2': '移動速度', 'param3': '防御力',
+                    'param6': 'クリティカル発生率', 'param7': 'クリティカル威力'}
+# 金币/经验批（2026-10-28 批2）：来源限定的槽位↔主张映射。只消费本批模块写入、带
+# ``binding.gold_exp_binding``（scope＝GOLD_EXP_BATCH_20261028）的答案；不整族映射
+# skilllist 100/102，不改其他族、既有开局マナ与 B 档答案的映射路径。词表没有金币/经验
+# 主张，故按 S5 同法**只对有本批合格答案的行**补一条来源限定主张（无答案行不新增主张）。
+_GE_SCOPE = 'GOLD_EXP_BATCH_20261028'
+_GE_RULE_SLOTS = {'skilllist|100|/param0': (100, '金币获得（词表外）'),
+                  'skilllist|102|/param0': (102, '经验值获得（词表外）')}
+_GE_ABILITY_MARK = {100: 'ゴールド', 102: '経験値'}
+# 回复间隔两段乘数批（2026-10-28 批3）：来源限定窄映射。只消费本批模块写入、带
+# ``binding.heal_interval_binding``（scope＝HEAL_INTERVAL_20261028）的答案；**不新增主张**，
+# 只把它们绑到句面「回復速度」处已存在的「回復（词表外）」主张上（该主张的 span 落在
+# 「回復速度」词形内部），基础段为主答案、条件段作 variant。无标记/错 scope/错槽位一律不消费；
+# 不整族映射 type19/1033，不改其他族、既有开局マナ与 B 档答案的映射路径。
+# type80（HoldMana 一次性条件增益）＋type96（ManaCountUp 逐珠线性）成对批（2026-10-28 批4）：
+# 来源限定窄映射。只消费本批模块写入、带 ``binding.type80_96_binding``
+# （scope＝TYPE80_96_BATCH_20261028）的答案；不整族映射 skilllist 80/96，不改其他族、
+# 既有开局マナ/B 档（mana_b_binding）、type67、金币/经验、回复间隔答案的映射路径。
+# 两族形态严格分开：80＝ONE_SHOT（一次性乘/加一次），96＝PER_UNIT_LINEAR（每颗×计数）。
+_T8096_SCOPE = 'TYPE80_96_BATCH_20261028'
+# 槽位→主张类型**按能力分表**：type80 的暴击槽是 param7（率）／param8（伤），
+# type96 的是 param6（率）／param7（伤）——两族同号槽位语义不同（C2 的同一处易错点），
+# 合表会把 80 的 param7 误记为「クリティカル威力」而无法绑定「クリティカル発生率」主张。
+_T8096_SLOT_EFFECT = {
+    80: {'param1': '攻撃力', 'param2': '移動速度', 'param3': '防御力',
+         'param7': 'クリティカル発生率', 'param8': 'クリティカル威力'},
+    96: {'param4': '移動速度', 'param5': '防御力',
+         'param6': 'クリティカル発生率', 'param7': 'クリティカル威力'},
+}
+_T8096_FAMILIES = ('hold_mana_oneshot', 'mana_count_up_linear',
+                   'mana_count_up_scrap_condition')
+_T8096_EFFECT_TYPES = frozenset(v for table in _T8096_SLOT_EFFECT.values()
+                                for v in table.values())
+_HI_SCOPE = 'HEAL_INTERVAL_20261028'
+_HI_RULE_SLOTS = {'skilllist|19|/param2': (19, 'param2'),
+                  'skilllist|1033|/param3': (1033, 'param3')}
+_HI_SPEED_WORD = '回復速度'
+_HI_EFFECT = '回復（词表外）'
+# G0-B1／G7-B0 合并小批（2026-10-28 批5）：来源限定窄映射。只消费本批模块写入、带
+# ``binding.g0g7_binding``（scope＝G0_G7B0_20261028）的答案，且必须与该行主张的
+# **span＋子句号**逐值相等（句面点名槽位）——不整族映射 skilllist 29／1008，不改其他族、
+# 既有开局マナ/B 档/type67/金币经验/回复间隔/type80·96 答案的映射路径。
+# G0＝bond 行「必殺技の威力」主张（威力（词表外）），G7＝地形句的 攻撃力／移動速度 主张
+# （1008 p1/p2；p3 受伤量不映射，主持 2026-10-26 裁决）。
+_G0G7_SCOPE = 'G0_G7B0_20261028'
+_G0G7_RULE_SLOTS = {
+    'g0_bond_power': {'skilllist|29|/param0': ('param0', '威力（词表外）')},
+    'g7b0_terrain': {'skilllist|1008|/param1': ('param1', '攻撃力'),
+                     'skilllist|1008|/param2': ('param2', '移動速度')},
+}
+
+
+def _g0g7_binding_of_answer(answer: dict):
+    """本批答案标记 → (family, binding dict)；无标记返回 None。"""
+    binding = answer.get('binding') if isinstance(answer.get('binding'), dict) else {}
+    if not isinstance(binding, dict):
+        return None
+    got = binding.get('g0g7_binding')
+    if not isinstance(got, dict) or got.get('scope') != _G0G7_SCOPE:
+        return None
+    return got.get('family'), got
+
+
+def _ge_binding_of_answer(answer: dict):
+    binding = answer.get('binding') if isinstance(answer.get('binding'), dict) else {}
+    ge = binding.get('gold_exp_binding') if isinstance(binding, dict) else None
+    return ge if isinstance(ge, dict) else None
+
+
+def _ge_answer_slots(row: dict):
+    """行内本批来源合格答案 → [(ability, answer_index, raw, rule_key)]（scope 精确）。"""
+    out = []
+    for idx, a in enumerate(row.get('answers') or []):
+        ge = _ge_binding_of_answer(a)
+        if not ge or ge.get('scope') != _GE_SCOPE:
+            continue
+        hit = _GE_RULE_SLOTS.get(a.get('rule_key'))
+        if hit is None or a.get('field_path') != '/param0' or a.get('table') != 'skilllist':
+            continue
+        if hit[0] != ge.get('ability') or ge.get('rule_key') != a.get('rule_key'):
+            continue
+        if a.get('record_id') != ge.get('carrier_record_id') or a.get('layer') != ge.get('carrier_layer'):
+            continue
+        raw = a.get('raw_value')
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not math.isfinite(raw):
+            continue
+        out.append((hit[0], idx, raw, a.get('rule_key')))
+    return out
+
+
+def _hi_binding_of_answer(answer: dict):
+    binding = answer.get('binding') if isinstance(answer.get('binding'), dict) else {}
+    hi = binding.get('heal_interval_binding') if isinstance(binding, dict) else None
+    return hi if isinstance(hi, dict) else None
+
+
+def _hi_answer_slots(row: dict):
+    """行内本批来源合格答案 → [(ability, answer_index, raw, rule_key)]（scope/槽/载体精确）。"""
+    out = []
+    for idx, a in enumerate(row.get('answers') or []):
+        hi = _hi_binding_of_answer(a)
+        if not hi or hi.get('scope') != _HI_SCOPE:
+            continue
+        hit = _HI_RULE_SLOTS.get(a.get('rule_key'))
+        if hit is None or a.get('table') != 'skilllist':
+            continue
+        ability, slot = hit
+        if (hi.get('ability') != ability or hi.get('slot') != slot
+                or hi.get('rule_key') != a.get('rule_key')):
+            continue
+        if a.get('field_path') != '/' + slot:
+            continue
+        if a.get('record_id') != hi.get('carrier_record_id') or a.get('layer') != hi.get('carrier_layer'):
+            continue
+        raw = a.get('raw_value')
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not math.isfinite(raw):
+            continue
+        out.append((ability, idx, raw, a.get('rule_key')))
+    return out
+_S5_MANA_RX = re.compile(r'(?:一定確率|必ず)[^。]{0,30}?マナを獲得|マナを獲得しやすく')
+_S5_KILL_RE = re.compile(r'敵に止めを刺した|敵に止めを刺す|止めを刺した|止めを刺す|'
+                         r'敵を倒した|敵を倒す|倒した|倒す')
+_S5_TRIGGER_QUALIFIERS = ('クリティカル', '必殺技', '通常攻撃', '攻撃', '自身',
+                          '場合', 'たび', 'とき', '時', 'と', 'で', 'か', 'が', '、', ' ')
+_S5T_COND_RX = re.compile(r'^(?:また|さらに)*(?:地形|戦場)が[^。]{1,40}?(?:の場合|の時|のとき)$')
+_S5T_MANA_RX = re.compile(r'(?:さらに|また)*(?:必ず)?マナを獲得(?:しやすくな|しやすく|する)')
+
 # R2 整改（20261023 复审）：数字 token 支持小数——「12.5%」此前被切成 '12' 与 '5' 两个
 # 整数 token，导致值 12.5% 的既有答案（raw 5.5/0.125）永远无法映射（完整行误带未覆盖数字）。
 _DIGIT_RE = re.compile(r'\d+(?:\.\d+)?')
@@ -251,6 +448,13 @@ def _clause_object(clause: str):
 # ---- 答案→效果类型映射（rule_key 精确表；来源见模块头注各批次映射表）--------------
 _RULE_KEY_EFFECT = {
     'skilllist|2012|/param4': 'クリティカル発生率', 'skilllist|2012|/param5': 'クリティカル威力',
+    # 批18小范围消费者：只接收 own-record 明确「クリティカル率」词面可消费的
+    # ability64 /param4。其余槽不借整行补齐扩域；值来源仍标规则外推。
+    'skilllist|64|/param4': 'クリティカル発生率',
+    # 共鳴必殺A/B 批（2026-10-26）：64 p1＝reactive heal 基值（回复主张）；
+    # 114 p1＝冲刺重复攻击倍率（伤害主张）。仅这两键，不改其他映射。
+    'bossskill|64|/skillparam1': '回復（词表外）',
+    'bossskill|114|/skillparam1': 'ダメージ（词表外）',
     'bossskill|13|/skillparam1': '攻撃力', 'bossskill|13|/skillparam2': '防御力',
     'bossskill|13|/skillparam3': '継続時間', 'bossskill|13|/skillparam6': '移動速度',
     'skilllist|99|/param7': '攻撃力', 'skilllist|99|/param8': '移動速度',
@@ -264,12 +468,168 @@ _RULE_KEY_EFFECT = {
     'skilllist|1017|/param3': '防御力',
     'skilllist|3000|/param1': '攻撃力', 'skilllist|3000|/param2': '攻撃力',
     'skilllist|3000|/param8': 'クリティカル威力', 'skilllist|3000|/param6': '継続時間',
+    # マナ账本映射批（2026-10-26，窄门）：**仅** マナ批已上线的三个已消费键接入账本；
+    # 不整族映射 type26（boost／職種限定／時の楔／Chain／コスト／スロット／所持 等
+    # 未确认族不在此表，也不据 ability 号反向外推）。
+    'skilllist|26|/param0': '開局マナ', 'skilllist|26|/param4': '開局マナ',
+    'skilllist|26|/param7': '開局マナ',
+    # クリティカル吸収批（2026-10-26，主持裁决 (a)）：**仅** ability21／65000003 的两个
+    # 已确认规则键接入账本（回復（词表外）主张）；两键均具来源限定（规则 conditions 明写
+    # 「仅普通65000003」，本批载体恰在域内）；不整族映射 ability21，不改其他族映射。
+    'skilllist|21|/param1': '回復（词表外）', 'skilllist|21|/flag0_1': '回復（词表外）',
+}
+# 上表各键的映射依据文本（_answer_effect_type 的 basis 用；未列键沿用通用依据）。
+_RULE_KEY_EFFECT_BASIS = {
+    'skilllist|26|/param0': 'マナ账本映射批三键精确映射（rule_key 精确匹配；不整族映射 type26）'
+                            '＋来源限定主张（同槽位来源合格答案、原值整数化＝句中数字）',
+    'skilllist|26|/param4': 'マナ账本映射批三键精确映射（rule_key 精确匹配；不整族映射 type26）'
+                            '＋来源限定主张（同槽位来源合格答案、原值整数化＝句中数字）',
+    'skilllist|26|/param7': 'マナ账本映射批三键精确映射（rule_key 精确匹配；不整族映射 type26）'
+                            '＋来源限定主张（同槽位来源合格答案、原值整数化＝句中数字）',
+    'skilllist|21|/param1': 'クリティカル吸収批两键精确映射（rule_key 精确匹配；不整族映射'
+                            'ability21）＋载体来源限定（skilllist|65000003|CACHE ability21；'
+                            '规则 conditions「仅普通65000003」）＋本批 binding 标记双槽同主张消费',
+    'skilllist|21|/flag0_1': 'クリティカル吸収批两键精确映射（rule_key 精确匹配；不整族映射'
+                             'ability21）＋载体来源限定（skilllist|65000003|CACHE ability21；'
+                             '规则 conditions「仅普通65000003」）＋本批 binding 标记双槽同主张消费',
 }
 _BREAKPOINT_CRIT_KEYS = frozenset({'skilllist|2012|/param4', 'skilllist|2012|/param5'})
 # P4（A2 复核修正，20261023）：99/2003 的 /param9＝「防御力下がる」的表现层（受伤量倍率
 # 加算，正值→受伤量因子上升；批 9 映射表 card_page_inference_b9_debuff.py:11-12/:57 已
 # 确认该对应）——方向按此固定，不用原值符号猜（原值符号对 p9 恰好反向）。
 _RULE_KEY_DIRECTION = {'skilllist|99|/param9': 'down', 'skilllist|2003|/param9': 'down'}
+# ---- マナ账本映射批（20261026，窄门）：開局マナ 三键接入 ------------------------------
+# 范围（docs/tasks/20261026-mana-ledger-mapping.md §1）：只把マナ批已上线的三个已消费键
+# 接入效果账本，使 has_answer/backlog 如实反映：
+#   ``skilllist|26|/param0``（素マナ）｜``/param4``（全職業，iParam1=31）｜``/param7``（万象）。
+# 禁止整族映射 type26：boost（param0×param5）／職種限定マナ／時の楔／Chain／コスト／
+# スロット／所持 等未确认族**不登记主张**（生产侧已逐行拒答；本表不按 ability 号外推）。
+# 主张为**来源限定主张**（source-qualified claim，与 _attack_interval_binding 同口径）：
+# 仅当同一行内已有该槽位的来源合格答案（rule_key 精确、field_path 一致、table=skilllist、
+# record_id 整数、raw_value 有限且整数化＝句中数字、quantity_kind 含「玛那数量」）且行文
+# 命中三个开局句式之一时登记。没有该答案的行不登记主张——S1/S3 原样保留，**不把无答案项
+# 标成有答案**（30236/30239 零触碰 12 行与 323 的 1 行保持既有待办）。
+MANA_START_TYPE = '開局マナ'
+MANA_START_RULE_KEYS = {'skilllist|26|/param0': 'param0',
+                        'skilllist|26|/param4': 'param4',
+                        'skilllist|26|/param7': 'param7'}
+# 三个已确认开局句式（NFKC 后子句级搜索；span 取本匹配）
+_MANA_START_RE = re.compile(
+    r'(万象マナ|全ての職業で使用できるマナ|(?:自身の職業の)?マナ)を(\d+)つ持った状態で戦闘を開始')
+# 生产侧未确认族（不登记主张）：必殺技 boost／時の楔；素マナ前的職種・使用・戦場限定词
+_MANA_START_REJECT = ('必殺技', '時の楔')
+_MANA_START_PLAIN_BLOCK = ('戦士', '騎士', '弓使い', '僧侶', '魔法使い', '魔神', '天魔',
+                           '使用でき', '使え', '戦場に')
+
+# マナB 批（2026-10-26，主持裁决）：两个**来源限定**开局句式分支——只在同一行已有
+# 合格 26 答案时登记主张；无合格答案的行不登记（30236/30239 零触碰前提）。
+# 句式精确锚定行首；仍拒绝 Chain/コスト/スロット/所持/消費/WAVE/地形/撃破/時の楔 等族。
+# 第二周期整改 R02（2026-10-26 第三方审查）：B 档分支必须校验本批 scope/family/binding
+# 标记（``binding.mana_b_binding``）；映射批三键答案不要求该标记（不得误杀 1,209 条）。
+_MANA_B_SCOPE = 'MANA_B_BATCH_20261026'
+_MANA_B_FAMILIES = ('start_boost', 'start_job')
+_MANA_B_JOBWORD = r'(?:戦士|弓使い|魔法使い|僧侶|騎士)'
+_MANA_B_JOBSEQ = _MANA_B_JOBWORD + r'(?:(?:と|か|、|または)' + _MANA_B_JOBWORD + r')*'
+_MANA_B_S1_RE = re.compile(
+    r'^全ての必殺技が使えるマナを(\d+)つ持った状態で戦闘を開始')
+_MANA_B_JOB_BOOST_RE = re.compile(
+    r'^(' + _MANA_B_JOBSEQ + r')の全ての必殺技が使えるマナを(\d+)つ持った状態で戦闘を開始')
+_MANA_B_JOB_USABLE_RE = re.compile(
+    r'^(' + _MANA_B_JOBSEQ + r')(?:で使用できる|の性質を持った)マナを(\d+)つ持った状態で戦闘を開始')
+_MANA_B_BLOCK = ('Chain', 'チェイン', 'コスト', 'スロット', '所持', '消費', '必要',
+                 'WAVE', '地形', '撃破', '倒し', '時の楔')
+# R02：普通开局句式前的前缀触发词（Chain/スロット/コスト）——同子句「前缀＋开局后缀」
+# 不得当作开局主张（合成反例 1stChain以上／マナスロットで／コストが低い時）。只在**同一
+# 子句匹配点之前**判词，故 7211「…マナスロットのマナ数が多いほど…」的合法开局部分保留
+#（スロット 在其后）；不用整行黑名单。
+_MANA_START_PREFIX_BLOCK = ('Chain', 'チェイン', 'スロット', 'コスト')
+
+
+def _mana_start_claim_text(text: str):
+    """子句→(slot, number, local_span, snippet, gate)|None。
+
+    三个已确认句式（映射批，gate='mapping'）＋マナB 两个来源限定句式（gate='mana_b'；
+    S1 boost→param4；S2 职业限定 boost/usable/性質→auto＝按唯一合格答案取 param0 或
+    param4）。新分支仍拒绝 Chain/コスト/スロット/所持/消費/WAVE/地形/撃破/時の楔 等未确认族；
+    R02 起普通句式的前缀带 Chain/スロット/コスト 也拒绝（同子句前缀＋开局后缀形态）。
+    """
+    if not any(w in text for w in _MANA_B_BLOCK):
+        m = _MANA_B_JOB_BOOST_RE.search(text) or _MANA_B_JOB_USABLE_RE.search(text)
+        if m:
+            return 'auto', int(m.group(2)), [m.start(), m.end()], m.group(0), 'mana_b'
+        m = _MANA_B_S1_RE.search(text)
+        if m:
+            return 'param4', int(m.group(1)), [m.start(), m.end()], m.group(0), 'mana_b'
+    if any(w in text for w in _MANA_START_REJECT):
+        return None
+    m = _MANA_START_RE.search(text)
+    if not m:
+        return None
+    prefix = text[:m.start()]
+    if any(w in prefix for w in _MANA_START_PREFIX_BLOCK):
+        return None
+    head = m.group(1)
+    if head == '万象マナ':
+        slot = 'param7'
+    elif head == '全ての職業で使用できるマナ':
+        slot = 'param4'
+    else:
+        if any(w in prefix for w in _MANA_START_PLAIN_BLOCK):
+            return None
+        slot = 'param0'
+    return slot, int(m.group(2)), [m.start(), m.end()], m.group(0), 'mapping'
+
+
+def _mana_b_marker_ok(answer: dict, slot: str):
+    """R02：B 档开局分支的绑定门——本批 scope／family／slot／record_id 与答案一致。"""
+    binding = answer.get('binding') if isinstance(answer.get('binding'), dict) else None
+    marker = (binding or {}).get('mana_b_binding') if isinstance(binding, dict) else None
+    if not isinstance(marker, dict):
+        return False
+    if marker.get('scope') != _MANA_B_SCOPE:
+        return False
+    if marker.get('family') not in _MANA_B_FAMILIES:
+        return False
+    if marker.get('slot') != slot:
+        return False
+    marker_rid, answer_rid = marker.get('record_id'), answer.get('record_id')
+    if marker_rid is None:
+        # 开局分支（start_boost/start_job）标记不写 record_id；scope/family/slot 足够。
+        return True
+    if isinstance(marker_rid, bool) or not isinstance(marker_rid, int):
+        return False
+    return marker_rid == answer_rid
+
+
+def _mana_start_answer_slots(row: dict):
+    """行内三键来源合格答案 → {slot: [(int_value, answer_index, mana_b_marked), ...]}。
+
+    第三项＝该答案是否带本批 ``binding.mana_b_binding``（scope/family/slot/record_id 一致）；
+    B 档开局分支只消费 marked 项，映射批分支不要求（R02）。
+    """
+    out = collections.defaultdict(list)
+    for idx, a in enumerate(row.get('answers') or []):
+        slot = MANA_START_RULE_KEYS.get(a.get('rule_key'))
+        if slot is None or a.get('field_path') != '/' + slot:
+            continue
+        if a.get('table') != 'skilllist':
+            continue
+        rid = a.get('record_id')
+        if not isinstance(rid, int) or isinstance(rid, bool):
+            continue
+        if '玛那数量' not in str(a.get('quantity_kind') or ''):
+            continue
+        raw = a.get('raw_value')
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not math.isfinite(raw):
+            continue
+        if int(raw) != raw or raw < 1:
+            continue
+        if str(a.get('status') or '') == 'unresolved':
+            continue
+        if '未知' in str(a.get('numeric_evidence') or '')                 or '未知' in str(a.get('association_evidence') or ''):
+            continue
+        out[slot].append((int(raw), idx, _mana_b_marker_ok(a, slot)))
+    return out
 # rule_key 未命中时按 quantity_kind/value 词面回退（顺序敏感；审查 goal_alignment.py:10 同法）。
 # DS-GR-07 修复（20261023）：「伤害」先于「攻击/攻撃」——「远程通常攻击伤害效果量百分比」
 # 类答案此前词面命中「攻击」被映射为攻撃力（84 条，应归ダメージ）；伤害语义优先于攻击词面。
@@ -319,9 +679,214 @@ def _direction(clause: str):
     return None
 
 
+def _s5_chance_answer_slots(row: dict):
+    """本批概率玛那合格答案（来源限定）：rule_key/field_path/table/scope/数量类型一致。
+
+    返回 ``(slot, answer_index, answer, scope)``；非地形段（param0/1/2）与地形段
+    （param4/param5）按各自 scope 取各自槽位，互不相交。
+    """
+    out = []
+    for idx, a in enumerate(row.get('answers') or []):
+        binding = a.get('binding') if isinstance(a.get('binding'), dict) else {}
+        s5 = binding.get('s5_binding') if isinstance(binding.get('s5_binding'), dict) else {}
+        slots_map = _S5_SCOPE_SLOTS.get(s5.get('scope'))
+        if slots_map is None:
+            continue
+        slot = slots_map.get(a.get('rule_key'))
+        if slot is None or a.get('field_path') != '/' + slot:
+            continue
+        if a.get('table') != 'skilllist':
+            continue
+        if s5.get('record_id') != a.get('record_id'):
+            continue
+        if slot not in (s5.get('slots') or []):
+            continue
+        if '玛那概率阈值' not in str(a.get('quantity_kind') or ''):
+            continue
+        raw = a.get('raw_value')
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not math.isfinite(raw):
+            continue
+        if not (0.0 <= float(raw) <= 1.0):
+            continue
+        out.append((slot, idx, a, s5.get('scope')))
+    return out
+
+
+def _s5_relative_answer_slots(row: dict):
+    """获珠相对句批（2026-10-29）：带 ``binding.s5_relative_binding`` 标记的归位答案。
+
+    守卫逐项一致才消费：标记 scope＝S5_NONTERRAIN_20261026、标记含 base_row_id/slots、
+    rule_key↔槽位、field_path、table=skilllist、record_id＝标记的 base_record_id、
+    quantity_kind 含「玛那概率阈值」、raw 有限且在 0..1。无标记答案（含旧页全部答案）不入选。
+    返回 ``(slot, answer_index, answer)``。
+    """
+    out = []
+    for idx, a in enumerate(row.get('answers') or []):
+        binding = a.get('binding') if isinstance(a.get('binding'), dict) else {}
+        rel = binding.get(S5_RELATIVE_MARK) if isinstance(binding, dict) else None
+        if not isinstance(rel, dict) or rel.get('scope') != S5_SCOPE:
+            continue
+        slot = S5_RULE_SLOTS.get(a.get('rule_key'))
+        if slot is None or a.get('field_path') != '/' + slot:
+            continue
+        if a.get('table') != 'skilllist':
+            continue
+        if slot not in (rel.get('slots') or []):
+            continue
+        if not rel.get('base_row_id') or a.get('record_id') != rel.get('base_record_id'):
+            continue
+        if '玛那概率阈值' not in str(a.get('quantity_kind') or ''):
+            continue
+        raw = a.get('raw_value')
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not math.isfinite(raw):
+            continue
+        if not (0.0 <= float(raw) <= 1.0):
+            continue
+        out.append((slot, idx, a))
+    return out
+
+
+def _s5_terrain_claim_clauses(clauses):
+    """地形段主张覆盖的子句索引：地形条件子句＋其后连续的玛那/接续子句。
+
+    不覆盖条件之前的击杀基础概率子句（5092/7546），也不越过第一个无关子句
+    （5092 的「さらに騎士マナか弓使いマナ…」）。无地形条件子句返回 None。
+    """
+    conds = [ci for ci, (clause, _span) in enumerate(clauses)
+             if _S5T_COND_RX.match(clause.strip())]
+    if not conds:
+        return None
+    covered = [conds[-1]]
+    j = conds[-1] + 1
+    while j < len(clauses):
+        core = clauses[j][0]
+        for c in _CONNECTIVES:
+            if core.startswith(c):
+                core = core[len(c):]
+                break
+        if not core.strip():
+            covered.append(j)
+            j += 1
+            continue
+        if _S5T_MANA_RX.search(core) or _S5T_COND_RX.match(core.strip()):
+            covered.append(j)
+            j += 1
+            continue
+        break
+    return covered
+
+
+def _s5_trigger_clause_ok(clause: str):
+    """击杀触发子句（允许 クリティカル/必殺技/通常攻撃/自身/接续词 等限定）；
+    夹带台词或其它子句内容时不覆盖（避免把 flavor 一并算作已覆盖）。"""
+    core = clause.strip('。、！？ \n')
+    for c in _CONNECTIVES:
+        if core.startswith(c):
+            core = core[len(c):]
+    m = _S5_KILL_RE.search(core)
+    if not m:
+        return False
+    resid = core[:m.start()] + core[m.end():]
+    for w in _S5_TRIGGER_QUALIFIERS:
+        resid = resid.replace(w, '')
+    return resid.strip('。、！？ \n') == ''
+
+
 def _answer_effect_type(answer: dict):
     """答案→效果类型映射；返回 (type|None, basis)。"""
     rk = answer.get('rule_key')
+    binding = answer.get('binding') if isinstance(answer.get('binding'), dict) else {}
+    ge = binding.get('gold_exp_binding') if isinstance(binding, dict) else None
+    if isinstance(ge, dict) and ge.get('scope') == _GE_SCOPE:
+        hit = _GE_RULE_SLOTS.get(rk)
+        if (hit is not None and answer.get('field_path') == '/param0'
+                and hit[0] == ge.get('ability') and ge.get('rule_key') == rk
+                and answer.get('record_id') == ge.get('carrier_record_id')
+                and answer.get('layer') == ge.get('carrier_layer')):
+            return hit[1], ('金币/经验批：binding.gold_exp_binding 来源限定（scope/ability/'
+                            'rule_key/载体记录逐项一致；不整族映射 skilllist 100/102）')
+    t8096 = binding.get('type80_96_binding') if isinstance(binding, dict) else None
+    if isinstance(t8096, dict) and t8096.get('scope') == _T8096_SCOPE:
+        slot = (answer.get('field_path') or '').lstrip('/')
+        etype = (_T8096_SLOT_EFFECT.get(t8096.get('ability')) or {}).get(slot)
+        if (etype is not None and t8096.get('slot') == slot
+                and t8096.get('rule_key') == rk
+                and t8096.get('family') in _T8096_FAMILIES
+                and answer.get('record_id') == t8096.get('carrier_record_id')
+                and answer.get('layer') == t8096.get('carrier_layer')):
+            return etype, ('type80/96 成对批：binding.type80_96_binding 来源限定'
+                           '（scope/形态/槽/rule_key/载体记录与层逐项一致；'
+                           '不整族映射 skilllist 80/96）')
+    hb = binding.get('heal_interval_binding') if isinstance(binding, dict) else None
+    if isinstance(hb, dict) and hb.get('scope') == _HI_SCOPE:
+        hit = _HI_RULE_SLOTS.get(rk)
+        if (hit is not None and hb.get('ability') == hit[0] and hb.get('slot') == hit[1]
+                and hb.get('rule_key') == rk
+                and answer.get('field_path') == '/' + hit[1]
+                and answer.get('record_id') == hb.get('carrier_record_id')
+                and answer.get('layer') == hb.get('carrier_layer')):
+            return _HI_EFFECT, ('回复间隔两段乘数批：binding.heal_interval_binding 来源限定'
+                                '（scope/ability/槽/载体记录逐项一致；只绑到句面「回復速度」处的'
+                                '既有回復主张，不整族映射 skilllist 19/1033）')
+    g0g7 = _g0g7_binding_of_answer(answer)
+    if g0g7:
+        family, gb = g0g7
+        hit = (_G0G7_RULE_SLOTS.get(family) or {}).get(rk)
+        if (hit is not None and gb.get('slot') == hit[0]
+                and gb.get('rule_key') == rk
+                and answer.get('field_path') == '/' + hit[0]
+                and answer.get('record_id') == gb.get('carrier_record_id')
+                and answer.get('layer') == gb.get('carrier_layer')):
+            return hit[1], ('G0-B1／G7-B0 合并小批：binding.g0g7_binding 来源限定'
+                            '（scope/形态/槽/rule_key/载体记录与层逐项一致＋span/子句逐值相等；'
+                            '不整族映射 skilllist 29／1008）')
+    s5 = binding.get('s5_binding') if isinstance(binding.get('s5_binding'), dict) else {}
+    _s5_slots = _S5_SCOPE_SLOTS.get(s5.get('scope'))
+    if (_s5_slots is not None and rk in _s5_slots
+            and answer.get('field_path') == '/' + _s5_slots[rk]
+            and '玛那概率阈值' in str(answer.get('quantity_kind') or '')):
+        return S5_CHANCE_TYPE, 'S5 概率玛那：binding.s5_binding 来源限定（occurrences=1 类型外推）'
+    # G1-B1 必殺ダメージ镜像行绑定批（2026-10-29，来源限定窄映射；见模块头注）：
+    # 只认带 binding.g1_b1_binding（scope 精确）且 rule_key/槽/载体记录/层逐项一致的答案；
+    # 只补 6 个既有确认规则键，不整族映射 bossskill，无标记行行为零变化。
+    g1b1 = binding.get('g1_b1_binding') if isinstance(binding, dict) else None
+    if isinstance(g1b1, dict) and g1b1.get('scope') == G1B1_SCOPE:
+        hit = G1B1_RULE_EFFECT.get(rk)
+        if (hit is not None
+                and g1b1.get('rule_key') == rk
+                and answer.get('field_path') == g1b1.get('field_path')
+                and answer.get('table') == 'bossskill'
+                and answer.get('record_id') == g1b1.get('record_id')
+                and answer.get('layer') == g1b1.get('layer')):
+            return hit, ('G1-B1 镜像行绑定批：binding.g1_b1_binding 来源限定'
+                         '（scope/rule_key/槽/载体记录与层逐项一致；只补 6 个既有确认规则键，'
+                         '不整族映射 bossskill）')
+    # C8-P1 t27 周期回复批（2026-10-30，来源限定窄映射；见模块头注）：
+    # 只认带 binding.c8_p1_t27_binding（scope 精确）且 rule_key/槽/表/载体记录/层逐项一致的
+    # 答案；只补『回復（词表外）』一词表主张，不整族映射 type27，无标记行行为零变化。
+    t27 = binding.get('c8_p1_t27_binding') if isinstance(binding, dict) else None
+    if isinstance(t27, dict) and t27.get('scope') == C8P1_T27_SCOPE:
+        if (rk == C8P1_T27_RULE_KEY and t27.get('rule_key') == rk
+                and answer.get('field_path') == '/skillparam1'
+                and answer.get('table') == 'bossskill'
+                and answer.get('record_id') == t27.get('record_id')
+                and answer.get('layer') == t27.get('layer')):
+            return C8P1_T27_EFFECT, ('C8-P1 周期回复批：binding.c8_p1_t27_binding 来源限定'
+                                     '（scope/rule_key/槽/表/载体记录与层逐项一致；只补一条'
+                                     '既有词表主张，不整族映射 type27）')
+    # C10-P1 skilltext 镜像整理批（2026-10-30，来源限定窄映射；见模块头注）：
+    # 只认带 binding.c10_p1_mirror_binding（scope 精确）且 rule_key/槽/表/载体记录/层逐项一致的
+    # 答案；只补『回復（词表外）』一词表主张，不整族映射 type27，无标记行行为零变化。
+    c10 = binding.get('c10_p1_mirror_binding') if isinstance(binding, dict) else None
+    if isinstance(c10, dict) and c10.get('scope') == C10P1_T27_SCOPE:
+        if (rk == C10P1_T27_RULE_KEY and c10.get('rule_key') == rk
+                and answer.get('field_path') == '/skillparam1'
+                and answer.get('table') == 'bossskill'
+                and answer.get('record_id') == c10.get('record_id')
+                and answer.get('layer') == c10.get('layer')):
+            return C10P1_T27_EFFECT, ('C10-P1 skilltext 镜像整理批：binding.c10_p1_mirror_binding '
+                                     '来源限定（scope/rule_key/槽/表/载体记录与层逐项一致；只补一条'
+                                     '既有词表主张，不整族映射 type27）')
     if (rk in ('skilllist|7|/param7', 'skilllist|2012|/param6', 'skilllist|1016|/param6',
                'skilllist|56|/param9','bossskill|68|/skillparam9','bossskill|118|/skillparam9')
             or answer.get('quantity_kind') == '攻击间隔乘数'):
@@ -329,7 +894,8 @@ def _answer_effect_type(answer: dict):
     if rk:
         hit = _RULE_KEY_EFFECT.get(rk)
         if hit:
-            return hit, 'rule_key 映射表（各推断批次句式→槽位映射，见模块头注）'
+            return hit, (_RULE_KEY_EFFECT_BASIS.get(rk)
+                         or 'rule_key 映射表（各推断批次句式→槽位映射，见模块头注）')
     for probe in (answer.get('quantity_kind') or '', answer.get('value') or ''):
         for kw, eff in _QK_KEYWORDS:
             if kw in probe:
@@ -563,6 +1129,8 @@ def analyze_row(row: dict, table: str | None = None):
     clauses = [(m.group(0), [m.start(), m.end()]) for m in _CLAUSE_RE.finditer(text_n)]
     refs, claims, claim_by_clause = [], [], {}
     covered_clause_idx = set()
+    # マナ：来源限定主张的合格答案池（三键精确；见模块头注 §マナ账本映射批）
+    mana_answers = _mana_start_answer_slots(row)
 
     # ---- 逐子句：效果主张＋条件/对象共享引用 ----------------------------------------
     for ci, (clause, span) in enumerate(clauses):
@@ -585,6 +1153,30 @@ def analyze_row(row: dict, table: str | None = None):
         for m in _WORD_RE.finditer(clause):
             w = m.group(0)
             etype = _WORD_TYPE[w]
+            if etype == _CRIT_POWER_RATE_SENTINEL:
+                # 「…の威力と発生率」是一条句面中的两个明确子类型；分别登记数值主张，
+                # 不复用旧的裸 crit，也不把二者互相替代。
+                local = m.group(0)
+                for part, part_type in (('威力', 'クリティカル威力'),
+                                        ('発生率', 'クリティカル発生率')):
+                    off = local.index(part)
+                    sp = [span[0] + m.start() + off,
+                          span[0] + m.start() + off + len(part)]
+                    here.append(dict(effect_type=part_type, direction=cdir,
+                                     clause_index=ci, span=sp, snippet=part))
+                continue
+            if w == 'クリティカル' and 'クリティカル攻撃' in clause:
+                # 批18三修之一：攻擊時/がN回/で X 等是触发或机制上下文。保留为未解决
+                # 机制主张，禁止冒充暴击率/暴伤，也不以 NA 或删除来“清账”。
+                if not any(c.get('effect_type') == CRIT_ATTACK_MECHANISM for c in here):
+                    mech = 'クリティカル攻撃'
+                    off = clause.index(mech)
+                    sp = [span[0] + off, span[0] + off + len(mech)]
+                    here.append(dict(effect_type=CRIT_ATTACK_MECHANISM,
+                                     direction=None, clause_index=ci,
+                                     span=sp,
+                                     snippet=text_n[sp[0]:sp[1]]))
+                continue
             if w == 'クリティカル' and text_n[span[0] + m.end():span[0] + m.end() + 1] == '時':
                 continue  # 「クリティカル時」为条件线索，不是暴击主张
             if etype == '回復（词表外）' and _HP_HEAL_RE.search(clause):
@@ -602,6 +1194,26 @@ def analyze_row(row: dict, table: str | None = None):
                 sp = [span[0] + m.start(), span[0] + m.end()]
                 here.append(dict(effect_type='継続時間', direction=None, clause_index=ci,
                                  span=sp, snippet=text_n[sp[0]:sp[1]], shared_duration=True))
+        # マナ开局主张（来源限定）：句面三句式＋同槽位唯一来源合格答案，原值整数化＝句中数字
+        if mana_answers:
+            msc = _mana_start_claim_text(clause)
+            if msc:
+                slot, num, local, _snip, gate = msc
+                # R02：B 档（新分支）只消费带本批 mana_b_binding 的答案；映射批三键
+                # 答案不接受该门（零标记，1,209 条保留）。
+                pool = ({s: [t for t in v if t[2]] for s, v in mana_answers.items()}
+                        if gate == 'mana_b' else mana_answers)
+                if slot == 'auto':
+                    hits = [s for s in ('param0', 'param4')
+                            if len(pool.get(s) or []) == 1
+                            and pool[s][0][0] == num]
+                    slot = hits[0] if len(hits) == 1 else None
+                cands = pool.get(slot) or []
+                if slot and len(cands) == 1 and cands[0][0] == num:
+                    sp = [span[0] + local[0], span[0] + local[1]]
+                    here.append(dict(effect_type=MANA_START_TYPE, direction=None, clause_index=ci,
+                                     span=sp, snippet=text_n[sp[0]:sp[1]],
+                                     mana_slot='/' + slot, mana_answer_index=cands[0][1]))
         if here:
             claim_by_clause[ci] = here
             covered_clause_idx.add(ci)
@@ -751,6 +1363,91 @@ def analyze_row(row: dict, table: str | None = None):
                                             '原句完整陈述（无独立数值载体主张）；本子句值行的'
                                             '适用条件继承句面（对象/主语共享引用同依据）'))
 
+    # ---- S5 概率玛那主张（2026-10-26，主持裁决①；来源限定）--------------------------
+    # 只有本批合格答案存在的行才登记主张：无答案行不新增未解决主张/拆分；30236/30239
+    # 无本批答案，自然零触碰。一行可有多条概率子句（如 7527），合并为一条主张，覆盖
+    # 全部概率玛那子句与击杀触发子句；夹带台词/其它子句的触发句不覆盖（仍留 S3）。
+    s5_answers = _s5_chance_answer_slots(row)
+    _s5_nt = [x for x in s5_answers if x[3] == S5_SCOPE]
+    _s5_t = [x for x in s5_answers if x[3] == S5_TERRAIN_SCOPE]
+    if _s5_nt and not any(c.get('effect_type') == S5_CHANCE_TYPE for c in claims):
+        mana_cis = [ci for ci, (clause, _span) in enumerate(clauses)
+                    if _S5_MANA_RX.search(clause)]
+        if mana_cis:
+            trigger_cis = [ci for ci, (clause, _span) in enumerate(clauses)
+                           if _s5_trigger_clause_ok(clause)]
+            sp0 = clauses[mana_cis[0]][1][0]
+            sp1 = clauses[mana_cis[-1]][1][1]
+            s5_claim = dict(effect_type=S5_CHANCE_TYPE, direction='up',
+                            clause_index=mana_cis[0], span=[sp0, sp1],
+                            snippet=text_n[sp0:sp1], s5_chance=True,
+                            s5_answer_index=_s5_nt[0][1],
+                            s5_slots=[x[0] for x in _s5_nt])
+            claims.append(s5_claim)
+            claim_by_clause.setdefault(mana_cis[0], []).append(s5_claim)
+            covered_clause_idx.update(mana_cis)
+            covered_clause_idx.update(trigger_cis)
+
+    # ---- 获珠相对句主张（2026-10-29；来源限定，仅认 s5_relative_binding 标记）--------
+    # 相对句「…で倒すと獲得しやすくなる。」句面无「マナ」，既有 _S5_MANA_RX 不匹配；
+    # 只有带本批标记的答案行才登记一条確率マナ獲得主张，覆盖句面相对子句。无标记行
+    # （旧页、其他族、范围外相对句）不新增主张，账本行为零变化。
+    _s5_rel = _s5_relative_answer_slots(row)
+    if _s5_rel and not any(c.get('effect_type') == S5_CHANCE_TYPE for c in claims):
+        rel_cis = [ci for ci, (clause, _span) in enumerate(clauses)
+                   if _S5_RELATIVE_RX.search(clause)]
+        if rel_cis:
+            sp0 = clauses[rel_cis[0]][1][0]
+            sp1 = clauses[rel_cis[-1]][1][1]
+            s5_rel_claim = dict(effect_type=S5_CHANCE_TYPE, direction='up',
+                                clause_index=rel_cis[0], span=[sp0, sp1],
+                                snippet=text_n[sp0:sp1], s5_chance=True, s5_relative=True,
+                                s5_answer_index=_s5_rel[0][1],
+                                s5_slots=[x[0] for x in _s5_rel])
+            claims.append(s5_rel_claim)
+            claim_by_clause.setdefault(rel_cis[0], []).append(s5_rel_claim)
+            covered_clause_idx.update(rel_cis)
+
+    # ---- S5 地形段概率玛那主张（2026-10-26 批2；独立 scope，来源限定）-----------------
+    # 只覆盖地形条件子句＋其后连续的玛那/接续子句；条件之前的击杀基础概率子句不覆盖
+    # （5092/7546 仍留 S3，行仍「拆分待核查」）。无地形段答案的行不新增主张。
+    if _s5_t:
+        _t_cis = _s5_terrain_claim_clauses(clauses)
+        if _t_cis:
+            sp0 = clauses[_t_cis[0]][1][0]
+            sp1 = clauses[_t_cis[-1]][1][1]
+            s5t_claim = dict(effect_type=S5_CHANCE_TYPE, direction='up',
+                             clause_index=_t_cis[0], span=[sp0, sp1],
+                             snippet=text_n[sp0:sp1], s5_chance=True,
+                             s5_terrain=True,
+                             s5_answer_index=_s5_t[0][1],
+                             s5_slots=[x[0] for x in _s5_t])
+            claims.append(s5t_claim)
+            claim_by_clause.setdefault(_t_cis[0], []).append(s5t_claim)
+            covered_clause_idx.update(_t_cis)
+
+    # ---- 金币/经验主张（2026-10-28 批2；来源限定）--------------------------------------
+    # 词表没有「ゴールド／経験値」效果类型；只有本批合格答案存在的行才登记一条来源限定主张，
+    # 覆盖该能力在句面点名的子句（经验值/金币分别登记，值方向按 param0>1/<1）。无答案行不新增
+    # 未解决主张、不新增拆分；30236/30239 无本批答案，自然零触碰。
+    for _ab, _idx, _raw, _rk in _ge_answer_slots(row):
+        _etype = _GE_RULE_SLOTS[_rk][1]
+        if any(c.get('effect_type') == _etype for c in claims):
+            continue
+        _mark = _GE_ABILITY_MARK[_ab]
+        _cis = [ci for ci, (clause, _span) in enumerate(clauses) if _mark in clause]
+        if not _cis:
+            continue
+        _sp0 = clauses[_cis[0]][1][0]
+        _sp1 = clauses[_cis[-1]][1][1]
+        _ge_claim = dict(effect_type=_etype, direction=('up' if _raw > 1 else 'down'),
+                         clause_index=_cis[0], span=[_sp0, _sp1],
+                         snippet=text_n[_sp0:_sp1], gold_exp=True,
+                         gold_exp_ability=_ab, gold_exp_answer_index=_idx)
+        claims.append(_ge_claim)
+        claim_by_clause.setdefault(_cis[0], []).append(_ge_claim)
+        covered_clause_idx.update(_cis)
+
     # ---- 有依据的不适用窄类预检测（先于拆分标志；NA 子句计为已覆盖）--------------------
     na_clause_idx = set()
     na_tmp = []
@@ -802,6 +1499,24 @@ def analyze_row(row: dict, table: str | None = None):
     # DS-GR-R1（20261023 复验）：ダメージ 类主张与答案加对象约束——自伤答案只配
     # 自身/自分 子句、敌方伤害答案只配 敵 子句；对象不符的答案不消费（跨对象不硬配），
     # 主张留未解决并注明（object_unmatched_note）。非伤害类型不引入约束（避免改道既有匹配）。
+    def _t67_binding(ref):
+        """type67 阶梯批（20261028）答案标记；无标记＝其他族答案，走原贪心路径。"""
+        try:
+            a = row['answers'][ref['answer_index']]
+        except (IndexError, KeyError):
+            return None
+        b = a.get('binding') if isinstance(a.get('binding'), dict) else None
+        t67 = b.get('type67_binding') if isinstance(b, dict) else None
+        return t67 if isinstance(t67, dict) else None
+
+    def _ge_binding(ref):
+        """金币/经验批（20261028 批2）答案标记；无标记＝其他族答案，走原贪心路径。"""
+        try:
+            a = row['answers'][ref['answer_index']]
+        except (IndexError, KeyError):
+            return None
+        return _ge_binding_of_answer(a)
+
     claims_sorted = sorted(range(len(claims)),
                            key=lambda i: (claims[i]['clause_index'], claims[i]['span'][0]))
     ans_by_type = collections.defaultdict(list)
@@ -861,6 +1576,21 @@ def analyze_row(row: dict, table: str | None = None):
                            and r.get('quantity_kind') != '攻击间隔乘数')
                           or (r.get('attack_interval_binding') and
                               r['attack_interval_binding']['span'] == claims[i]['span']))]
+            # type67 阶梯批（20261028，来源限定）：带 type67_binding 标记的答案不走贪心路径，
+            # 只由本批专用块按槽位↔主张类型绑定（避免多值阶梯答案被同类型其他主张抢配）。
+            cand_pool = [r for r in cand_pool if _t67_binding(r) is None]
+            # 金币/经验批（20261028 批2，来源限定）：带 gold_exp_binding 标记的答案同样不走
+            # 贪心路径，只由本批专用块按能力↔主张类型绑定（避免被同句其它类型主张抢配）。
+            cand_pool = [r for r in cand_pool if _ge_binding(r) is None]
+            # 回复间隔两段乘数批（20261028 批3，来源限定）：带 heal_interval_binding 标记的
+            # 答案不走贪心路径，只由本批专用块绑到「回復速度」处的那一条回復主张。
+            cand_pool = [r for r in cand_pool if _hi_binding_of_answer(
+                row['answers'][r['answer_index']]) is None]
+            # G0-B1／G7-B0 合并小批（20261028 批5，来源限定）：带 g0g7_binding 标记的答案
+            # 不走贪心路径，只由本批专用块按「主张 span＋子句号」绑定（防止 30334 的
+            # 「遠距離通常攻撃の威力」被同类型贪心抢配）。
+            cand_pool = [r for r in cand_pool if _g0g7_binding_of_answer(
+                row['answers'][r['answer_index']]) is None]
             pick = None
             if cdir:
                 pick = next((r for r in cand_pool if r['direction'] == cdir), None)
@@ -887,6 +1617,353 @@ def analyze_row(row: dict, table: str | None = None):
                             matched[f'variant:{i}:{vr["answer_index"]}'] = vr
             elif constrain and cobj is not None and pool:
                 object_blocked.add(i)   # 有同类型答案但对象全不符——不硬配
+
+    # ---- マナB 批（2026-10-26，主持裁决）：来源限定变体绑定 -------------------------
+    # 仅消费带 ``binding.mana_b_binding`` 标记的答案（本批模块写入），且只在已有
+    # 「効果（词表外）」主张/攻撃力主张消费时把同源多槽答案绑为 variant_refs：
+    #   (b) S3「効果が上がる」展开出的攻/移/防/暴击率答案 → 该唯一効果主张的变体；
+    #   (c) S4/96「攻撃力」的 param2/param3 两档 → 同一攻撃力主张的两个变体。
+    # 不新增主张、不改无答案行；既有 1,209 条三键开局答案与其他族不受影响。
+    _MB_TYPES = {'攻撃力', '移動速度', '防御力', 'クリティカル発生率', 'クリティカル威力'}
+    _mb_used = {r['answer_index'] for r in matched.values() if isinstance(r, dict)}
+
+    def _mb_binding(ref):
+        try:
+            a = row['answers'][ref['answer_index']]
+        except (IndexError, KeyError):
+            return None
+        b = a.get('binding') if isinstance(a.get('binding'), dict) else None
+        mb = (b or {}).get('mana_b_binding') if isinstance(b, dict) else None
+        return mb if isinstance(mb, dict) else None
+
+    _effect_claims = [i for i in claims_sorted if claims[i]['effect_type'] == '効果（词表外）']
+    if len(_effect_claims) == 1 and _effect_claims[0] not in matched:
+        _ci = _effect_claims[0]
+        _cands = [r for r in answer_refs
+                  if r['answer_index'] not in _mb_used
+                  and r['mapped_effect_type'] in _MB_TYPES
+                  and (_mb_binding(r) or {}).get('family') in ('hold_mana', 'mana_count_up')]
+        if _cands:
+            matched[_ci] = _cands[0]
+            _mb_used.add(_cands[0]['answer_index'])
+            for _vr in _cands[1:]:
+                matched[f'variant:{_ci}:{_vr["answer_index"]}'] = _vr
+                _mb_used.add(_vr['answer_index'])
+    for _i in claims_sorted:
+        if claims[_i]['effect_type'] != '攻撃力' or _i not in matched:
+            continue
+        _base = matched[_i]
+        _brec = (_base.get('source_record') or {}).get('record_id')
+        for _r in answer_refs:
+            if _r['answer_index'] in _mb_used:
+                continue
+            _mb = _mb_binding(_r) or {}
+            if _mb.get('family') != 'mana_count_up':
+                continue
+            if _r['mapped_effect_type'] != '攻撃力':
+                continue
+            if (_r.get('source_record') or {}).get('record_id') != _brec:
+                continue
+            if _r.get('quantity_kind') != _base.get('quantity_kind'):
+                continue
+            matched[f'variant:{_i}:{_r["answer_index"]}'] = _r
+            _mb_used.add(_r['answer_index'])
+    # 既有原文数字答案已消费同一主张时（如 292 的「效果量百分比」行）：把来源限定的
+    # 结构化答案换为主答案、旧答案降为同一主张的 variant——旧答案对象不改值/不丢失，
+    # 仅新增结构化来源并消除未消费标志。仅对带 mana_b_binding 的答案生效。
+    for _i in claims_sorted:
+        if _i not in matched or claims[_i]['effect_type'] not in _MB_TYPES:
+            continue
+        _base = matched[_i]
+        if _mb_binding(_base):
+            continue
+        _same_claims = [j for j in claims_sorted
+                        if claims[j]['effect_type'] == claims[_i]['effect_type'] and j in matched]
+        if len(_same_claims) != 1:
+            continue
+        _cands = [r for r in answer_refs
+                  if r['answer_index'] not in _mb_used
+                  and r['mapped_effect_type'] == claims[_i]['effect_type']
+                  and (_mb_binding(r) or {}).get('family') in ('hold_mana', 'mana_count_up')]
+        if len(_cands) != 1:
+            continue
+        _mr = _cands[0]
+        matched[_i] = _mr
+        matched[f'variant:{_i}:{_base["answer_index"]}'] = _base
+        _mb_used.add(_mr['answer_index'])
+
+    # ---- クリティカル吸収批（2026-10-26，主持裁决 (a)）：来源限定双槽同主张 -----------
+    # 仅消费带 ``binding.crit_absorb_binding`` 标记的答案（本批模块写入）；同一
+    # 「回復（词表外）」主张下 param1（回復比例）与 flag0_1（上限档位）作为该效果的
+    # 两个答案引用（后者记 variant），不新增主张、不改无答案行。
+    # 三重来源限定：scope＝本批、row_id 与标记一致、载体 record=65000003/ability=21/CACHE，
+    # 且 rule_key 在批内两键、映射类型＝回復（词表外）。无标记/错 scope/错 record 一律不消费
+    # （保持 S4 可见，不静默吞掉其他族答案）。
+    _CA_SCOPE = 'CRIT_ABSORB_BATCH_20261026'
+    _CA_KEYS = ('skilllist|21|/param1', 'skilllist|21|/flag0_1')
+    _CA_EFFECT = '回復（词表外）'
+
+    def _ca_binding(ref):
+        try:
+            a = row['answers'][ref['answer_index']]
+        except (IndexError, KeyError):
+            return None
+        b = a.get('binding') if isinstance(a.get('binding'), dict) else None
+        ca = b.get('crit_absorb_binding') if isinstance(b, dict) else None
+        return ca if isinstance(ca, dict) else None
+
+    def _ca_valid(ref, ca):
+        src = ref.get('source_record') or {}
+        return (ca.get('scope') == _CA_SCOPE
+                and ca.get('row_id') == row_id
+                and ca.get('carrier_record_id') == 65000003
+                and ca.get('carrier_ability') == 21
+                and ca.get('carrier_layer') == 'CACHE'
+                and ca.get('rule_key') == ref.get('rule_key')
+                and ref.get('rule_key') in _CA_KEYS
+                and ref.get('mapped_effect_type') == _CA_EFFECT
+                and src.get('table') == 'skilllist'
+                and src.get('record_id') == 65000003
+                and src.get('layer') == 'CACHE')
+
+    _ca_claims = [i for i in claims_sorted if claims[i]['effect_type'] == _CA_EFFECT]
+    if len(_ca_claims) == 1 and _ca_claims[0] in matched:
+        _ci = _ca_claims[0]
+        _ca_base = matched[_ci]
+        _ca_base_b = _ca_binding(_ca_base)
+        if _ca_base_b and _ca_valid(_ca_base, _ca_base_b):
+            _ca_used = {r['answer_index'] for r in matched.values() if isinstance(r, dict)}
+            for _r in answer_refs:
+                if _r['answer_index'] in _ca_used:
+                    continue
+                _b2 = _ca_binding(_r)
+                if not _b2 or not _ca_valid(_r, _b2):
+                    continue
+                matched[f'variant:{_ci}:{_r["answer_index"]}'] = _r
+                _ca_used.add(_r['answer_index'])
+
+    # ---- type67 阶梯批（2026-10-28，来源限定）：槽位↔主张精确绑定 -------------------
+    # 仅消费带 ``binding.type67_binding`` 标记的答案（本批模块写入，scope＝TYPE67_BATCH_
+    # 20261028），按槽位对应的属性类型一对一绑定到同类型主张；无标记/错 scope/错槽位一律
+    # 不消费（保持未解决，不静默吞掉其他族答案）。不新增主张、不改其他族映射。
+    def _t67_valid(ref, t67, etype):
+        src = ref.get('source_record') or {}
+        return (t67.get('scope') == _T67_SCOPE
+                and t67.get('family') == 'type67_ladder'
+                and t67.get('row_id') == row_id
+                and t67.get('slot') == (ref.get('field_path') or '').lstrip('/')
+                and _T67_SLOT_EFFECT.get(t67.get('slot')) == etype
+                and ref.get('mapped_effect_type') == etype
+                and ref.get('rule_key') == f"skilllist|67|/{t67.get('slot')}"
+                and src.get('table') == 'skilllist'
+                and src.get('record_id') == t67.get('carrier_record_id')
+                and src.get('layer') == t67.get('carrier_layer'))
+
+    _t67_used = {r['answer_index'] for r in matched.values() if isinstance(r, dict)}
+    for _i in claims_sorted:
+        if _i in matched:
+            continue
+        _etype = claims[_i]['effect_type']
+        if _etype not in set(_T67_SLOT_EFFECT.values()):
+            continue
+        _pick = None
+        for _r in answer_refs:
+            if _r['answer_index'] in _t67_used:
+                continue
+            _t67 = _t67_binding(_r)
+            if not _t67 or not _t67_valid(_r, _t67, _etype):
+                continue
+            _pick = _r
+            break
+        if _pick is not None:
+            matched[_i] = _pick
+            _t67_used.add(_pick['answer_index'])
+
+    # ---- 金币/经验批（2026-10-28 批2，来源限定）：能力↔主张精确绑定 ------------------
+    # 仅消费带 ``binding.gold_exp_binding``（scope＝GOLD_EXP_BATCH_20261028）的答案，按
+    # ability/rule_key/载体记录与层逐项核对；无标记/错 scope/错能力一律不消费。
+    def _ge_valid(ref, claim):
+        ge = _ge_binding(ref)
+        src = ref.get('source_record') or {}
+        if not ge or ge.get('scope') != _GE_SCOPE:
+            return False
+        hit = _GE_RULE_SLOTS.get(ge.get('rule_key'))
+        return (hit is not None
+                and hit[0] == claim.get('gold_exp_ability')
+                and hit[1] == claim.get('effect_type')
+                and ge.get('row_id') == row_id
+                and ge.get('slot') == 'param0'
+                and ref.get('field_path') == '/param0'
+                and ref.get('rule_key') == ge.get('rule_key')
+                and ref.get('mapped_effect_type') == claim.get('effect_type')
+                and src.get('table') == 'skilllist'
+                and src.get('record_id') == ge.get('carrier_record_id')
+                and src.get('layer') == ge.get('carrier_layer'))
+
+    _ge_used = {r['answer_index'] for r in matched.values() if isinstance(r, dict)}
+    for _i in claims_sorted:
+        if _i in matched:
+            continue
+        _claim = claims[_i]
+        if not _claim.get('gold_exp'):
+            continue
+        _pick = None
+        for _r in answer_refs:
+            if _r['answer_index'] in _ge_used:
+                continue
+            if _ge_valid(_r, _claim):
+                _pick = _r
+                break
+        if _pick is not None:
+            matched[_i] = _pick
+            _ge_used.add(_pick['answer_index'])
+
+    # ---- type80/96 成对批（2026-10-28 批4，来源限定）：槽位↔主张精确绑定 --------------
+    # 仅消费带 ``binding.type80_96_binding``（scope＝TYPE80_96_BATCH_20261028）的答案，
+    # 按 family(形态)/槽/rule_key/载体记录与层逐项核对；无标记/错 scope/错槽位一律不消费
+    # （保持未解决，不静默吞掉其他族答案）。不新增主张、不改其他族映射。
+    def _t8096_binding(ref):
+        try:
+            a = row['answers'][ref['answer_index']]
+        except (IndexError, KeyError):
+            return None
+        b = a.get('binding') if isinstance(a.get('binding'), dict) else None
+        t = b.get('type80_96_binding') if isinstance(b, dict) else None
+        return t if isinstance(t, dict) else None
+
+    def _t8096_valid(ref, t8096, etype):
+        src = ref.get('source_record') or {}
+        slot = (ref.get('field_path') or '').lstrip('/')
+        ability = t8096.get('ability')
+        return (t8096.get('scope') == _T8096_SCOPE
+                and t8096.get('family') in _T8096_FAMILIES
+                and t8096.get('row_id') == row_id
+                and t8096.get('slot') == slot
+                and ((_T8096_SLOT_EFFECT.get(ability) or {}).get(slot)) == etype
+                and ref.get('mapped_effect_type') == etype
+                and ref.get('rule_key') == f'skilllist|{ability}|/{slot}'
+                and t8096.get('rule_key') == ref.get('rule_key')
+                and src.get('table') == 'skilllist'
+                and src.get('record_id') == t8096.get('carrier_record_id')
+                and src.get('layer') == t8096.get('carrier_layer'))
+
+    _t8096_used = {r['answer_index'] for r in matched.values() if isinstance(r, dict)}
+    for _i in claims_sorted:
+        if _i in matched:
+            continue
+        _etype = claims[_i]['effect_type']
+        if _etype not in _T8096_EFFECT_TYPES:
+            continue
+        _pick = None
+        for _r in answer_refs:
+            if _r['answer_index'] in _t8096_used:
+                continue
+            _t = _t8096_binding(_r)
+            if not _t or not _t8096_valid(_r, _t, _etype):
+                continue
+            _pick = _r
+            break
+        if _pick is not None:
+            matched[_i] = _pick
+            _t8096_used.add(_pick['answer_index'])
+
+    # ---- 回复间隔两段乘数批（2026-10-28 批3，来源限定）：回復速度处既有主张↔两段答案 ----
+    # **不新增主张**：把本批答案绑到句面「回復速度」词形内部唯一的那条「回復（词表外）」
+    # 主张上（基础段 19.p2 为主答案、条件段 1033.p3 为同一主张的 variant）。要求 scope/
+    # row_id/槽/载体记录与层逐项一致、方向与主张一致（<1＝间隔缩短＝速度 up）；=1 不绑。
+    # 无标记/错 scope/多义主张一律不消费（保持未解决，不静默吞掉其他族答案）。
+    _hi_slots = _hi_answer_slots(row)
+    if _hi_slots:
+        _occ, _from = [], text_n.find(_HI_SPEED_WORD)
+        while _from >= 0:
+            _occ.append((_from, _from + len(_HI_SPEED_WORD)))
+            _from = text_n.find(_HI_SPEED_WORD, _from + 1)
+        if len(_occ) == 1:
+            _o0, _o1 = _occ[0]
+            _hi_claims = [i for i in claims_sorted
+                          if claims[i]['effect_type'] == _HI_EFFECT
+                          and _o0 <= claims[i]['span'][0] and claims[i]['span'][1] <= _o1]
+            if len(_hi_claims) == 1:
+                _ci = _hi_claims[0]
+
+                def _hi_valid(ref):
+                    hi = _hi_binding_of_answer(row['answers'][ref['answer_index']])
+                    src = ref.get('source_record') or {}
+                    hit = _HI_RULE_SLOTS.get(ref.get('rule_key'))
+                    if (not hi or hi.get('scope') != _HI_SCOPE or hit is None
+                            or hit[0] != hi.get('ability') or hit[1] != hi.get('slot')
+                            or hi.get('row_id') != row_id
+                            or hi.get('rule_key') != ref.get('rule_key')
+                            or ref.get('mapped_effect_type') != _HI_EFFECT
+                            or ref.get('field_path') != '/' + hi.get('slot')
+                            or src.get('table') != 'skilllist'
+                            or src.get('record_id') != hi.get('carrier_record_id')
+                            or src.get('layer') != hi.get('carrier_layer')):
+                        return None
+                    raw = ref.get('raw_value')
+                    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+                        return None
+                    if abs(float(raw) - 1.0) < 1e-12:
+                        return None
+                    cdir = claims[_ci].get('direction')
+                    if cdir in ('up', 'down') and ((float(raw) < 1.0) != (cdir == 'up')):
+                        return None
+                    return hi
+
+                _hi_used = {r['answer_index'] for r in matched.values() if isinstance(r, dict)}
+                _hi_cands = [r for r in answer_refs
+                             if r['answer_index'] not in _hi_used and _hi_valid(r)]
+                _hi_cands.sort(key=lambda r: (
+                    0 if _hi_binding_of_answer(row['answers'][r['answer_index']]).get('ability') == 19
+                    else 1, r['answer_index']))
+                if _hi_cands:
+                    matched[_ci] = _hi_cands[0]
+                    for _vr in _hi_cands[1:]:
+                        matched[f'variant:{_ci}:{_vr["answer_index"]}'] = _vr
+
+    # ---- G0-B1／G7-B0 合并小批（2026-10-28 批5，来源限定）：答案必须与该行主张的
+    #      **span＋子句号**逐值相等才绑定。G0＝「必殺技の威力」中的「威力」主张
+    #      （30334 的「遠距離通常攻撃の威力」是另一条同类主张，本批不消费）；G7＝地形句的
+    #      攻撃力/移動速度 主张。无标记答案不进本块，本块也不改其他族匹配结果。 ----------
+    _g0g7_used = {r['answer_index'] for r in matched.values() if isinstance(r, dict)}
+    for _ref in answer_refs:
+        if _ref['answer_index'] in _g0g7_used:
+            continue
+        _got = _g0g7_binding_of_answer(row['answers'][_ref['answer_index']])
+        if not _got:
+            continue
+        _family, _gb = _got
+        _hit = (_G0G7_RULE_SLOTS.get(_family) or {}).get(_ref.get('rule_key'))
+        if _hit is None:
+            continue
+        _slot, _etype = _hit
+        _src = _ref.get('source_record') or {}
+        if (_gb.get('row_id') != row_id or _gb.get('slot') != _slot
+                or _gb.get('rule_key') != _ref.get('rule_key')
+                or _ref.get('mapped_effect_type') != _etype
+                or _ref.get('field_path') != '/' + _slot
+                or _src.get('table') != 'skilllist'
+                or _src.get('record_id') != _gb.get('carrier_record_id')
+                or _src.get('layer') != _gb.get('carrier_layer')):
+            continue
+        _raw = _ref.get('raw_value')
+        if isinstance(_raw, bool) or not isinstance(_raw, (int, float)) or _raw <= 0:
+            continue
+        _wanted = [int(x) for x in (_gb.get('effect_span') or [])]
+        if len(_wanted) != 2:
+            continue
+        _cands = [i for i in claims_sorted
+                  if i not in matched
+                  and claims[i]['effect_type'] == _etype
+                  and claims[i]['clause_index'] == _gb.get('clause_index')
+                  and [int(x) for x in claims[i]['span']] == _wanted]
+        if len(_cands) != 1:
+            continue
+        _cdir = claims[_cands[0]].get('direction')
+        if _cdir == 'up' and float(_raw) < 1.0:
+            continue
+        matched[_cands[0]] = _ref
+        _g0g7_used.add(_ref['answer_index'])
 
     # ---- R2 复审整改（20261023 第二轮）：数字映射按角色绑定解析（在答案消费后执行，
     #      效果量角色要求「答案被数字所在子句的主张消费」＝文本位置绑定；条件/阈值/
@@ -1029,6 +2106,8 @@ def analyze_row(row: dict, table: str | None = None):
                      status='has_answer' if ref_answer is not None else 'unresolved')
         if 'object' in c:
             entry['object'] = c['object']   # ダメージ 类主张的对象维度（DS-GR-R1/c15 内容级核对）
+        if 'mana_slot' in c:
+            entry['mana_slot'] = c['mana_slot']   # 開局マナ 主张的槽位（三键来源限定）
         if i in object_blocked:
             entry['object_unmatched_note'] = True   # 同类型答案存在但对象不符——跨对象不硬配
         if ref_answer is not None:
@@ -1743,9 +2822,296 @@ def build(pages_root: Path):
     return snapshot, descriptions, effects, cards, yg_cards
 
 
+B18_OWN_RECORD_KEYS = frozenset({'skilllist|64|/param4'})
+B18_EVIDENCE_SCOPE = 'B18_OWN_RECORD_B64_PARAM4_EXTRAPOLATED'
+B18_ROW_ALLOWLIST = {
+    6037: {
+        'row_id': '6037-ability-ability-skillid_1_-lvorder0-f0',
+        'skill_id': '6037/ability/ability/skillid[1]',
+        'record_id': 13507,
+        'record_key': 'APK/_mdSkill.json#/skilllist/2137',
+        'source_key': 'APK/_mdSkill.json',
+        'layer': 'APK',
+        'original_file': 'output/base_master/_mdSkill.json',
+        'json_pointer': '/skilllist/2137',
+        'raw_record_sha256': '8a3318160cf1a0883b12b65852b0a3691e1fd126902bbc64e890cddce401839f',
+        'master_source': 'work\\apk\\assets\\chronicle.dat',
+        'master_source_sha256': 'd1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d',
+        'master_converted_sha256': '46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f',
+        'field_json_pointer': '/skilllist/2137/text',
+        'clean_span': [0, 82],
+        'raw_span': [0, 82],
+        'phrase': 'クリティカル率',
+        'phrase_start': 57,
+        'row_text': 'どうにもこうにも斬りたくてしょうがないんですよ…さあ、死合いましょう！WAVEが進むたび、自身の攻撃力と移動速度とクリティカル率が一定時間上がるが、防御力も下がる。',
+        'row_text_sha256': 'f6d94f3324db58f7a7adcbab8fc66146d657a33d048e2064fffcecde2165d2ed',
+        'skill_text_sha256': '8a808079e5cbfce5f31d7e76ec4cc68de08641a53a762014175146c405c61657',
+    },
+    6055: {
+        'row_id': '6055-ability-ability-skillid_1_-lvorder0-f0',
+        'skill_id': '6055/ability/ability/skillid[1]',
+        'record_id': 13537,
+        'record_key': 'APK/_mdSkill.json#/skilllist/2167',
+        'source_key': 'APK/_mdSkill.json',
+        'layer': 'APK',
+        'original_file': 'output/base_master/_mdSkill.json',
+        'json_pointer': '/skilllist/2167',
+        'raw_record_sha256': '272b1f4384c114094de4aef50318d8e92f689af69971cdbc217dde718f1d4c4f',
+        'master_source': 'work\\apk\\assets\\chronicle.dat',
+        'master_source_sha256': 'd1af417ee34b07f84ecd66c2404b34880d25fd2c7634a66b4f57046762386b7d',
+        'master_converted_sha256': '46972b0bb5003c982548473cee6fe4b3fcbd9bb28ca04f69d202155eaf975f5f',
+        'field_json_pointer': '/skilllist/2167/text',
+        'clean_span': [0, 50],
+        'raw_span': [0, 50],
+        'phrase': 'クリティカル率',
+        'phrase_start': 34,
+        'row_text': '我こそが海を総べる第十領主である！WAVEが進むたび、自身の攻撃力とクリティカル率を一定時間上げる。',
+        'row_text_sha256': '5cc9811b3ab0e699ee61914487f359650a4aaa9df5680a0cd23a0d556ce5320d',
+        'skill_text_sha256': '577cc42ebafdececbc3b457921669341f57fea1b94b72c504710145298ea7073',
+    },
+}
+
+
+def _b18_text_sha256(text: str) -> str:
+    return hashlib.sha256(str(text).encode('utf-8')).hexdigest()
+
+
+def _b18_row_spec(row: dict):
+    row_id = str(row.get('row_id') or '')
+    try:
+        cid = int(row_id.split('-', 1)[0])
+    except (TypeError, ValueError):
+        return None, None
+    spec = B18_ROW_ALLOWLIST.get(cid)
+    if spec is None or row_id != spec['row_id']:
+        return None, None
+    return cid, spec
+
+
+B18_APK_SKILL_PATH = Path('output/base_master/_mdSkill.json')
+_B18_APK_SKILL_INDEX: dict[int, dict] | None = None
+B18_SOURCE_IDENTITY_FIELDS = (
+    'record_key', 'source_key', 'layer', 'original_file', 'json_pointer',
+    'raw_record_sha256', 'master_source', 'master_source_sha256',
+    'master_converted_sha256',
+)
+
+
+def _b18_actual_apk_record(data, record_id: int) -> dict | None:
+    """取同源真实 APK skilllist 记录；优先使用当前 Inputs.apk_skill。"""
+    if data is not None and hasattr(data, 'apk_skill'):
+        hit = data.apk_skill.get(record_id)
+        if hit is not None:
+            return hit[1] if isinstance(hit, tuple) and len(hit) == 2 else hit
+        return None
+    global _B18_APK_SKILL_INDEX
+    if _B18_APK_SKILL_INDEX is None:
+        doc = json.loads(B18_APK_SKILL_PATH.read_text(encoding='utf-8-sig'))
+        _B18_APK_SKILL_INDEX = {r.get('skillid'): r for r in doc.get('skilllist') or []}
+    return _B18_APK_SKILL_INDEX.get(record_id)
+
+
+def _b18_finite_number(value) -> bool:
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and math.isfinite(float(value)))
+
+
+def _b18_source_identity_matches(source: dict, spec: dict) -> list[str]:
+    return [f'{field} 不符' for field in B18_SOURCE_IDENTITY_FIELDS
+            if (source or {}).get(field) != spec[field]]
+
+
+def validate_b18_own_record(row: dict, skill: dict, data=None, cid: int | None = None):
+    """验证并返回唯一已绑定的 (spec, evidence, answer, failures)。
+
+    身份链：调用 cid＝row.cid＝row_id 前缀；row/skill/evidence 三侧 source 同源；
+    evidence 与真实 APK payload 全对象相等；answer.raw 精确等于真实 payload.param4。
+    """
+    inferred_cid, spec = _b18_row_spec(row)
+    if spec is None:
+        return None, None, None, ['row_id 不在 6037/6055 显式准入表']
+    failures = []
+    if cid is not None and inferred_cid != cid:
+        failures.append('调用 cid 与 row_id 前缀不符')
+    if row.get('cid') != inferred_cid:
+        failures.append('row.cid 与 row_id 前缀不符')
+    if skill.get('table') != 'skilllist' or skill.get('skill_id') != spec['skill_id']:
+        failures.append('skill table/id 不符')
+    if skill.get('record_id') != spec['record_id']:
+        failures.append('skill record_id 不符')
+    if skill.get('layer') != spec['layer']:
+        failures.append('skill layer 不符')
+    if row.get('japanese') != spec['row_text']:
+        failures.append('row 正文不逐字匹配')
+    if _b18_text_sha256(row.get('japanese') or '') != spec['row_text_sha256']:
+        failures.append('row 正文 SHA-256 不符')
+    if _b18_text_sha256(skill.get('original_text') or '') != spec['skill_text_sha256']:
+        failures.append('skill original_text SHA-256 不符')
+    if str(row.get('japanese') or '').find(spec['phrase']) != spec['phrase_start']:
+        failures.append('明确 crit 率子句位置不符')
+
+    row_source = row.get('source') or {}
+    skill_source = skill.get('source') or {}
+    source_position = row.get('source_position') or {}
+    failures.extend(f'row.source.{x}' for x in _b18_source_identity_matches(row_source, spec))
+    failures.extend(f'skill.source.{x}' for x in _b18_source_identity_matches(skill_source, spec))
+    if row_source.get('field') != '/text':
+        failures.append('row.source.field 不是 /text')
+    if row_source.get('field_json_pointer') != spec['field_json_pointer']:
+        failures.append('row.source.field_json_pointer 不符')
+    if source_position.get('clean_span') != spec['clean_span']:
+        failures.append('row.source_position.clean_span 不符')
+    if source_position.get('raw_span') != spec['raw_span']:
+        failures.append('row.source_position.raw_span 不符')
+    if source_position.get('field_pointer') != spec['field_json_pointer']:
+        failures.append('row.source_position.field_pointer 不符')
+    if source_position.get('source_key') != spec['source_key']:
+        failures.append('row.source_position.source_key 不符')
+
+    original_text = str(skill.get('original_text') or '')
+    if original_text[spec['clean_span'][0]:spec['clean_span'][1]] != spec['row_text']:
+        failures.append('skill.original_text 的 clean_span 不指向本行正文')
+
+    # 先收集同 record_id/ability 的全部候选；任一重复（即使值相同或看似无效）都拒绝。
+    candidates = []
+    for evidence in skill.get('record_evidence') or []:
+        raw = evidence.get('raw_record') or {}
+        if evidence.get('record_id') == spec['record_id'] and raw.get('ability') == 64:
+            candidates.append(evidence)
+    if len(candidates) != 1:
+        failures.append(f'own-record evidence 不唯一（命中 {len(candidates)}）')
+        return spec, None, None, failures
+    evidence = candidates[0]
+    raw = evidence.get('raw_record') or {}
+    ev_source = evidence.get('source') or {}
+    if raw.get('skillid') != spec['record_id']:
+        failures.append('raw_record.skillid 不符')
+    failures.extend(f'evidence.source.{x}' for x in _b18_source_identity_matches(ev_source, spec))
+
+    answers = [a for a in (evidence.get('answers') or [])
+               if a.get('rule_key') == 'skilllist|64|/param4' and a.get('f') == '/param4']
+    if len(answers) != 1:
+        failures.append(f'/param4 原证据不唯一（命中 {len(answers)}）')
+        return spec, evidence, None, failures
+    answer = answers[0]
+
+    actual = _b18_actual_apk_record(data, spec['record_id'])
+    if actual is None:
+        failures.append('同源 APK 记录不存在')
+    else:
+        if raw != actual:
+            failures.append('raw_record payload 与同源 APK 记录不完全相等')
+        if 'param4' not in raw or raw.get('param4') is None:
+            failures.append('raw_record.param4 缺失或 null')
+        elif not _b18_finite_number(raw.get('param4')):
+            failures.append('raw_record.param4 非有限数值')
+        if 'param4' not in actual or actual.get('param4') is None:
+            failures.append('同源 APK param4 缺失或 null')
+        actual_param4 = actual.get('param4')
+        if not _b18_finite_number(actual_param4):
+            failures.append('同源 APK param4 非有限数值')
+        answer_raw = answer.get('raw')
+        if not _b18_finite_number(answer_raw):
+            failures.append('evidence answer.raw 非有限数值')
+        if (_b18_finite_number(answer_raw) and _b18_finite_number(actual_param4)
+                and answer_raw != actual_param4):
+            failures.append('evidence answer.raw 与同源 APK param4 不相等')
+    return spec, evidence, answer, failures
+
+
+def consume_b18_own_record_answers(row: dict, skill: dict, data=None, cid: int | None = None) -> list[dict]:
+    """仅消费 validate 返回的同一 evidence/answer 对象；不重新 next 选择。"""
+    spec, evidence, answer, failures = validate_b18_own_record(row, skill, data=data, cid=cid)
+    if failures:
+        return []
+    existing = {a.get('rule_key') for a in (row.get('answers') or [])}
+    if existing & B18_OWN_RECORD_KEYS:
+        return []
+    ev_source = dict(evidence.get('source') or {})
+    note = ('批18 own-record 消费：值来自 ability64 的既有 /param4 规则（已核样本 occ1），'
+            '本条 APK 记录适用域、中文表述及句内关联均为规则外推；不等于逐记录原生确认。')
+    return [dict(
+        table='skilllist', record_id=evidence.get('record_id'), layer=ev_source.get('layer'),
+        rule_key=answer['rule_key'], field_path='/param4',
+        raw_value=answer.get('raw'), value=answer.get('value'),
+        quantity_kind=answer.get('kind'), unit=answer.get('unit'),
+        conversion=answer.get('conversion'), conditions=answer.get('conditions'),
+        base_definition=answer.get('base_definition'), note=note,
+        numeric_evidence='推断', association_evidence='推断',
+        numeric_source='既有 ability64 规则字段（occ1 外推）',
+        evidence_scope=B18_EVIDENCE_SCOPE, quantitative=True,
+        source=ev_source, source_key=ev_source.get('source_key'),
+        json_pointer=ev_source.get('json_pointer'),
+        raw_record_sha256=ev_source.get('raw_record_sha256'),
+    )]
+
+
+def apply_to_groups(data, cid: int, groups: list[dict]) -> list[dict]:
+    """coverage 前只追加两条允许行的 /param4，并保留旧答案。"""
+    if cid not in B18_ROW_ALLOWLIST or (hasattr(data, 'cids') and cid not in data.cids):
+        return []
+    applied = []
+    for group in groups:
+        for skill in group.get('skills') or []:
+            for row in skill.get('rows') or []:
+                promoted = consume_b18_own_record_answers(row, skill, data=data, cid=cid)
+                if not promoted:
+                    continue
+                answer = promoted[0]
+                before = list(row.get('answers') or [])
+                if any(a.get('rule_key') == answer['rule_key'] for a in before):
+                    continue
+                answers = before + [answer]
+                row['answers'] = answers
+                before_class = row.get('row_class')
+                row['row_class'] = 'A'
+                row['evidence'] = '推断'
+                row['numeric_evidence'] = '推断'
+                row['association_evidence'] = '推断'
+                row['partial'] = True
+                scopes = set(row.get('evidence_scope') or [])
+                scopes.add(B18_EVIDENCE_SCOPE)
+                row['evidence_scope'] = sorted(scopes)
+                reasons = list(row.get('unknown_reasons') or [])
+                reason = ('批18：/param4 来自 ability64 规则外推，非本 APK 记录逐记录原生确认；'
+                          '其余句面主张未由本接口补值。')
+                if reason not in reasons:
+                    reasons.append(reason)
+                row['unknown_reasons'] = reasons
+                row['inference_b18_wordface'] = True
+                row['b18_wordface_answer_keys'] = [answer['rule_key']]
+                applied.append(dict(cid=cid, row_id=row['row_id'],
+                                    before_class=before_class, after_class='A',
+                                    before_answer_count=len(before), after_answer_count=len(answers),
+                                    rule_key=answer['rule_key'], raw_value=answer['raw_value'],
+                                    source=answer['source']))
+    return applied
+
+
 def _emit_row(row, skill, is_yg, snapshot, snapshot_id, descriptions, effects):
     row_id = row['row_id']
+    # 页面答案必须先由 apply_to_groups 写入 row['answers']；这里不临时拼接 phantom answer。
     res = analyze_row(row, table=skill.get('table'))
+    # 只把已经存在于页面答案中的批18来源复制到效果 provenance，便于正式 checker 追源。
+    for answer_index, answer in enumerate(row.get('answers') or []):
+        if answer.get('evidence_scope') != B18_EVIDENCE_SCOPE:
+            continue
+        matched_effects = [effect for effect in res['effects']
+                           if any(ref.get('answer_index') == answer_index
+                                  and ref.get('rule_key') == answer.get('rule_key')
+                                  and ref.get('raw_value') == answer.get('raw_value')
+                                  for ref in (effect.get('answer_refs') or []))]
+        for effect in matched_effects:
+            effect.setdefault('promotion_provenance', []).append(dict(
+                rule_key=answer.get('rule_key'), field_path=answer.get('field_path'),
+                raw_value=answer.get('raw_value'), value=answer.get('value'),
+                table=answer.get('table'), record_id=answer.get('record_id'),
+                layer=answer.get('layer'), source=dict(answer.get('source') or {}),
+                evidence_scope=answer.get('evidence_scope'),
+                numeric_evidence=answer.get('numeric_evidence'),
+                association_evidence=answer.get('association_evidence'),
+                note=answer.get('note'),
+            ))
     src = row['source'] or {}
     # 批次推断键是行级顶层键（inference_bN 晋级／inference_bN_hint 留守；行键清单无 metadata 键）
     inference_keys = sorted(k for k in row if k.startswith('inference_'))
@@ -1852,17 +3218,33 @@ def run(pages_root: Path, out_dir: Path):
                                    unresolved=st['unresolved'], justified_na=st['justified_na'])))
 
     # A3：答案引用全部可解析（row_id+field_path+raw_value+answer_index 独立重读页面核对）
+    # 读卡复用（2026-10-29，C7-P1 工程项，只改性能）：仍对**每张卡独立重读一次**页面文件
+    # （不复用 build 阶段已解析对象，来源核验语义不变），并按卡建立 row_id→首次出现行的
+    # 临时索引，核该卡全部行后随 cid 切换整体释放，不跨卡/跨运行保留。取三元组与错误行为
+    # （行缺失、r['answers'] 缺失）与原逐描述重读逐字一致：索引只做首次出现选择（原
+    # next(...) 同法），三元组仍在该行被引用时按原位表达式求值。
     answer_index_by_row = {}
     bad_refs, resolved = [], 0
+    card_row_index = {}
+    card_row_index_cid = None
     for d in descriptions:
-        card = json.loads((pages_root / str(d['cid']) / 'card.json').read_text(encoding='utf-8-sig'))
-        r = next((r for g in card['groups'] for s in g['skills'] for r in s['rows']
-                  if r['row_id'] == d['row_id']), None)
+        if d['cid'] != card_row_index_cid:
+            card = json.loads((pages_root / str(d['cid']) / 'card.json').read_text(encoding='utf-8-sig'))
+            card_row_index = {}
+            for g in card['groups']:
+                for s in g['skills']:
+                    for r in s['rows']:
+                        card_row_index.setdefault(r['row_id'], r)  # 同 row_id 取首次出现
+            card_row_index_cid = d['cid']
+            del card  # 只保留本卡行对象索引；切卡时旧索引被回收
+        r = card_row_index.get(d['row_id'])
         if r is None:
             bad_refs.append(dict(row_id=d['row_id'], reason='行在页面中不存在'))
             continue
         answer_index_by_row[d['row_id']] = [(a.get('field_path'), a.get('raw_value'))
                                             for a in r['answers']]
+    card_row_index = {}
+    card_row_index_cid = None
     for e in effects:
         for ref in e.get('answer_refs') or []:
             key = ref['resolvable_key']
@@ -2184,3 +3566,9 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+

@@ -90,33 +90,61 @@ case('A7-3 补齐后退出未解队列（真实 349 f3 重建后）',
      dict(has_answer=6, unresolved=0, flags=[]),
      n_ans == 6 and not any(e['status'] == 'unresolved' for e in r3['effects']) and not r3['split_flags'])
 
-# ---- 用例 4（拆分未完成不得完整）：真实重建后带 S2 标志的行（原文有数字、答案也存在）----
-# 语义：原文数字语义未确认（数量角色为词面启发式）→ 不得判完整，须拆分待核查。
+# ---- 用例 4（拆分未完成不得完整）：确定性选取「有答案且有拆分标志」的真实行 ----
+# 语义（不变）：行带拆分标志 ⇒ 不得判完整，须拆分待核查。
 # DS-GR-04 修复（20261023）：不再测试内自算「完整=not flags」同义反复——直接调用账本真实
 # 行级派生 effect_ledger._emit_row（与 ledger.jsonl 生成同一路径），断言其产出的
 # ledger_row_status 为「拆分待核查」（不为完整）。
+# A7-4 夹具更新（2026-10-26 マナ账本映射批，主持授权）：原钉死样板行
+# `2243-ability-ability-skillid_1_-lvorder0-f0`（素マナ「マナを2つ持った状態で戦闘を開始する。」）
+# 在该批授权映射（skilllist|26|/param0 三键精确映射＋来源限定主张）后单子句全覆盖、**合法关闭**
+# （flags=[]、開局マナ has_answer）→ 原夹具前提失效。**不是为通过而改检查**：断言语义逐字不变，
+# 只把样板行改为按 cid 升序确定性选取首个「页面有答案且有拆分标志」的行（A7-5 同一选取模式），
+# 无候选时写 FAIL（不空过），保证该用例仍能识别「有标志却派生为完整」的错误。
 sys.path.insert(0, str(ROOT / 'scripts' / 'character_skills'))
 import effect_ledger as EL
-card2 = json.loads((pages / '2243' / 'card.json').read_text(encoding='utf-8-sig'))
-row2 = next(rr for g in card2['groups'] for s in g['skills'] for rr in s['rows']
-            if rr['row_id'] == '2243-ability-ability-skillid_1_-lvorder0-f0')
-desc4, eff4 = [], []
-EL._emit_row(row2, {'table': 'ability', 'skill': None}, False,
-             dict(snapshot_id='a7-case4', campaign_signature=None, rules_json_sha256_16=None, pages_root='output/character_skills/pages'), 'a7-case4', desc4, eff4)
-derived_status4 = desc4[0]['ledger_row_status']
-page_answers4 = len(row2['answers'])   # 「有答案」＝页面行携带答案（开局玛那），非效果级匹配数
-s2 = any(f['code'] == 'S2_unconfirmed_numbers' for f in desc4[0]['split_flags'])
-flags4 = [f['code'] for f in desc4[0]['split_flags']]
-# R2 复审整改第二轮（20261023）：2243 的数字（マナ1つ，数量角色）在角色绑定规则下已
-# 能映射到其结构化数量答案——S2 解除；行仍因 S1/S3（无效果主张/未覆盖子句）保持
-# 拆分待核查。用例语义「有答案且有数字的行不得判完整」不变；S2 专项由 A7-17/A7-21 承担。
-case('A7-4 拆分未完成不得完整（2243 有答案且有数字，真实行级派生）',
-     '调用账本 _emit_row 真实派生：页面行有答案（≥1）且有拆分标志 ⇒ '
-     'ledger_row_status=拆分待核查（不得完整）；第二轮下该行标志为 S1/S3'
-     '（数字已按角色绑定映射，S2 解除）',
-     dict(page_answers=page_answers4, flags=flags4, ledger_row_status=derived_status4),
-     dict(page_answers='>=1', ledger_row_status='拆分待核查', has_split_flags=True),
-     page_answers4 >= 1 and flags4 and derived_status4 == '拆分待核查')
+
+
+def _first_row_with_answers_and_flags(_pages):
+    """cid 升序首个「页面有答案（≥1）且账本派生有拆分标志」的真实行：((cid, table), row)。"""
+    for _d in sorted(_pages.iterdir(), key=lambda p: (len(p.name), p.name)):
+        if not (_d.is_dir() and (_d / 'card.json').is_file()):
+            continue
+        try:
+            int(_d.name)
+        except ValueError:
+            continue
+        _card = json.loads((_d / 'card.json').read_text(encoding='utf-8-sig'))
+        for _g in _card['groups']:
+            for _s in _g['skills']:
+                for _r in _s['rows']:
+                    if not (_r.get('answers') or []):
+                        continue
+                    if not EL.analyze_row(_r, table=_s.get('table'))['split_flags']:
+                        continue
+                    return (int(_d.name), _s.get('table')), _r
+    return None, None
+
+
+_found4, row2 = _first_row_with_answers_and_flags(pages)
+if row2 is None:
+    case('A7-4 拆分未完成不得完整（确定性选取）', '存在「有答案且有拆分标志」的真实行',
+         dict(found=False), dict(found=True), False)
+else:
+    _cid4, _table4 = _found4
+    desc4, eff4 = [], []
+    EL._emit_row(row2, {'table': _table4, 'skill': None}, False,
+                 dict(snapshot_id='a7-case4', campaign_signature=None, rules_json_sha256_16=None,
+                      pages_root='output/character_skills/pages'), 'a7-case4', desc4, eff4)
+    derived_status4 = desc4[0]['ledger_row_status']
+    page_answers4 = len(row2['answers'])   # 「有答案」＝页面行携带答案，非效果级匹配数
+    flags4 = [f['code'] for f in desc4[0]['split_flags']]
+    case('A7-4 拆分未完成不得完整（确定性选取 cid%d %s）' % (_cid4, row2['row_id'][:48]),
+         '调用账本 _emit_row 真实派生：页面行有答案（≥1）且派生有拆分标志 ⇒ '
+         'ledger_row_status=拆分待核查（不得完整）',
+         dict(page_answers=page_answers4, flags=flags4, ledger_row_status=derived_status4),
+         dict(page_answers='>=1', ledger_row_status='拆分待核查', has_split_flags=True),
+         page_answers4 >= 1 and bool(flags4) and derived_status4 == '拆分待核查')
 
 # ---- 用例 5（hint 变化不丢待办）：批 17（20261023）后 30229 f0 已由槽位分区晋级
 # （原 b15_hint 行清零），改用当前 pages 中仍带 inference_b15_hint 的真实行（确定性
