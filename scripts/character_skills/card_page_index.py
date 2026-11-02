@@ -101,14 +101,20 @@ EXPECTED_CAMPAIGN = {
     # 2026-10-30 C10-P1（t27/t64 skilltext 同卡镜像整理 6 行 6 答案）：6 行均由 C（未知）转
     # A（推断，全 Y.G.）；故 A 18,511→18,517、C 23,154→23,148、整行推断 6,113→6,119，其余
     # 5 项不变。数值取自本轮 campaign_report.summary 实测；校验逻辑未改（漂移仍显式失败）。
+    # 2026-10-31 C11（P1 t114／P2 1059／P3 1017，33 行 115 答案）：A/C 不变、整行推断 +33；其余 5 项不变。数值取自本轮
+    # campaign_report.summary 实测；校验逻辑未改（漂移仍显式失败）。
+    # 2026-10-31 C12（P1 3000／P2 3005→sub1／P3 skilltext 镜像，199 行 669 答案）：A/C 不变、整行推断 +199；其余 5 项不变。数值取自本轮
+    # campaign_report.summary 实测；校验逻辑未改（漂移仍显式失败）。
+    # 2026-10-31 C13（P1 supporterskill type8／P2 t27 镜像／P3 2012 时长，67 行 95 答案）：A +3、C −3、整行推断 +3；其余 5 项不变。数值取自本轮
+    # campaign_report.summary 实测；校验逻辑未改（漂移仍显式失败）。
     "N_all": 41665,
-    "A": 18517,
+    "A": 18520,
     "whole_row_confirmed": 266,
     "scope_record": 18,
     "scope_by_type_extrapolated": 248,
     "original_A": 13859,
-    "C": 23148,
-    "whole_row_inferred": 6119,
+    "C": 23145,
+    "whole_row_inferred": 6354,
 }
 # 缺图 cid 清单（README §16.2 / 迁移任务卡 §2；59103 三类皆缺，故单列集合不含它）
 MISSING_CARD = {

@@ -58,6 +58,15 @@ import card_page_inference_c8_p1_t27 as C8_P1_T27
 import card_page_inference_c9_p1_t99 as C9_P1_T99
 import card_page_inference_c9_p1_t64 as C9_P1_T64
 import card_page_inference_c10_p1_mirror as C10_P1_MIRROR
+import card_page_inference_c11_p1_t114 as C11_P1_T114
+import card_page_inference_c11_p2_union_count as C11_P2_UNION_COUNT
+import card_page_inference_c11_p3_strength_job2 as C11_P3_STRENGTH_JOB2
+import card_page_inference_c12_p1_sympathy_attack as C12_P1_SYMPATHY_ATTACK
+import card_page_inference_c12_p2_sympathy_3005_sub1 as C12_P2_SYMPATHY_3005_SUB1
+import card_page_inference_c12_p3_skilltext_mirror as C12_P3_SKILLTEXT_MIRROR
+import card_page_inference_c13_p1_supporterskill_type8 as C13_P1_SUPPORTERSKILL_TYPE8
+import card_page_inference_c13_p2_t27_mirror as C13_P2_T27_MIRROR
+import card_page_inference_c13_p3_2012_duration as C13_P3_2012_DURATION
 import effect_ledger as B18_WORDFACE
 from card_page_policy import metrics,INFERENCE_STATUS
 from card_page_basic import apply_basic_display
@@ -678,6 +687,81 @@ def baseline_target(b):
     ids=re.findall(r'pattern(\d+)',b.get('condition',''))
     if b.get('description_table')=='bosspattern' and len(set(ids))==1: return int(ids[0])
     return b.get('description_record_id')
+
+
+C13_P1_SCOPE_CIDS = frozenset({
+    349, 351, 353, 4315, 7251, 30103, 30104, 30105, 30106, 30109, 30110, 30112,
+    30201, 30202, 30204, 30205, 30207, 30208, 30210, 30218, 30219, 30220, 30221,
+    30224, 30225, 30226, 30228, 30230, 30234, 30240, 30243, 30244, 30245, 30246,
+    30247, 30249, 30250, 30257, 30258, 30261, 30303, 30304, 30305, 30306, 30307,
+    30308, 30309, 30310, 30312, 30313, 30314, 30315, 30320, 30321, 30322, 30325,
+    30329, 30334, 30335, 30336, 30338,
+})
+_C13_P1_BACKLOG = None
+
+
+def _c13_p1_frozen_backlog(data):
+    """Read the reviewed, frozen candidate claims instead of the mutable F03 queue."""
+    payload = read(data.root / 'output/character_skills/c13_p1_supporterskill_type8_20261031/candidate_answers.json')
+    backlog = collections.defaultdict(list)
+    for row in payload.get('rows') or []:
+        for claim in row.get('claims') or []:
+            backlog[row['row_id']].append({
+                'kind': 'effect', 'cid': row['cid'], 'row_id': row['row_id'], 'yg': True,
+                'effect_type': claim['effect_type'], 'backlog_id': claim['backlog_id'],
+            })
+    return backlog
+
+
+def _c13_p1_supporterskill(data, cid, groups):
+    """Apply the reviewed candidate and embed only newly referenced abi evidence."""
+    global _C13_P1_BACKLOG
+    if _C13_P1_BACKLOG is None:
+        _C13_P1_BACKLOG = _c13_p1_frozen_backlog(data)
+    tab = C13_P1_SUPPORTERSKILL_TYPE8.tables()
+    for group in groups:
+        for index, skill in enumerate(group.get('skills') or []):
+            if skill.get('reference_field') != C13_P1_SUPPORTERSKILL_TYPE8.REF_FIELD:
+                continue
+            result = C13_P1_SUPPORTERSKILL_TYPE8.apply_to_skill(
+                cid, skill, tab=tab, backlog=_C13_P1_BACKLOG,
+                scope_cids=C13_P1_SCOPE_CIDS)
+            new_skill = result['skill']
+            group['skills'][index] = new_skill
+            if not result['answers']:
+                continue
+            evidence = new_skill.get('record_evidence')
+            if evidence is None:
+                evidence = []
+                new_skill['record_evidence'] = evidence
+            present = {(entry.get('table'), entry.get('record_id'), entry.get('layer'))
+                       for entry in evidence}
+            for answer in result['answers']:
+                key = ('skilllist', answer['record_id'], answer['layer'])
+                if key in present:
+                    continue
+                entry = data.skill(answer['record_id'])
+                if not entry or entry.get('layer') != answer['layer']:
+                    raise ValueError(f'C13-P1 evidence source mismatch: {key}')
+                generated = data.evidence_tree(entry)
+                if not generated:
+                    raise ValueError(f'C13-P1 evidence source missing: {key}')
+                if answer['record_id'] == 101009:
+                    for evidence_entry in generated:
+                        for field_answer in evidence_entry.get('answers') or []:
+                            ordered = {}
+                            for field_name in ('f', 'raw', 'rule_key', 'value', 'kind', 'unit',
+                                               'status', 'scope', 'conversion', 'base_definition',
+                                               'conditions', 'rule_limits'):
+                                if field_name in field_answer:
+                                    ordered[field_name] = field_answer[field_name]
+                            for field_name, value in field_answer.items():
+                                if field_name != 'details' and field_name not in ordered:
+                                    ordered[field_name] = value
+                            field_answer.clear()
+                            field_answer.update(ordered)
+                evidence.extend(generated)
+                present.add(key)
 
 
 def build_card(data:Inputs,cid):
@@ -1907,6 +1991,91 @@ def build_card(data:Inputs,cid):
     # 不改 rules.json／rules.py；不写最终 HP/超上限/触发次数/实机间隔；
     # 范围外行零触碰；30236/30239 零触碰。
     C10_P1_MIRROR.apply_to_groups(data,cid,groups)
+    # C11-P1 t114 冲刺重复攻击（2026-10-31，6 行 6 答案，全 Y.G.）：30002／30229 各 2 条
+    # patternN 直接行（本行父记录链内伤害族载体恰 1 条 type114，/skillparam1 有限正值
+    # 1／1.2／0.6／0.8）＋各 1 条 skilltext 同卡同文镜像行（同卡 pattern0 直接基档同记录
+    # 同原值同 CACHE 层）。批次边界由调用方显式声明为冻结 cid 集合：scope_cids 缺省即一行
+    # 不处理，mirror_cids 另行 opt-in，均不得扩大到非目标卡；30236/30239 模块内硬拒绝。
+    # 0 新增规则键/公式/原生：账本沿用既有 bossskill|114|/skillparam1 → ダメージ（词表外）；
+    # 不改 rules.json／rules.py／effect_ledger 映射。
+    C11_P1_T114.apply_to_groups(data,cid,groups,
+        scope_cids=frozenset({30002,30229}),
+        mirror_cids=frozenset({30002,30229}))
+    # C11-P2 skilllist 1059（UnionCount）首段五属性（2026-10-31，14 行 70 答案，全 Y.G.）：
+    # 「戦場に自身を含む<筛选>の味方が多いほど味方全体の<五属性>が上がる」首段 ◆ 句按记录
+    # param1..param5 出值；筛选维（param8／flag0_0／iParam0）与句面 token 双向核对，第二 ◆
+    # 段（sub 链）不归属本句。批次边界显式声明为冻结 cid 集合，非目标卡一行不处理；
+    # 0 新公式/规则键/原生；账本只新增 5 条键精确映射（param0／回复槽／筛位不接）。
+    C11_P2_UNION_COUNT.apply_to_groups(data,cid,groups,
+        scope_cids=frozenset({352,353,1303,7250,30002,30112,30113,30218,
+                              30240,30243,30248,30249,30250,30336}))
+    # C11-P3 skilllist 1017（StrengthJob2）第二段 サブパーティ条件句（2026-10-31，13 行 39
+    # 答案）：只归属第二段「サブパーティにいると、メインパーティの攻撃力と防御力と移動速度が
+    # 上がる」句，按记录 param1..param3 出值；同记录首段既有 3 条答案零触碰，同段暴击子句不
+    # 归属本句。**S3 保留**：不写 binding_conditions、不清 split 标记，行仍「拆分待核查」。
+    # 批次边界显式声明为冻结 cid 集合（30229 无句首「また」形态在内）；非目标卡一行不处理；
+    # 0 新公式/规则键/原生/映射（账本沿用既有 skilllist|1017|/param1..3）。
+    C11_P3_STRENGTH_JOB2.apply_to_groups(data,cid,groups,
+        scope_cids=frozenset({350,4316,30229,30232,30237,30238,30241,30252,
+                              30262,30327,30328,30333,30337}))
+    # C12-P1 共鳴アビリティ skilllist 3000 攻撃力／クリティカル威力段（2026-10-31，42 行
+    # 108 答案，全 Y.G.）：只归属首段「…の攻撃力と…が一定時間上がる」句——p1 普通攻击加算
+    # ＋p2 技能攻击加算各 +10 个百分点（加算增量，不是面板×1.1）、句面含クリティカル威力时
+    # p8 暴伤系数加算 +0.1；p6=45 秒既有答案零改值零重复，p3/p4/p5/p7 不出值（防御／移速／
+    # クリ発生率／回復仍未知，p4 负值不猜）。S3 与 b7 hint 保留、完整 +0；行自身记录供值，
+    # 不用 sub／不跨记录。批次边界显式声明为冻结 cid 集合：scope_cids 缺省即一行不处理，
+    # 30236/30239 模块内硬拒绝；0 新公式/规则键/映射/原生（复用 3000 三键既有换算）。
+    C12_P1_SYMPATHY_ATTACK.apply_to_groups(data,cid,groups,
+        scope_cids=frozenset({30002,30101,30103,30104,30201,30202,30203,30204,30205,
+                              30206,30207,30208,30219,30220,30221,30222,30223,30224,
+                              30225,30226,30228,30229,30237,30238,30241,30252,30254,
+                              30255,30262,30301,30302,30303,30304,30305,30306,30307,
+                              30308,30317,30327,30328,30333,30337}))
+    # C12-P2 共鳴アビリティ 3005→sub1 攻撃力・一定時間段（2026-10-31，34 行 102 答案，全
+    # Y.G.）：ability0 指向 M（ability=3005）→ 相邻 sub 恰 1 个（=M+1、ability=3000）；答案
+    # source.record_id 一律为**子记录**，M 的 param1/param2 为 Chain 配置、零消费、不建 3005
+    # 规则键。p1/p2 普通/技能攻击加算各 +10 个百分点、p6=45 游戏秒；p3/p4/p5/p7/p8 不出值。
+    # p2 与 p1 同属一条「攻撃力」主张 → 账本记 S4（与 10215 先例同形）；S3/b7 hint 保留、
+    # 完整 +0；M→sub1 为数据侧结构对应，不写引擎装载确认。批次边界显式声明；非目标卡一行
+    # 不处理；0 新公式/规则键/映射/原生。
+    C12_P2_SYMPATHY_3005_SUB1.apply_to_groups(data,cid,groups,
+        scope_cids=frozenset({349,353,1303,4315,4316,7250,30105,30109,30210,30218,
+                              30230,30234,30240,30242,30250,30251,30256,30258,30261,
+                              30309,30310,30313,30315,30318,30321,30322,30323,30324,
+                              30325,30326,30329,30330,30335,30338}))
+    # C12-P3 charainfo.skilltext 同卡同文档位同文镜像（2026-10-31，123 行 459 答案与效果，
+    # 全 Y.G.）：只对 reference_field=skilltext 行——原文与 charainfo.skilltext NFKC 全等且为
+    # 逐字子串，同卡同【共鳴必殺】标签的 patternN 行逐字同文且恰 1 条，该档位行已有同键同
+    # 记录同原值答案，同文 super 兄弟原值至少一处不同；原记录链逐位相等后只出句面槽：13
+    # p1/p2/p6、2012 p4/p5、2003 p7/p8/p9。一行一槽一答案（无 S4），13 p3／2003 p0 时长
+    # 不重复（30108 不补时长），22 个文本块的其他「状態異常」子句不回答。S7 与 b6/b8/b10
+    # hint 保留、完整 +0、档位选取未解析；CACHE/APK 同号不合并、只用 CACHE 值；0 新增唯一
+    # 数值/公式/规则键/映射/原生。批次边界显式声明；非目标卡一行不处理；30236/30239 硬拒。
+    C12_P3_SKILLTEXT_MIRROR.apply_to_groups(data,cid,groups,
+        scope_cids=frozenset({349,350,351,352,353,1303,2331,4315,4316,7251,10215,30101,
+                              30103,30104,30105,30106,30108,30109,30110,30111,30112,
+                              30113,30201,30202,30203,30204,30205,30206,30207,30208,
+                              30210,30214,30218,30221,30224,30226,30228,30230,30234,
+                              30237,30238,30241,30242,30243,30244,30245,30246,30247,
+                              30248,30249,30250,30251,30252,30256,30257,30258,30261,
+                              30262,30302,30303,30304,30305,30306,30307,30308,30309,
+                              30310,30312,30313,30314,30315,30317,30318,30320,30321,
+                              30322,30324,30326,30327,30328,30329,30330,30332,30333,
+                              30335,30336,30337,30338}))
+    # C13-P1 supporterskill→abiN type8 常时自身基础增益（61 行 89 答案候选，全 Y.G.）：
+    # 只取句首「戦闘時」属性链与 ABI 原文一致、非中性且唯一的 param1/2/3；CACHE 缺 ID 才逐 ID
+    # 回退 APK。规则体确认、装载关联推断；30302 重复攻击及条件／对象句不出值。backlog 只读
+    # 冻结候选证据，不随F03队列变化；新增答案来源若尚未嵌入record_evidence，则按共享
+    # evidence_tree 补嵌，既有项不重复、不改写。
+    _c13_p1_supporterskill(data,cid,groups)
+    # C13-P2 t27 同卡同文回复镜像（3 行 3 答案候选）：skilltext 基档句只镜像同卡 pattern0
+    # 已有同键同记录同原值 p1；超共鳴异值仅作反例。p2/p3 只披露，账本走来源限定窄映射。
+    C13_P2_T27_MIRROR.apply_to_groups(data,cid,groups,
+        scope_cids=frozenset({10215,30228,30314}))
+    # C13-P3 2012 同卡同记录攻速时长（3 行 3 答案候选）：目标已有 param6 与 peer param0
+    # 必须同 record/pointer/raw；只补 30 游戏秒，pattern/slot 各自保留，param6 不重复。
+    C13_P3_2012_DURATION.apply_to_groups(data,cid,groups,
+        scope_cids=frozenset({30255,30306}))
     # Enter own-record answers in pages before the same ledger consumes them.
     B18_WORDFACE.apply_to_groups(data,cid,groups)
     counts=collections.Counter(r['row_class'] for r in allrows); cross={c:{e:0 for e in ('确认','推断','未知')} for c in ('A','B','C')}

@@ -178,6 +178,11 @@ C8P1_T27_EFFECT = '回復（词表外）'
 C10P1_T27_SCOPE = 'C10_P1_T27_SKILLTEXT_MIRROR_20261030'
 C10P1_T27_RULE_KEY = 'bossskill|27|/skillparam1'
 C10P1_T27_EFFECT = '回復（词表外）'
+# C13-P2 t27 skilltext 镜像：只消费带本批 binding 的 p1，规则键／槽／表／记录／层逐项一致；
+# p2/p3 仍只披露，不整族映射 type27，其他 t27 批次与无标记行行为不变。
+C13P2_T27_SCOPE = 'C13_P2_T27_MIRROR_20261031'
+C13P2_T27_RULE_KEY = 'bossskill|27|/skillparam1'
+C13P2_T27_EFFECT = '回復（词表外）'
 # type67 阶梯批（2026-10-28）：来源限定的槽位↔主张类型映射。只消费本批模块写入、
 # 带 binding.type67_binding（scope＝TYPE67_BATCH_20261028）的答案；不整族映射 type67，
 # 不改既有 P3B9/P3B10 等单记录条件答案的映射路径。
@@ -477,6 +482,13 @@ _RULE_KEY_EFFECT = {
     # 已确认规则键接入账本（回復（词表外）主张）；两键均具来源限定（规则 conditions 明写
     # 「仅普通65000003」，本批载体恰在域内）；不整族映射 ability21，不改其他族映射。
     'skilllist|21|/param1': '回復（词表外）', 'skilllist|21|/flag0_1': '回復（词表外）',
+    # C11-P2 UnionCount 批（2026-10-31，主持裁决窄门）：**仅** skilllist 1059 的五个值槽
+    # 接入账本；param0（人数阈值）、param6/param7（周期回复）与筛位不映射，不整族映射 1059。
+    'skilllist|1059|/param1': '攻撃力',
+    'skilllist|1059|/param2': '移動速度',
+    'skilllist|1059|/param3': '防御力',
+    'skilllist|1059|/param4': 'クリティカル発生率',
+    'skilllist|1059|/param5': 'クリティカル威力',
 }
 # 上表各键的映射依据文本（_answer_effect_type 的 basis 用；未列键沿用通用依据）。
 _RULE_KEY_EFFECT_BASIS = {
@@ -887,6 +899,23 @@ def _answer_effect_type(answer: dict):
             return C10P1_T27_EFFECT, ('C10-P1 skilltext 镜像整理批：binding.c10_p1_mirror_binding '
                                      '来源限定（scope/rule_key/槽/表/载体记录与层逐项一致；只补一条'
                                      '既有词表主张，不整族映射 type27）')
+    # C13-P2：只认本批 skilltext 镜像 binding；不消费 p2/p3，不改 C8/C10 分支。
+    # binding、答案顶层与 source 必须同源一致；缺字段、错槽或来源矛盾均不得消费。
+    c13p2 = binding.get('c13_p2_t27_mirror_binding') if isinstance(binding, dict) else None
+    if isinstance(c13p2, dict) and c13p2.get('scope') == C13P2_T27_SCOPE:
+        source = answer.get('source') or {}
+        if (rk == C13P2_T27_RULE_KEY and c13p2.get('rule_key') == rk
+                and c13p2.get('field_path') == answer.get('field_path') == source.get('field_path') == source.get('field') == '/skillparam1'
+                and c13p2.get('table') == answer.get('table') == source.get('table') == 'bossskill'
+                and type(c13p2.get('record_id')) is int and c13p2.get('record_id') > 0
+                and c13p2.get('record_id') == answer.get('record_id') == source.get('record_id')
+                and c13p2.get('layer')
+                and c13p2.get('layer') == answer.get('layer') == source.get('layer')
+                and c13p2.get('carrier_slot') == 'skillid0'
+                and source):
+            return C13P2_T27_EFFECT, ('C13-P2 t27 skilltext 镜像：binding.c13_p2_t27_mirror_binding '
+                                     '来源限定（scope/rule_key/槽/表/载体记录与层逐项一致；只补一条'
+                                     '既有回复主张，不整族映射 type27）')
     if (rk in ('skilllist|7|/param7', 'skilllist|2012|/param6', 'skilllist|1016|/param6',
                'skilllist|56|/param9','bossskill|68|/skillparam9','bossskill|118|/skillparam9')
             or answer.get('quantity_kind') == '攻击间隔乘数'):
