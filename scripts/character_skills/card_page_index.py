@@ -107,14 +107,20 @@ EXPECTED_CAMPAIGN = {
     # campaign_report.summary 实测；校验逻辑未改（漂移仍显式失败）。
     # 2026-10-31 C13（P1 supporterskill type8／P2 t27 镜像／P3 2012 时长，67 行 95 答案）：A +3、C −3、整行推断 +3；其余 5 项不变。数值取自本轮
     # campaign_report.summary 实测；校验逻辑未改（漂移仍显式失败）。
+    # 2026-11-03 C14（P1 2003 直接载体链补隙 6 卡 16 行 63 答案／P2 charainfo.pattern0
+    # 直接链伤害 9 卡 10 行 10 答案）：A +2、C −2、整行推断 +16；其余 5 项不变。数值取自本轮
+    # campaign_report.summary 实测；校验逻辑未改（漂移仍显式失败）。
+    # 2026-11-04 C15（P1 denju 非首段伤害直接链 5 卡 6 行 6 答案）：A +1、C −1；
+    # 其余 6 项不变。数值取自本轮 campaign_report.summary 实测；校验逻辑未改
+    #（漂移仍显式失败）。
     "N_all": 41665,
-    "A": 18520,
+    "A": 18523,
     "whole_row_confirmed": 266,
     "scope_record": 18,
     "scope_by_type_extrapolated": 248,
     "original_A": 13859,
-    "C": 23145,
-    "whole_row_inferred": 6354,
+    "C": 23142,
+    "whole_row_inferred": 6370,
 }
 # 缺图 cid 清单（README §16.2 / 迁移任务卡 §2；59103 三类皆缺，故单列集合不含它）
 MISSING_CARD = {

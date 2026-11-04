@@ -67,6 +67,9 @@ import card_page_inference_c12_p3_skilltext_mirror as C12_P3_SKILLTEXT_MIRROR
 import card_page_inference_c13_p1_supporterskill_type8 as C13_P1_SUPPORTERSKILL_TYPE8
 import card_page_inference_c13_p2_t27_mirror as C13_P2_T27_MIRROR
 import card_page_inference_c13_p3_2012_duration as C13_P3_2012_DURATION
+import card_page_inference_c14_p1_2003_enemy_debuff as C14_P1_2003_DEBUFF
+import card_page_inference_c14_p2_boss_damage_direct as C14_P2_BOSS_DAMAGE
+import card_page_inference_c15_p1_denju_damage_direct as C15_P1_DENJU_DAMAGE
 import effect_ledger as B18_WORDFACE
 from card_page_policy import metrics,INFERENCE_STATUS
 from card_page_basic import apply_basic_display
@@ -2076,6 +2079,32 @@ def build_card(data:Inputs,cid):
     # 必须同 record/pointer/raw；只补 30 游戏秒，pattern/slot 各自保留，param6 不重复。
     C13_P3_2012_DURATION.apply_to_groups(data,cid,groups,
         scope_cids=frozenset({30255,30306}))
+    # C14-P1 2003 敌方减益直接载体链补隙（6 卡 16 行 63 答案候选，Y.G. 3 行 12 答案＝30303；
+    # 同已证规则域非 Y.G. 13 行 51 答案＝106/347/5302/20608/20704）：这些行各已有一条原文数字
+    # 答案，因此被上方 `table in B10.TABLES and not answers` 的调用守卫跳过。本批不改该守卫、
+    # 不全局放宽，只在行构建后逐行重新调用既有 B10.evaluate（APK 载体内部委托 B13）并要求
+    # promote；批次边界由模块内冻结 16 行表与 ADMITTED_CIDS 硬限定，非目标卡一行不处理；
+    # 跨层同号整行拒绝；30236/30239/30102/20234 零触碰。
+    C14_P1_2003_DEBUFF.apply_to_groups(data,cid,groups)
+    # C14-P2 charainfo.pattern0 → bosspattern → bossskill 直接链伤害（9 卡 10 行 10 答案候选，
+    # 全 Y.G.）：只对冻结 9 卡 skilltext 行——pattern0 链唯一且 sinfo 与父文本逐字相同、句面
+    # 形态（N回↔type105/110 且 param6==N；大/中/一定間隔↔单发型 type3/22/55/74 恰 1 条）与
+    # 伤害槽唯一、原值 FINITE>0 才出；来源直接指向选中 bossskill 记录。账本沿用既有
+    # binding.g1_b1_binding 窄映射（6 键，不整族映射 bossskill）。批次边界显式声明为冻结
+    # 9 卡；denju 非首段 6 行保持未知；30102/20234/30236/30239 与 30236 同层硬拒绝；
+    # 不改 rules.json／rules.py／effect_ledger 映射。
+    C14_P2_BOSS_DAMAGE.apply_to_groups(data,cid,groups,
+        scope_cids=frozenset({7250,30105,30107,30220,30223,30225,30301,30329,30334}))
+    # C15-P1 denju.patternid0 → bosspattern → bossskill 非首段伤害直接链（5 卡 6 行 6 答案候选，
+    # 全 Y.G.）：只对冻结 6 行 denju 非首段行——本行 denju 记录唯一、stext 与页原文逐字相同、
+    # 行片段在 stext 中恰出现一次、patternid0 唯一命中 bosspattern 且 sinfo==stext、槽位连续、
+    # 句面形态（N回↔type105/110 且 param6==N；大/中/一定間隔↔单发型 3/22/55/74 恰 1 条）唯一、
+    # 伤害槽在 rules.json 中唯一、原值 FINITE>0 才出；答案 source 直接指向选中 bossskill 记录
+    # 的 JSON 指针与字段。账本沿用既有 binding.g1_b1_binding 窄映射（6 键，不整族映射
+    # bossskill）。批次边界显式声明为冻结 5 卡；denju 首段与其他非首段行保持未知；
+    # 30102/20234/30236/30239 硬拒绝；不改 rules.json／rules.py／effect_ledger 映射。
+    C15_P1_DENJU_DAMAGE.apply_to_groups(data,cid,groups,
+        scope_cids=frozenset({7250,30105,30301,30329,30334}))
     # Enter own-record answers in pages before the same ledger consumes them.
     B18_WORDFACE.apply_to_groups(data,cid,groups)
     counts=collections.Counter(r['row_class'] for r in allrows); cross={c:{e:0 for e in ('确认','推断','未知')} for c in ('A','B','C')}

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import copy
 import hashlib
 import html
 import json
@@ -330,6 +331,57 @@ CYCLES = {
             },
         ],
     },
+    "C14": {
+        "title": "C14｜2003 敌减益与 Boss 伤害直接链周期",
+        "campaign": "8d96f313e71a122bf208cfe149a260df2017d98a35ebd9b109b7e9afe54cf62c",
+        "snapshot": "8d96f313-cf9451c6ff47fcfb",
+        "rules": "294 键，SHA-16 cf9451c6ff47fcfb",
+        "before_cards": "output/character_skills/c14_delivery_20261103/pre_rebuild/cards",
+        "delivery_review": "output/character_skills/review/c14_delivery_final_20261103_deepseek/REPORT.md",
+        "delivery_task": "docs/tasks/20261103-c14-delivery-package.md",
+        "batches": [
+            {
+                "id": "C14-P1",
+                "name": "2003 敌方减益直接载体链补隙",
+                "binding": "c14_p1_2003",
+                "task": "docs/tasks/20261102-c14-p1-2003-enemy-debuff.md",
+                "review": "output/character_skills/review/c14_p1_2003_enemy_debuff_20261102_deepseek/REPORT.md",
+                "verdict": "例行独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、零阻断",
+                "notes": "16行63答案：Y.G.12＋同域非Y.G.51。仅补not answers守卫跳过的B10/B13直接载体行；p9为受伤量倍率，不是固定防御减少；仅Skill型着弹，关联保持推断。",
+            },
+            {
+                "id": "C14-P2",
+                "name": "charainfo.pattern0 Boss 伤害直接链",
+                "binding": "c14_p2_boss_damage_direct",
+                "task": "docs/tasks/20261102-c14-p2-boss-damage-direct.md",
+                "review": "output/character_skills/review/c14_p2_boss_damage_direct_20261102_deepseek/REPORT.md",
+                "verdict": "例行独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、零阻断",
+                "notes": "10行10答案，全部Y.G.；pattern0原文、类型、N回param6与伤害槽逐行对应。局部伤害输入公式，非最终扣血；denju非首段6行与其他档位不并入。",
+            },
+        ],
+    },
+    "C15": {
+        "title": "C15｜denju 非首段伤害直接链周期",
+        "campaign": "65839ad742869b73949926049f85cdb1fab08d7e9bed8c721adc5ac32fa66e8b",
+        "snapshot": "65839ad7-cf9451c6ff47fcfb",
+        "rules": "294 键，SHA-16 cf9451c6ff47fcfb",
+        "before_cards": "output/character_skills/c15_delivery_20261103/pre_rebuild/cards",
+        "use_player_text_default": True,
+        "allow_c14_p2_page_sha_drift": True,
+        "delivery_review": "output/character_skills/review/c15_delivery_final_20261103_deepseek/REPORT.md",
+        "delivery_task": "docs/tasks/20261103-c15-delivery-package.md",
+        "batches": [
+            {
+                "id": "C15-P1",
+                "name": "denju.patternid0 非首段伤害直接链",
+                "binding": "c15_p1_denju_damage_direct",
+                "task": "docs/tasks/20261103-c15-p1-denju-damage-direct.md",
+                "review": "output/character_skills/review/c15_p1_denju_damage_direct_20261103_deepseek/REPORT.md",
+                "verdict": "例行独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、零阻断",
+                "notes": "5卡6行6答案，全部Y.G.；只按denju.patternid0→bosspattern→bossskill唯一链定源，不按同文复制。N回匹配type105/110的param6，大／中间隔只取允许类型；局部伤害输入公式，关联保持推断，P2/P3未启动。",
+            },
+        ],
+    },
 }
 
 CSS = """
@@ -337,7 +389,7 @@ CSS = """
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans CJK SC","Microsoft YaHei",sans-serif;line-height:1.6}
 header{background:linear-gradient(120deg,#172554,#1e40af);color:white;padding:28px 34px}header h1{margin:0 0 8px;font-size:26px}header p{margin:4px 0;color:#dbeafe}main{max-width:1500px;margin:24px auto;padding:0 18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin:18px 0;box-shadow:0 2px 8px #0f172a0a}
 h2{font-size:21px;margin:0 0 12px}h3{font-size:17px;margin:18px 0 8px}.muted{color:var(--muted)}.small{font-size:13px}.stats{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.stat{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 12px;font-weight:600;color:#1e40af}.badge{display:inline-block;border-radius:5px;padding:1px 7px;font-size:12px;margin-right:5px;background:#e2e8f0;color:#334155}.badge.pass{background:#d1fae5;color:#065f46}.badge.unknown{background:#fef3c7;color:#92400e}.badge.infer{background:#ede9fe;color:#5b21b6}
-table{border-collapse:collapse;width:100%;font-size:14px}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#eaf0f7;font-weight:700}tr:nth-child(even) td{background:#f8fafc}.jp{font-family:"Noto Sans CJK JP","Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif}.name{font-weight:650;white-space:nowrap}.num{font-variant-numeric:tabular-nums;white-space:nowrap}.links a{color:var(--blue);margin-right:14px}details{cursor:pointer}details summary{color:var(--blue)}.value{max-width:760px;white-space:pre-wrap}.warning{background:#fff7ed;border-left:4px solid var(--amber);padding:10px 14px}.footer{color:var(--muted);font-size:12px;margin:24px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.metric{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px}.metric b{display:block;font-size:20px;color:#1e40af}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#eaf0f7;font-weight:700}tr:nth-child(even) td{background:#f8fafc}.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}@media(max-width:640px){.table-wrap table{min-width:720px}}.jp{font-family:"Noto Sans CJK JP","Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif}.name{font-weight:650;white-space:nowrap}.num{font-variant-numeric:tabular-nums;white-space:nowrap}.links a{color:var(--blue);margin-right:14px}details{cursor:pointer}details summary{color:var(--blue)}.value{max-width:760px;white-space:pre-wrap}.warning{background:#fff7ed;border-left:4px solid var(--amber);padding:10px 14px}.footer{color:var(--muted);font-size:12px;margin:24px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.metric{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px}.metric b{display:block;font-size:20px;color:#1e40af}
 .table-wrap{overflow-x:auto}.value{overflow-wrap:anywhere}code{overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:800px){main{padding:0 8px}header{padding:20px}table{font-size:12px}th,td{padding:5px}.name{white-space:normal}.value{max-width:100%}}
 """
@@ -448,8 +500,9 @@ def new_answer_rows(cfg: dict, batch: dict):
     rows = []
     removed = []
     stats = {"id": batch["id"], "rows": 0, "cards": set(), "answers": 0, "effect_net": 0,
+             "yg_answers": 0, "non_yg_answers": 0, "yg_effect_net": 0, "non_yg_effect_net": 0,
              "before_unresolved": 0, "after_unresolved": 0,
-             "complete_net": 0, "s4_after": 0}
+             "complete_net": 0, "yg_complete_net": 0, "non_yg_complete_net": 0, "s4_after": 0}
     for cid in sorted(int(path.stem) for path in (ROOT / cfg["before_cards"]).glob("*.json")):
         before_data = before_card_data(cid, cfg)
         after_data = card_data(cid, cfg)
@@ -459,7 +512,18 @@ def new_answer_rows(cfg: dict, batch: dict):
             before_answers = (before_row or {}).get("answers") or []
             after_answers = after_row.get("answers") or []
             if after_answers[:len(before_answers)] != before_answers:
-                raise ValueError(f"旧答案被改写：{row_id}")
+                # C15重建会重算既有C14-P2答案的构建前页面指纹。仅在该周期、
+                # 答案数不变且剥离此单字段后完全一致时跳过；其他改值仍硬失败。
+                if len(after_answers) != len(before_answers) or not cfg.get("allow_c14_p2_page_sha_drift"):
+                    raise ValueError(f"旧答案被改写：{row_id}")
+                normalized_before = copy.deepcopy(before_answers)
+                normalized_after = copy.deepcopy(after_answers)
+                for answer in normalized_before + normalized_after:
+                    g1_b1 = (answer.get("binding") or {}).get("g1_b1_binding") or {}
+                    g1_b1.pop("page_sha256", None)
+                if normalized_after != normalized_before:
+                    raise ValueError(f"旧答案被改写（非page_sha256字段）：{row_id}")
+                continue
             appended = after_answers[len(before_answers):]
             if not appended:
                 continue
@@ -477,6 +541,11 @@ def new_answer_rows(cfg: dict, batch: dict):
             stats["before_unresolved"] += before_counts["unresolved"]
             stats["after_unresolved"] += after_counts["unresolved"]
             stats["complete_net"] += int(row_status(after_analysis) == "完整") - int(row_status(before_analysis) == "完整")
+            yg = "Y.G." in character_name(after_data)
+            prefix = "yg" if yg else "non_yg"
+            stats[f"{prefix}_answers"] += len(appended)
+            stats[f"{prefix}_effect_net"] += after_counts["has_answer"] - before_counts["has_answer"]
+            stats[f"{prefix}_complete_net"] += int(row_status(after_analysis) == "完整") - int(row_status(before_analysis) == "完整")
             stats["s4_after"] += sum(1 for flag in after_analysis.get("split_flags") or []
                                      if str(flag.get("code", "")).startswith("S4"))
             after_status = {effect.get("effect_id"): effect.get("status")
@@ -505,27 +574,55 @@ def relative_href(output_dir: Path, target: str) -> str:
     return os.path.relpath(ROOT / target, output_dir).replace(os.sep, "/")
 
 
-def answer_block(answer: dict, row: dict, output_dir: Path, cid: int):
+def answer_block(answer: dict, row: dict, output_dir: Path, cid: int, use_player_text: bool = False):
     source = answer.get("source") or {}
-    pointer = source.get("json_pointer") or source.get("source_key") or "未单列"
+    table = answer.get("table") or source.get("table") or "未单列"
+    record_id = answer.get("record_id")
+    if record_id is None:
+        record_id = source.get("record_id")
+    if record_id is None:
+        record_id = "未单列"
+    layer = answer.get("layer") or source.get("layer") or "未单列"
+    field_path = (answer.get("field_path") or source.get("field_path")
+                  or source.get("field") or "未单列")
+    record_key = source.get("record_key") or "未单列"
+    pointer = source.get("json_pointer")
+    source_display = pointer or record_key
+    pointer_display = pointer or "未单列（不伪造；当前 source 未提供）"
     conditions = answer.get("conditions") or row.get("conditions") or row.get("condition") or "未单列"
     if not isinstance(conditions, str):
         conditions = json.dumps(conditions, ensure_ascii=False, separators=(",", ":"))
     condition_label = answer.get("condition_label") or row.get("condition_label") or "未单列"
     obj = answer.get("target") or answer.get("object") or row.get("object") or row.get("target") or "未单列"
     evidence = f"numeric={answer.get('numeric_evidence')}；association={answer.get('association_evidence')}；scope={answer.get('evidence_scope')}"
-    return (f'<details><summary>{html.escape(str(answer.get("quantity_kind") or answer.get("unit") or "答案"))}：'
-            f'{html.escape(str(answer.get("value") or "未列值"))}</summary><div class="value small">'
+    player_text = answer.get("player_text") if use_player_text else None
+    if player_text:
+        default_text = str(player_text)
+        if answer.get("association_evidence") == "推断" and "推断" not in default_text:
+            default_text += " 句面到来源的关联为推断。"
+        summary = html.escape(default_text)
+        precise = f'精确公式／研究说明：{html.escape(str(answer.get("value") or "未列值"))}<br>'
+    else:
+        summary = (f'{html.escape(str(answer.get("quantity_kind") or answer.get("unit") or "答案"))}：'
+                   f'{html.escape(str(answer.get("value") or "未列值"))}')
+        precise = ""
+    return (f'<details><summary>{summary}</summary><div class="value small">'
+            f'{precise}'
             f'单位／量纲：{html.escape(str(answer.get("unit") or "未单列"))}<br>'
+            f'表：{html.escape(str(table))}<br>'
             f'对象：{html.escape(str(obj))}<br>'
             f'逐行 condition_label：{html.escape(str(condition_label))}<br>'
             f'规则适用域 conditions：{html.escape(conditions)}<br>'
             f'阶段：{html.escape(str(row.get("stage") or row.get("reference_field") or "未单列"))}'
             f'　fragment={html.escape(str(row.get("fragment_index")))}<br>'
             f'规则键：{html.escape(str(answer.get("rule_key") or "无"))}<br>'
-            f'原值：{html.escape(str(answer.get("raw_value")))}；记录：{html.escape(str(answer.get("record_id")))}'
-            f'（{html.escape(str(answer.get("layer") or "未单列"))}）<br>'
-            f'来源：{html.escape(str(pointer))}<br>证据：{html.escape(evidence)}</div></details>')
+            f'原值：{html.escape(str(answer.get("raw_value")))}；记录：{html.escape(str(record_id))}'
+            f'（{html.escape(str(layer))}）<br>'
+            f'record_key：{html.escape(str(record_key))}<br>'
+            f'字段：{html.escape(str(field_path))}<br>'
+            f'来源：{html.escape(str(source_display))}<br>'
+            f'逐答案 json_pointer：{html.escape(str(pointer_display))}<br>'
+            f'证据：{html.escape(evidence)}</div></details>')
 
 
 def render_new_answers(cfg: dict, batch: dict, output_dir: Path):
@@ -533,7 +630,10 @@ def render_new_answers(cfg: dict, batch: dict, output_dir: Path):
     rows = []
     for item in computed["rows"]:
         cid = item["cid"]
-        answers = "<br>".join(answer_block(ans, item, output_dir, cid) for ans in item["answers"])
+        answers = "<br>".join(
+            answer_block(ans, item, output_dir, cid,
+                         use_player_text=cfg.get("use_player_text_default", False))
+            for ans in item["answers"])
         page_path = history_card_path(cid, cfg["history_run_tag"]) if cfg.get("history_run_tag") else PAGES / str(cid) / "card.json"
         href = relative_href(output_dir, str(page_path.relative_to(ROOT)))
         rows.append(
@@ -544,9 +644,9 @@ def render_new_answers(cfg: dict, batch: dict, output_dir: Path):
             f'<td>{answers}</td></tr>')
     stats = computed["stats"]
     stat_text = [f"{stats['rows']} 行 / {stats['cards']} 卡",
-                 f"新增答案：Y.G. {stats['answers']}／非 Y.G. 0",
-                 f"效果净增：Y.G. {stats['effect_net']}／非 Y.G. 0",
-                 f"完整增量：Y.G. {stats['complete_net']:+d}／非 Y.G. +0",
+                 f"新增答案：Y.G. {stats['yg_answers']}／非 Y.G. {stats['non_yg_answers']}",
+                 f"效果净增：Y.G. {stats['yg_effect_net']}／非 Y.G. {stats['non_yg_effect_net']}",
+                 f"完整增量：Y.G. {stats['yg_complete_net']:+d}／非 Y.G. {stats['non_yg_complete_net']:+d}",
                  f"S4 {stats['s4_after']}",
                  f"unresolved {stats['before_unresolved']}→{stats['after_unresolved']}"]
     return {"html": "".join(rows), "stat_text": stat_text, "computed": computed}
@@ -606,6 +706,20 @@ def render_index(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path):
 <p><span class="badge pass">正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS</span> <span class="badge infer">阻断 0</span></p>
 <p>63卡67行95答案／95效果净增、完整+3、S4 0；全库生成仅一次，固定检查与隔离复跑已通过。推断、类型外推、装载／放置条件与Boss档位选择继续保留；第三方方向审查待用户安排，C14不启动。</p>
 <p class="links small"><a href="{review_href}">正式独立终审</a><a href="{task_href}">C13交付任务卡</a></p></section>'''
+    elif cycle_id == "C14":
+        review_href = relative_href(output_dir, cfg["delivery_review"])
+        task_href = relative_href(output_dir, cfg["delivery_task"])
+        third_party = f'''<section class="panel"><h2>正式独立审查与停止点</h2>
+<p><span class="badge pass">正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS</span> <span class="badge infer">阻断 0</span></p>
+<p>15卡26行73答案／73效果净增，Y.G.22／同域非Y.G.51，完整+0、部分+1、S4 0；全库生成仅一次，final_diff 31/31、只读验证29/29、隔离27卡54文件一致。推断、局部公式、denju非首段与浏览器／实机未测边界保留；第三方方向审查待用户安排，C15不启动。</p>
+<p class="links small"><a href="{review_href}">正式独立终审</a><a href="{task_href}">C14交付任务卡</a></p></section>'''
+    elif cycle_id == "C15":
+        review_href = relative_href(output_dir, cfg["delivery_review"])
+        task_href = relative_href(output_dir, cfg["delivery_task"])
+        third_party = f'''<section class="panel"><h2>正式独立审查与停止点</h2>
+<p><span class="badge pass">正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS</span> <span class="badge infer">阻断 0</span></p>
+<p>5卡6行6答案／6效果净增，全部Y.G.；完整／部分／未解析／拆分待核查增量均0，A+1／C−1、S4 0。全库生成仅一次，final_diff 36/36、只读验证32/32、隔离17卡34文件一致。另有4张C14-P2信息性指纹工件差异卡，不计C15收益，其余2,227卡逐字节不变。关联推断、局部公式与第三方浏览器／实机未测边界保留；P2/P3未启动，第三方方向审查待用户安排，C16不启动。</p>
+<p class="links small"><a href="{review_href}">正式独立终审</a><a href="{task_href}">C15交付任务卡</a></p></section>'''
     return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(cfg['title'])}</title><style>{CSS}</style></head>
 <body><header><h1>{html.escape(cfg['title'])}</h1><p>数据库样式｜本周期新增解析成果（由正式页面与账本生成）</p>
 <p>campaign <code>{cfg['campaign']}</code></p><p>snapshot <code>{cfg['snapshot']}</code>　rules {html.escape(cfg['rules'])}</p></header>
@@ -750,9 +864,9 @@ def generation_record(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path,
         "new_rule_value_pairs": sorted(unique_pairs),
         "before_rule_value_pair_count": len(before_pairs),
         "status": "PASS",
-        "third_party_verdict": ("PENDING（待用户安排第三方方向审查）" if cycle_id == "C13"
+        "third_party_verdict": ("PENDING（待用户安排第三方方向审查）" if cycle_id in ("C13", "C14", "C15")
                                 else "REQUEST_CHANGES（R01/R02；原裁决未改）"),
-        "rectification_status": ("正式交付与例行独立审查完成，待用户安排第三方方向审查" if cycle_id == "C13"
+        "rectification_status": ("正式交付与例行独立审查完成，待用户安排第三方方向审查" if cycle_id in ("C13", "C14", "C15")
                                  else "整改完成，待原第三方定向复查"),
     }
 
@@ -805,6 +919,20 @@ def main():
                         f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})")
         generation_note = "C13 使用当前正式页面与账本及首建前像。未再次运行正式全库生成；正式生成与固定检查已在交付包内完成。"
         limits_note = "关联／装载／放置条件与Boss档位选择保持推断或未知；P1/P2拆分与S3/S7保留，P2 p2/p3仅披露，P3 param6不重复。历史待办不构成下一批授权。"
+    elif args.cycle == "C14":
+        status_text = "正式交付与正式独立终审完成，待用户安排第三方方向审查"
+        verdict_text = "正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、阻断 0"
+        review_links = (f"- [C14交付任务卡]({relative_href(args.output, cfg['delivery_task'])})\n"
+                        f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})")
+        generation_note = "C14 使用当前正式页面与账本及首建前像。未再次运行正式全库生成；正式生成与固定检查已在交付包内完成，P3未启动。"
+        limits_note = "P1数值归属为推断，p9为受伤量倍率、仅Skill型着弹；P2为局部伤害输入公式，denju非首段6行保持未知。25行仍拆分待核查，1行未解析转部分，完整+0；浏览器／实机未测。"
+    elif args.cycle == "C15":
+        status_text = "正式交付与正式独立终审完成，待用户安排第三方方向审查"
+        verdict_text = "正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、阻断 0"
+        review_links = (f"- [C15交付任务卡]({relative_href(args.output, cfg['delivery_task'])})\n"
+                        f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})")
+        generation_note = "C15 使用当前正式页面与账本及首建前像。未再次运行正式全库生成；正式生成与固定检查已在交付包内完成，P2/P3未启动。"
+        limits_note = "6行仍拆分待核查，完整／部分／未解析／拆分增量均0，A+1／C−1；数值规则体确认不等于句→记录关联确认，关联保持推断。仅写局部伤害输入公式，不写最终扣血、保证命中、运行时选档或实机结果。另有4张C14-P2信息性指纹工件差异卡，不计C15收益，其余2,227卡逐字节不变。主持侧浏览器实际覆盖与超时项见回执；第三方浏览器与实机未测。"
     else:
         status_text = "整改完成，待原第三方定向复查"
         verdict_text = "第三方原裁决 REQUEST_CHANGES（R01/R02）未改"
