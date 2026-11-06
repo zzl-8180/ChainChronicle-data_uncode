@@ -72,5 +72,5 @@
 
 - [清理与Git收尾任务卡](20261106-c16-closeout-cleanup-git.md)／[清理回执](../../output/storage_retention/cycle_closeout_c16_20261106/README.md)。
 - 4,472个白名单payload全部入journal、失败0；62个不同内容先归档，全量校验与8件恢复样本通过。RETAINED 4/12→0/12，reserved_bytes 2,642,397,184→0，实测可用空间+2,613,510,144 B；postcheck与删除后verify_full 17/17通过，正式页／rules／账本／审查／G1及元数据不变。
-- 主提交`45a368d8ea85c0d1dfc7d0af2f8cb5acfce2c4c5`（14文件）已推送`origin/main`，此前`c201c1c`、`7fdf9da`一并完成推送；`git ls-remote`复核远端main同为该提交。未强制推送、未接管UI／参考分析／根目录杂项、未提交output大型产物。
+- 主提交`45a368d8ea85c0d1dfc7d0af2f8cb5acfce2c4c5`（14文件）已推送`origin/main`，此前`c201c1c`、`7fdf9da`一并完成推送；`git ls-remote`复核推送时远端main同为该提交；后续文档提交见`git_commit_manifest.json`。未强制推送、未接管UI／参考分析／根目录杂项、未提交output大型产物。
 - 本节仅记录清理与Git结果，不改变第三方范围限制，不启动C17、其他机制族或公开发布。
