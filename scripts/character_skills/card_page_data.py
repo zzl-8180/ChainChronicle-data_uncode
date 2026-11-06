@@ -70,6 +70,7 @@ import card_page_inference_c13_p3_2012_duration as C13_P3_2012_DURATION
 import card_page_inference_c14_p1_2003_enemy_debuff as C14_P1_2003_DEBUFF
 import card_page_inference_c14_p2_boss_damage_direct as C14_P2_BOSS_DAMAGE
 import card_page_inference_c15_p1_denju_damage_direct as C15_P1_DENJU_DAMAGE
+import card_page_inference_c16_p1_1095_partial as C16_P1_1095_PARTIAL
 import effect_ledger as B18_WORDFACE
 from card_page_policy import metrics,INFERENCE_STATUS
 from card_page_basic import apply_basic_display
@@ -2105,6 +2106,10 @@ def build_card(data:Inputs,cid):
     # 30102/20234/30236/30239 硬拒绝；不改 rules.json／rules.py／effect_ledger 映射。
     C15_P1_DENJU_DAMAGE.apply_to_groups(data,cid,groups,
         scope_cids=frozenset({7250,30105,30301,30329,30334}))
+    # C16-P1 skilllist ability1095 逐效果部分绑定（23 卡 23 行 49 答案候选，Y.G.23＋非Y.G.26）：
+    # 仅按真实 charainfo.skillid[n]→父 skilllist→唯一 1095 子记录→字段重算，复用既有五键；
+    # 不改旧 P4／B11／B12／B14／账本映射，不跨层借值，20607／type108／保护卡保持拒绝。
+    C16_P1_1095_PARTIAL.apply_batch_to_groups(data,cid,groups,scope=C16_P1_1095_PARTIAL.SCOPE)
     # Enter own-record answers in pages before the same ledger consumes them.
     B18_WORDFACE.apply_to_groups(data,cid,groups)
     counts=collections.Counter(r['row_class'] for r in allrows); cross={c:{e:0 for e in ('确认','推断','未知')} for c in ('A','B','C')}
