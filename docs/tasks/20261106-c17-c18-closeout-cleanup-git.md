@@ -1,7 +1,7 @@
 # C17＋C18 清理与Git收尾任务卡
 
 - 日期：2026-11-06；用户明确“同步完成清理和Git推送”。
-- 状态：**归档恢复验证、A/B清理、postcheck及删除后verify_full已完成；Git提交／推送待执行**。
+- 状态：**归档恢复验证、A/B清理、postcheck、删除后verify_full及Git提交／推送已完成**。主提交`053bbf8fbdb1384e4192ed815e27d763af6ca4fd`，`origin/main`已核对一致；回执见`output/storage_retention/cycle_closeout_c17_c18_20261106/git_commit_manifest.json`。
 - 清理回执：`output/storage_retention/cycle_closeout_c17_c18_20261106/README.md`。
 
 ## 已完成边界
