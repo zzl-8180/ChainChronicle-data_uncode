@@ -1,7 +1,7 @@
 # 下一周期机制优先任务书：1095逐效果部分绑定（仅准备，未启动）
 
 - 准备：2026-11-04；主持：`new-provider/kimi-k3-1-pro-261024`。
-- 状态：**AUTHORIZED_C16_STARTED（2026-11-04用户明确“根据新建议，研究C16方案，然后推进”）**。现行执行入口为`docs/tasks/20261104-c16-cycle.md`与`docs/tasks/20261104-c16-p1-1095-partial-binding.md`；本文保留为方案依据，正式实施以C16任务卡为准。
+- 状态：**C16已完成；C17正式交付、正式独立终审与成果页已完成，等待第三方方向审查（2026-11-06）；不自动启动C18**。C16执行入口`docs/tasks/20261104-c16-cycle.md`与`docs/tasks/20261104-c16-p1-1095-partial-binding.md`保留为方案依据；C17执行与收口入口为`docs/tasks/20261106-c17-cycle.md`、`docs/tasks/20261106-c17-p1-1095-attack-partial.md`与`docs/tasks/20261106-c17-cycle-closeout.md`。
 - 方法：`docs/角色技能完整解读实施方案.md`§1.6；执行验收：`docs/tasks/20261104-mechanism-first-execution.md`。
 - 接收证据：`docs/tasks/20261104-mechanism-first-reconciliation.md`与`output/character_skills/mechanism_first_reconciliation_20261104/`。
 

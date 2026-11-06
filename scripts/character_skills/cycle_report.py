@@ -404,6 +404,50 @@ CYCLES = {
             },
         ],
     },
+    "C17": {
+        "title": "C17｜1095 攻击逐效果部分绑定周期",
+        "campaign": "dc38910014d6f4629ec13e2afc6d46e8ea2dbdc6568c48c8169fad15518417b2",
+        "snapshot": "dc389100-cf9451c6ff47fcfb",
+        "rules": "294 键，SHA-16 cf9451c6ff47fcfb",
+        "before_cards": "output/character_skills/c17_delivery_20261106/pre_rebuild/cards",
+        "use_player_text_default": True,
+        "allow_c14_p2_page_sha_drift": True,
+        "delivery_review": "output/character_skills/review/c17_delivery_final_20261106_deepseek/REPORT.md",
+        "delivery_task": "docs/tasks/20261106-c17-delivery-package.md",
+        "batches": [
+            {
+                "id": "C17-P1",
+                "name": "skilllist ability1095 仅攻击逐效果部分绑定",
+                "binding": "c17_p1_1095_attack_partial_binding",
+                "task": "docs/tasks/20261106-c17-p1-1095-attack-partial.md",
+                "review": "output/character_skills/review/c17_p1_1095_attack_partial_20261106_deepseek/REPORT.md",
+                "verdict": "例行独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、零阻断",
+                "notes": "3卡3行3答案，全部Y.G.。只按真实charainfo.skillid[n]→父skilllist→唯一1095子记录→/param1重算；额外param6与句外条件强化不并入，复用既有规则与账本映射，关联保持推断，P2/P3未启动。",
+            },
+        ],
+    },
+    "C18": {
+        "title": "C18｜1095 同类攻击外推周期",
+        "campaign": "01c05f78bd54263efd40991b96e3aed2a421cce3e0845e5e49bb4fcd03d114c3",
+        "snapshot": "01c05f78-cf9451c6ff47fcfb",
+        "rules": "294 键，SHA-16 cf9451c6ff47fcfb",
+        "before_cards": "output/character_skills/c18_delivery_20261106/pre_rebuild/cards",
+        "use_player_text_default": True,
+        "allow_c14_p2_page_sha_drift": True,
+        "delivery_review": "output/character_skills/review/c18_delivery_final_20261106_deepseek/REPORT.md",
+        "delivery_task": "docs/tasks/20261106-c18-delivery-package.md",
+        "batches": [
+            {
+                "id": "C18-P1",
+                "name": "skilllist ability1095 同类攻击外推",
+                "binding": "c18_p1_1095_attack_partial_binding",
+                "task": "docs/tasks/20261106-c18-p1-1095-attack-partial.md",
+                "review": "output/character_skills/review/c18_p1_1095_attack_partial_20261106_deepseek/REPORT.md",
+                "verdict": "例行独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、零阻断",
+                "notes": "2卡2行2答案，全部非Y.G.。6341提高22.5%、20333提高37.5%；只按真实charainfo.skillid[n]→父skilllist→唯一1095子记录→/param1重算，额外param6与句外条件强化不并入，关联保持推断，P2/P3未启动。",
+            },
+        ],
+    },
 }
 
 CSS = """
@@ -749,6 +793,22 @@ def render_index(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path):
 <p><span class="badge pass">正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS</span> <span class="badge infer">阻断 0</span></p>
 <p>23卡23行49答案／49效果净增，Y.G.23／同域非Y.G.26；完整+23、未解析−23，A/C/整行推断/S4均0。全库生成仅一次，final_diff 36/36、只读验证30/30、隔离35卡70文件一致。另有9张既有page_sha256信息性指纹漂移卡，不计C16收益，其余2,205卡逐字节不变。关联推断、局部贡献与第三方浏览器／实机未测边界保留；P2/P3未启动，第三方方向审查待用户安排，C17不启动。</p>
 <p class="links small"><a href="{review_href}">正式独立终审</a><a href="{task_href}">C16交付任务卡</a></p></section>'''
+    elif cycle_id == "C17":
+        review_href = relative_href(output_dir, cfg["delivery_review"])
+        task_href = relative_href(output_dir, cfg["delivery_task"])
+        third_party = f'''<section class="panel"><h2>正式独立审查与停止点</h2>
+<p><span class="badge pass">正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS</span> <span class="badge infer">阻断 0</span></p>
+<p>3卡3行3答案／3效果净增，全部Y.G.；完整+3、未解析−3，A/C/整行推断/S4均0。全库生成仅一次，final_diff 36/36、只读验证31/31、隔离16卡32文件一致。另有9张既有page_sha256信息性指纹漂移卡，不计C17收益，其余2,224卡逐字节不变。额外param6与句外条件强化不并入，关联推断、局部贡献与第三方浏览器／实机未测边界保留；P2/P3未启动，第三方方向审查待用户安排，C18不启动。</p>
+<p class="small warning">终审N01–N08保留：交接旧状态由收口更新；冻结模块文档头的“未接线”为候选时历史原文；首次构建后中断缺独立机器回执；指纹值指构建时输入页而非构建后正式页；展开层conditions保留能力编号，默认player_text无内部术语；隔离目录48文件中32个card.json/index.html参与比较；目标行旧unknown_reasons未刷新属既有展示遗留；生成器曾预写审查徽章，现已在终审完成后以verdict无阻断为生成闸门重建。</p>
+<p class="links small"><a href="{review_href}">正式独立终审</a><a href="{task_href}">C17交付任务卡</a></p></section>'''
+    elif cycle_id == "C18":
+        review_href = relative_href(output_dir, cfg["delivery_review"])
+        task_href = relative_href(output_dir, cfg["delivery_task"])
+        third_party = f'''<section class="panel"><h2>正式独立审查与停止点</h2>
+<p><span class="badge pass">正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS</span> <span class="badge infer">阻断 0</span></p>
+<p>2卡2行2答案／2效果净增，全部非Y.G.；完整+2、未解析−2，Y.G./A/C/整行推断/S4均0。全库生成仅一次且未resume，final_diff 36/36、只读验证32/32、隔离18卡36文件一致。另有9张既有page_sha256信息性指纹漂移卡，不计C18收益，其余2,225卡逐字节不变。额外param6与句外条件强化不并入，关联推断、局部贡献与第三方浏览器／实机未测边界保留；P2/P3未启动，与C17联合第三方方向审查待安排，C19不启动。</p>
+<p class="small warning">终审与候选N01–N05保留：候选answers_total为序列化长度、run_record基线空值、父层／跨槽1095负例、候选K12同解析器及未使用常量均已登记；本包以独立重导和当前metrics为准。两行完整度不等于语义确认，展开层conditions含能力编号；Y.G. backlog因本批全部非Y.G.而保持8,511，未误写为8,509。C17历史成果不变，两周期联合审查尚未执行。</p>
+<p class="links small"><a href="{review_href}">正式独立终审</a><a href="{task_href}">C18交付任务卡</a></p></section>'''
     return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(cfg['title'])}</title><style>{CSS}</style></head>
 <body><header><h1>{html.escape(cfg['title'])}</h1><p>数据库样式｜本周期新增解析成果（由正式页面与账本生成）</p>
 <p>campaign <code>{cfg['campaign']}</code></p><p>snapshot <code>{cfg['snapshot']}</code>　rules {html.escape(cfg['rules'])}</p></header>
@@ -893,9 +953,9 @@ def generation_record(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path,
         "new_rule_value_pairs": sorted(unique_pairs),
         "before_rule_value_pair_count": len(before_pairs),
         "status": "PASS",
-        "third_party_verdict": ("PENDING（待用户安排第三方方向审查）" if cycle_id in ("C13", "C14", "C15", "C16")
+        "third_party_verdict": ("PENDING（待用户安排第三方方向审查）" if cycle_id in ("C13", "C14", "C15", "C16", "C17", "C18")
                                 else "REQUEST_CHANGES（R01/R02；原裁决未改）"),
-        "rectification_status": ("正式交付与例行独立审查完成，待用户安排第三方方向审查" if cycle_id in ("C13", "C14", "C15", "C16")
+        "rectification_status": ("正式交付与例行独立审查完成，待用户安排第三方方向审查" if cycle_id in ("C13", "C14", "C15", "C16", "C17", "C18")
                                  else "整改完成，待原第三方定向复查"),
     }
 
@@ -908,6 +968,11 @@ def main():
     if not args.output.is_absolute():
         args.output = (ROOT / args.output).resolve()
     cfg = CYCLES[args.cycle]
+    if args.cycle in ("C17", "C18"):
+        final_review = load_json(ROOT / cfg["delivery_review"].replace("REPORT.md", "verdict.json"))
+        if (final_review.get("verdict") != "PASS_WITH_EXPLICIT_SCOPE_LIMITS"
+                or final_review.get("blocking") != 0):
+            raise SystemExit(f"{args.cycle} 正式独立终审未无阻断通过；不生成成果页")
     metrics = metrics_summary(cfg)
     if metrics["snapshot"] != cfg["snapshot"]:
         raise SystemExit(f"账本 snapshot {metrics['snapshot']} 与周期声明 {cfg['snapshot']} 不一致；请先更新生成器配置")
@@ -969,6 +1034,20 @@ def main():
                         f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})")
         generation_note = "C16 使用当前正式页面与账本及首建前像。未再次运行正式全库生成；正式生成与固定检查已在交付包内完成，P2/P3未启动。"
         limits_note = "完整+23、未解析−23，A/C/整行推断/S4均0；数值规则体确认不等于句→1095字段归属确认，关联保持推断。答案仅为接受者自身已装载且资格／列表／类型分派通过时的单一载体局部贡献，不含其他来源、后续条件强化或最终叠加值。另有9张既有page_sha256信息性指纹漂移卡，不计C16收益，其余2,205卡逐字节不变。主持侧浏览器实际覆盖与超时项见回执；第三方浏览器与实机未测。"
+    elif args.cycle == "C17":
+        status_text = "正式交付与正式独立终审完成，待用户安排第三方方向审查"
+        verdict_text = "正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、阻断 0"
+        review_links = (f"- [C17交付任务卡]({relative_href(args.output, cfg['delivery_task'])})\n"
+                        f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})")
+        generation_note = "C17 使用当前正式页面与账本及首建前像。未再次运行正式全库生成；正式生成与固定检查已在交付包内完成，P2/P3未启动。"
+        limits_note = "完整+3、未解析−3，A/C/整行推断/S4均0；数值规则体确认不等于句→1095字段归属确认，关联保持推断。仅认领三个攻击效果，额外param6与句外条件强化不并入；最终叠加与实机未验证。另有9张既有page_sha256信息性指纹漂移卡，不计C17收益，其余2,224卡逐字节不变；指纹指构建时输入页。终审N01–N08保留：交接旧状态由收口更新，冻结模块候选时文档头不改，首次构建后中断缺独立机器回执，展开层conditions含能力编号但默认player_text无内部术语，隔离目录48文件中32个card.json/index.html参与比较，目标行旧unknown_reasons未刷新属既有展示遗留；生成器曾预写徽章，现已在终审完成后以verdict无阻断为闸门重建。主持侧浏览器实际覆盖与未测项见回执；第三方浏览器与实机未测。"
+    elif args.cycle == "C18":
+        status_text = "正式交付与正式独立终审完成，待与C17联合第三方方向审查"
+        verdict_text = "正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、阻断 0"
+        review_links = (f"- [C18交付任务卡]({relative_href(args.output, cfg['delivery_task'])})\n"
+                        f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})")
+        generation_note = "C18 使用当前正式页面与账本及首建前像。未再次运行正式全库生成；正式生成仅一次且未resume，P2/P3未启动。"
+        limits_note = "完整+2、未解析−2，Y.G./A/C/整行推断/S4均0；数值规则体确认不等于句→1095字段归属确认，关联保持推断。仅认领两个非Y.G.攻击效果，额外param6与句外条件强化不并入；最终叠加与实机未验证。另有9张既有page_sha256信息性指纹漂移卡，不计C18收益，其余2,225卡逐字节不变；指纹指构建时输入页。候选N01–N05及父层／跨槽1095未知保留；两行完整度不等于语义确认。Y.G. backlog保持8,511。C17历史成果不变，联合第三方审查尚未执行；主持侧浏览器实际覆盖与未测项见回执，第三方浏览器与实机未测。"
     else:
         status_text = "整改完成，待原第三方定向复查"
         verdict_text = "第三方原裁决 REQUEST_CHANGES（R01/R02）未改"
