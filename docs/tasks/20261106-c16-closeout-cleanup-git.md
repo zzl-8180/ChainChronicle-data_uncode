@@ -2,7 +2,14 @@
 
 - 创建：2026-11-06；主持：`new-provider/kimi-k3-1-pro-261024`。
 - 用户授权：本轮明确要求“执行清理、Git推送”。据此执行C16 A/B清理、必要提交和向`origin/main`推送；不延伸为公开发布、C17、新原生、实机或新缓存。
-- 状态：**A/B清理已完成，postcheck与删除后verify_full 17/17通过；Git提交与推送执行中**。
+- 状态：**A/B清理、Git提交与推送均已完成；postcheck与删除后verify_full 17/17通过；origin/main已更新至`45a368d8ea85c0d1dfc7d0af2f8cb5acfce2c4c5`**。
+
+## 实际回执
+
+- 清理：4,472项journal、失败0；62个不同内容归档并恢复8件样本；RETAINED 4/12→0/12、reserved_bytes归零，实测可用空间+2,613,510,144 B；postcheck与verify_full 17/17通过。见`output/storage_retention/cycle_closeout_c16_20261106/README.md`。
+- 主提交：`45a368d8ea85c0d1dfc7d0af2f8cb5acfce2c4c5`（14文件），含C16生产源码、任务／交接文档与清理脚本。
+- 推送：`git push origin main`成功，`4febb9c..45a368d main -> main`；此前`c201c1c`、`7fdf9da`一并完成推送。`git ls-remote origin refs/heads/main`复核为`45a368d8ea85c0d1dfc7d0af2f8cb5acfce2c4c5`。
+- 排除：UI、参考分析、根目录`nul`／预览HTML、output大型产物均未提交；未强制推送、未公开发布。
 
 ## 范围与保护
 
