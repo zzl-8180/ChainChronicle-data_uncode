@@ -73,6 +73,8 @@ import card_page_inference_c15_p1_denju_damage_direct as C15_P1_DENJU_DAMAGE
 import card_page_inference_c16_p1_1095_partial as C16_P1_1095_PARTIAL
 import card_page_inference_c17_p1_1095_attack_partial as C17_P1_1095_ATTACK_PARTIAL
 import card_page_inference_c18_p1_1095_attack_partial as C18_P1_1095_ATTACK_PARTIAL
+import card_page_inference_c19_p1_1095_attack_families as C19_P1_1095_ATTACK_FAMILIES
+import card_page_inference_c19_p2_type8_basic_attack as C19_P2_TYPE8_BASIC_ATTACK
 import effect_ledger as B18_WORDFACE
 from card_page_policy import metrics,INFERENCE_STATUS
 from card_page_basic import apply_basic_display
@@ -2118,6 +2120,11 @@ def build_card(data:Inputs,cid):
     # C18-P1 skilllist ability1095 同类攻击外推（2 卡 2 行 2 答案候选，非 Y.G.）：
     # 只认领冻结两行的 /param1；额外 param6 与句外条件强化不并入，复用既有规则与账本映射。
     C18_P1_1095_ATTACK_PARTIAL.apply_to_groups(data,cid,groups,scope=C18_P1_1095_ATTACK_PARTIAL.SCOPE)
+    # C19-P1 CACHE 1095 同族扩大（130 行攻击效果及经核验的局部字段候选）：
+    # 直接父与唯一 sub 分形解引用，只认领冻结效果；缺失／条件／其他句不并入。
+    C19_P1_1095_ATTACK_FAMILIES.apply_to_groups(data,cid,groups,scope=C19_P1_1095_ATTACK_FAMILIES.SCOPE)
+    # C19-P2 APK type8 基础攻击（1063／1238／12220 三行）：整句与 source span 消歧。
+    C19_P2_TYPE8_BASIC_ATTACK.apply_to_groups(data,cid,groups,scope=C19_P2_TYPE8_BASIC_ATTACK.SCOPE)
     # Enter own-record answers in pages before the same ledger consumes them.
     B18_WORDFACE.apply_to_groups(data,cid,groups)
     counts=collections.Counter(r['row_class'] for r in allrows); cross={c:{e:0 for e in ('确认','推断','未知')} for c in ('A','B','C')}

@@ -448,7 +448,48 @@ CYCLES = {
             },
         ],
     },
+    "C19": {
+        "title": "C19｜1095 与 type8 同族扩大周期",
+        "campaign": "99bee2a166e5ec5f9c03ac97b555d4ada2f6f30d1535258add16bc64c7227c66",
+        "snapshot": "99bee2a1-cf9451c6ff47fcfb",
+        "rules": "294 键，SHA-16 cf9451c6ff47fcfb",
+        "before_cards": "output/character_skills/c19_delivery_20261107/pre_rebuild/cards",
+        "use_player_text_default": True,
+        "allow_c14_p2_page_sha_drift": True,
+        "delivery_review": "output/character_skills/review/c19_delivery_final_20261107_deepseek/REPORT.md",
+        "delivery_task": "docs/tasks/20261107-c19-delivery-package.md",
+        "batches": [
+            {
+                "id": "C19-P1",
+                "name": "CACHE 1095 同族扩大",
+                "binding": "c19_p1_1095_attack_families_binding",
+                "task": "docs/tasks/20261107-c19-p1-1095-attack-families.md",
+                "review": "output/character_skills/review/c19_attack_candidates_20261107_deepseek/REPORT.md",
+                "verdict": "例行独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、零阻断",
+                "notes": "130行404答案：攻击130、移速74、减伤71、暴击率90、暴伤39。直接父与唯一sub两种1095载体，缺param5不补零，额外param6与句外条件强化不并入，关联保持推断。",
+            },
+            {
+                "id": "C19-P2",
+                "name": "APK type8 基础攻击",
+                "binding": "c19_p2_type8_basic_attack_binding",
+                "task": "docs/tasks/20261107-c19-p2-type8-basic-attack.md",
+                "review": "output/character_skills/review/c19_attack_candidates_20261107_deepseek/REPORT.md",
+                "verdict": "例行独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、零阻断",
+                "notes": "1063提高35%、1238提高75%、12220提高10%。APK原层整句与source span消歧，旧B3/B4/B11拒绝原因保留，type96未决与其他条件不并入。",
+            },
+        ],
+    },
 }
+
+# C19-R01仅重建展示，不改变原C19的周期配置或正式答案消费路径。
+CYCLES["C19_R01"] = copy.deepcopy(CYCLES["C19"])
+CYCLES["C19_R01"].update({
+    "title": "C19-R01｜同句未解效果就地披露整改",
+    "disclose_row_unresolved": True,
+    "direction_review": "output/character_skills/review/direction_c19_20261107_thirdparty/REPORT.md",
+    "rectification_task": "docs/tasks/20261107-c19-r01-row-unresolved-rectification.md",
+    "original_cycle_report": "output/character_skills/cycle_reports/C19/index.html",
+})
 
 CSS = """
 :root{--bg:#f4f6f9;--panel:#fff;--ink:#202938;--muted:#64748b;--line:#dbe3ec;--blue:#1d4ed8;--green:#047857;--amber:#b45309;--violet:#6d28d9}
@@ -456,7 +497,7 @@ CSS = """
 header{background:linear-gradient(120deg,#172554,#1e40af);color:white;padding:28px 34px}header h1{margin:0 0 8px;font-size:26px}header p{margin:4px 0;color:#dbeafe}main{max-width:1500px;margin:24px auto;padding:0 18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin:18px 0;box-shadow:0 2px 8px #0f172a0a}
 h2{font-size:21px;margin:0 0 12px}h3{font-size:17px;margin:18px 0 8px}.muted{color:var(--muted)}.small{font-size:13px}.stats{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.stat{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 12px;font-weight:600;color:#1e40af}.badge{display:inline-block;border-radius:5px;padding:1px 7px;font-size:12px;margin-right:5px;background:#e2e8f0;color:#334155}.badge.pass{background:#d1fae5;color:#065f46}.badge.unknown{background:#fef3c7;color:#92400e}.badge.infer{background:#ede9fe;color:#5b21b6}
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#eaf0f7;font-weight:700}tr:nth-child(even) td{background:#f8fafc}.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}@media(max-width:640px){.table-wrap table{min-width:720px}}.jp{font-family:"Noto Sans CJK JP","Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif}.name{font-weight:650;white-space:nowrap}.num{font-variant-numeric:tabular-nums;white-space:nowrap}.links a{color:var(--blue);margin-right:14px}details{cursor:pointer}details summary{color:var(--blue)}.value{max-width:760px;white-space:pre-wrap}.warning{background:#fff7ed;border-left:4px solid var(--amber);padding:10px 14px}.footer{color:var(--muted);font-size:12px;margin:24px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.metric{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px}.metric b{display:block;font-size:20px;color:#1e40af}
-.table-wrap{overflow-x:auto}.value{overflow-wrap:anywhere}code{overflow-wrap:anywhere;word-break:break-word}
+.table-wrap{overflow-x:auto}.value{overflow-wrap:anywhere}code{overflow-wrap:anywhere;word-break:break-word}details.unresolved-effect{margin:6px 0;padding:6px 8px;background:#fff7ed;border-left:3px solid var(--amber)}details.unresolved-effect summary{color:#92400e}details.unresolved-effect .value{color:#78350f}
 @media(max-width:800px){main{padding:0 8px}header{padding:20px}table{font-size:12px}th,td{padding:5px}.name{white-space:normal}.value{max-width:100%}}
 """
 
@@ -563,6 +604,11 @@ def new_answer_rows(cfg: dict, batch: dict):
     """Build all new answers from real before/after card JSON and compute ledger deltas."""
     sys.path.insert(0, str(ROOT / "scripts/character_skills"))
     import effect_ledger as EL
+    backlog_by_id = {}
+    if cfg.get("disclose_row_unresolved"):
+        backlog_by_id = {item["backlog_id"]: item
+                         for item in load_json(LEDGER / "backlog.json")
+                         if item.get("kind") == "effect"}
     rows = []
     removed = []
     stats = {"id": batch["id"], "rows": 0, "cards": set(), "answers": 0, "effect_net": 0,
@@ -622,12 +668,23 @@ def new_answer_rows(cfg: dict, batch: dict):
                                     "effect_type": effect.get("effect_type"), "row_id": row_id,
                                     "cid": cid, "yg": "Y.G." in character_name(before_data),
                                     "blocker": "周期末仍未解的机制或归属；需逐行证据核查"})
+            unresolved_effects = []
+            if cfg.get("disclose_row_unresolved"):
+                for effect in after_analysis.get("effects") or []:
+                    if effect.get("status") != "unresolved":
+                        continue
+                    evidence = backlog_by_id.get(effect["effect_id"])
+                    if not evidence or evidence.get("row_id") != row_id:
+                        raise ValueError(f"正式backlog缺少同row_id未解证据：{effect['effect_id']}")
+                    unresolved_effects.append(dict(effect, gap_evidence=evidence))
             rows.append({"cid": cid, "name": character_name(after_data), "row_id": row_id,
                          "japanese": after_row.get("japanese", ""),
                          "reference_field": after_row.get("reference_field"),
                          "stage": after_row.get("stage"), "level": after_row.get("level"),
                          "fragment_index": after_row.get("fragment_index"),
-                         "before": before_row, "after": after_row, "answers": appended})
+                         "before": before_row, "after": after_row, "answers": appended,
+                         **({"unresolved_effects": unresolved_effects}
+                            if cfg.get("disclose_row_unresolved") else {})})
     if stats["rows"] == 0:
         raise ValueError(f"批次没有新增答案：{batch['id']}")
     stats["cards"] = len(stats["cards"])
@@ -691,6 +748,37 @@ def answer_block(answer: dict, row: dict, output_dir: Path, cid: int, use_player
             f'证据：{html.escape(evidence)}</div></details>')
 
 
+UNRESOLVED_PLAYER_LABELS = {
+    "クリティカル発生率": "同句暴击率增幅仍未确定",
+    "攻撃間隔（词表外）": "同句攻击间隔仍未确定",
+    "回復（词表外）": "同句回复／状态恢复效果仍未确定",
+    "HP回復": "同句 HP 回复效果仍未确定",
+    "ダメージ（词表外）": "同句伤害相关效果仍未确定",
+}
+
+
+def unresolved_block(effect: dict):
+    effect_id = effect["effect_id"]
+    effect_type = effect.get("effect_type") or "未分类效果"
+    label = UNRESOLVED_PLAYER_LABELS.get(effect_type, f"同句{effect_type}仍未确定")
+    suffix = "#" + effect_id.rsplit("#", 1)[-1]
+    evidence = effect["gap_evidence"]
+    candidates = "；".join(str(x) for x in evidence.get("candidate_sources") or []) or "未单列"
+    return (f'<details class="unresolved-effect" data-row-id="{html.escape(effect["description_ref"], quote=True)}" '
+            f'data-effect-id="{html.escape(effect_id, quote=True)}"><summary>{html.escape(label)}'
+            f' <code>{html.escape(suffix)}</code></summary><div class="value small">'
+            f'原句片段：{html.escape(str(effect.get("snippet") or "未单列"))}'
+            f'；span={html.escape(json.dumps(effect.get("span"), ensure_ascii=False))}'
+            f'；状态：unresolved<br>'
+            f'effect_id：<code>{html.escape(effect_id)}</code><br>'
+            f'账本缺口：{html.escape(str(evidence.get("gap") or "未单列"))}<br>'
+            f'阻断原因：{html.escape(str(evidence.get("blocker") or "未单列"))}<br>'
+            f'候选证据：{html.escape(candidates)}<br>'
+            f'下一步：{html.escape(str(evidence.get("next_step") or "未单列"))}<br>'
+            f'证据来源：output/character_skills/effect_ledger/backlog.json；'
+            f'backlog_id=<code>{html.escape(str(evidence.get("backlog_id") or effect_id))}</code></div></details>')
+
+
 def render_new_answers(cfg: dict, batch: dict, output_dir: Path):
     computed = new_answer_rows(cfg, batch)
     rows = []
@@ -700,6 +788,9 @@ def render_new_answers(cfg: dict, batch: dict, output_dir: Path):
             answer_block(ans, item, output_dir, cid,
                          use_player_text=cfg.get("use_player_text_default", False))
             for ans in item["answers"])
+        unknowns = "".join(unresolved_block(effect) for effect in item.get("unresolved_effects", []))
+        if answers and unknowns:
+            unknowns = "<br>" + unknowns
         page_path = history_card_path(cid, cfg["history_run_tag"]) if cfg.get("history_run_tag") else PAGES / str(cid) / "card.json"
         href = relative_href(output_dir, str(page_path.relative_to(ROOT)))
         rows.append(
@@ -707,7 +798,7 @@ def render_new_answers(cfg: dict, batch: dict, output_dir: Path):
             f'<span class="muted small">cid{cid}</span></td><td class="jp">{html.escape(item["japanese"])}</td>'
             f'<td class="small"><code>{html.escape(item["row_id"])}</code><br>'
             f'<span class="muted">{html.escape(str(item["stage"] or item["reference_field"] or ""))}</span></td>'
-            f'<td>{answers}</td></tr>')
+            f'<td>{answers}{unknowns}</td></tr>')
     stats = computed["stats"]
     stat_text = [f"{stats['rows']} 行 / {stats['cards']} 卡",
                  f"新增答案：Y.G. {stats['yg_answers']}／非 Y.G. {stats['non_yg_answers']}",
@@ -809,6 +900,24 @@ def render_index(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path):
 <p>2卡2行2答案／2效果净增，全部非Y.G.；完整+2、未解析−2，Y.G./A/C/整行推断/S4均0。全库生成仅一次且未resume，final_diff 36/36、只读验证32/32、隔离18卡36文件一致。另有9张既有page_sha256信息性指纹漂移卡，不计C18收益，其余2,225卡逐字节不变。额外param6与句外条件强化不并入，关联推断、局部贡献与第三方浏览器／实机未测边界保留；P2/P3未启动，与C17联合第三方方向审查待安排，C19不启动。</p>
 <p class="small warning">终审与候选N01–N05保留：候选answers_total为序列化长度、run_record基线空值、父层／跨槽1095负例、候选K12同解析器及未使用常量均已登记；本包以独立重导和当前metrics为准。两行完整度不等于语义确认，展开层conditions含能力编号；Y.G. backlog因本批全部非Y.G.而保持8,511，未误写为8,509。C17历史成果不变，两周期联合审查尚未执行。</p>
 <p class="links small"><a href="{review_href}">正式独立终审</a><a href="{task_href}">C18交付任务卡</a></p></section>'''
+    elif cycle_id == "C19_R01":
+        review_href = relative_href(output_dir, cfg["direction_review"])
+        task_href = relative_href(output_dir, cfg["rectification_task"])
+        final_href = relative_href(output_dir, cfg["delivery_review"])
+        original_href = relative_href(output_dir, cfg["original_cycle_report"])
+        third_party = f'''<section class="panel"><h2>第三方R01整改与停止点</h2>
+<p><span class="badge unknown">原第三方 REQUEST_CHANGES（R01）</span> <span class="badge infer">R01整改完成，待原第三方定向复核</span></p>
+<p>本版只在35条对应成果行就地补出同句45个未解效果；默认摘要说明具体未知项，展开保留effect_id、原句片段及正式账本缺口证据。133行407条既有答案、来源、条件、推断等级、统计及4行既有split_flags不变，不新增语义答案。</p>
+<p class="small warning">R02：617.3秒仅为run_formal.py总运行时间，正式生成为133.24秒，不称为整个周期。R03：12个同号记录存在原始表示差异，其中11个实质值差、1个仅float32表示差（CID20713／42071301）；全部P1仍只取CACHE。第三方浏览器UNTESTED，主持实际浏览器项目另见回执。</p>
+<p class="links small"><a href="{review_href}">原第三方REQUEST_CHANGES</a><a href="{task_href}">R01整改任务卡</a><a href="{final_href}">旧正式独立终审</a><a href="{original_href}">原C19成果前像</a></p></section>'''
+    elif cycle_id == "C19":
+        review_href = relative_href(output_dir, cfg["delivery_review"])
+        task_href = relative_href(output_dir, cfg["delivery_task"])
+        third_party = f'''<section class="panel"><h2>正式独立审查与停止点</h2>
+<p><span class="badge pass">正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS</span> <span class="badge infer">阻断 0</span></p>
+<p>133卡133行407答案／407效果净增，Y.G.52／非Y.G.355；完整+95、部分+34、未解析−129，A/C/整行推断/S4均0。全库生成仅一次且未resume，final_diff 36/36、只读验证32/32、隔离24卡48文件一致。绝对变化并集139卡（133目标∪9漂移，交集3），其余2,097卡逐字节不变。关联推断、局部贡献与第三方浏览器／实机未测边界保留；P3未启动，第三方方向审查待用户安排，C20不启动。</p>
+<p class="small warning">候选N01–N05保留：45个其他effect未解、4行既有split_flags未新增、12个APK同名不同值只取CACHE、type8既有quantity_kind回退。终审F1文档哈希已同步为当前run_prechecks.py；F2并集139（7250／30107／30220同时是目标与漂移），不写成142。</p>
+<p class="links small"><a href="{review_href}">正式独立终审</a><a href="{task_href}">C19交付任务卡</a></p></section>'''
     return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(cfg['title'])}</title><style>{CSS}</style></head>
 <body><header><h1>{html.escape(cfg['title'])}</h1><p>数据库样式｜本周期新增解析成果（由正式页面与账本生成）</p>
 <p>campaign <code>{cfg['campaign']}</code></p><p>snapshot <code>{cfg['snapshot']}</code>　rules {html.escape(cfg['rules'])}</p></header>
@@ -931,7 +1040,7 @@ def generation_record(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path,
         if path.is_file():
             outputs[name] = {"bytes": path.stat().st_size, "sha256": file_sha(path)}
     metrics_path = ROOT / cfg["metrics_path"] if cfg.get("metrics_path") else LEDGER / "metrics.json"
-    return {
+    record = {
         "cycle": cycle_id,
         "campaign": cfg["campaign"],
         "snapshot": cfg["snapshot"],
@@ -953,11 +1062,25 @@ def generation_record(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path,
         "new_rule_value_pairs": sorted(unique_pairs),
         "before_rule_value_pair_count": len(before_pairs),
         "status": "PASS",
-        "third_party_verdict": ("PENDING（待用户安排第三方方向审查）" if cycle_id in ("C13", "C14", "C15", "C16", "C17", "C18")
+        "third_party_verdict": ("REQUEST_CHANGES（R01；原裁决未改）" if cycle_id == "C19_R01"
+                                else "PENDING（待用户安排第三方方向审查）" if cycle_id in ("C13", "C14", "C15", "C16", "C17", "C18", "C19")
                                 else "REQUEST_CHANGES（R01/R02；原裁决未改）"),
-        "rectification_status": ("正式交付与例行独立审查完成，待用户安排第三方方向审查" if cycle_id in ("C13", "C14", "C15", "C16", "C17", "C18")
+        "rectification_status": ("R01整改完成，待原第三方定向复核" if cycle_id == "C19_R01"
+                                 else "正式交付与例行独立审查完成，待用户安排第三方方向审查" if cycle_id in ("C13", "C14", "C15", "C16", "C17", "C18", "C19")
                                  else "整改完成，待原第三方定向复查"),
     }
+    if cfg.get("disclose_row_unresolved"):
+        record["inputs"]["direction_review"] = cfg["direction_review"]
+        record["inputs"]["original_cycle_report"] = cfg["original_cycle_report"]
+        record["display_rectification"] = {
+            "finding": "R01",
+            "affected_rows": 35,
+            "affected_effects": 45,
+            "formal_answers_changed": False,
+            "formal_pages_or_ledger_regenerated": False,
+            "status": "IMPLEMENTED_PENDING_ORIGINAL_THIRD_PARTY_RECHECK",
+        }
+    return record
 
 
 def main():
@@ -968,7 +1091,7 @@ def main():
     if not args.output.is_absolute():
         args.output = (ROOT / args.output).resolve()
     cfg = CYCLES[args.cycle]
-    if args.cycle in ("C17", "C18"):
+    if args.cycle in ("C17", "C18", "C19", "C19_R01"):
         final_review = load_json(ROOT / cfg["delivery_review"].replace("REPORT.md", "verdict.json"))
         if (final_review.get("verdict") != "PASS_WITH_EXPLICIT_SCOPE_LIMITS"
                 or final_review.get("blocking") != 0):
@@ -989,6 +1112,21 @@ def main():
             "remaining_by_type": groups, "split_check_rows": split_count,
             "new_rule_value_pairs": sorted(unique_pairs),
             "before_rule_value_pair_count": len(before_pairs)}
+    if cfg.get("disclose_row_unresolved"):
+        unresolved_rows = [item for result in batch_results for item in result["rows"]
+                           if item.get("unresolved_effects")]
+        data["display_rectification"] = {
+            "finding": "R01",
+            "original_direction_review": cfg["direction_review"],
+            "original_cycle_report": cfg["original_cycle_report"],
+            "status": "IMPLEMENTED_PENDING_ORIGINAL_THIRD_PARTY_RECHECK",
+            "affected_rows": len(unresolved_rows),
+            "affected_effects": sum(len(item["unresolved_effects"]) for item in unresolved_rows),
+            "formal_answers_changed": False,
+            "formal_pages_or_ledger_regenerated": False,
+            "r02_timing_wording": "617.3秒仅为run_formal.py总运行时间；正式生成为133.24秒，不是整个C19周期。",
+            "r03_source_wording": "12个同号记录存在原始表示差异，其中11个实质值差、1个仅float32表示差（CID20713／42071301）；只取CACHE。",
+        }
     (args.output / "report_data.json").write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     checks = {
         "snapshot_matches": metrics["snapshot"] == cfg["snapshot"],
@@ -998,6 +1136,11 @@ def main():
         "backlog_matches_metrics": sum(g["all"] for g in groups) + split_count == metrics["backlog"],
         "unique_pairs_expected": len(unique_pairs) == (8 if args.cycle == "C11" else 2 if args.cycle == "C13" else 0) if args.cycle in ("C11", "C12", "C13") else True,
     }
+    if cfg.get("disclose_row_unresolved"):
+        checks["row_unresolved_mapping_35_45"] = (
+            data["display_rectification"]["affected_rows"] == 35
+            and data["display_rectification"]["affected_effects"] == 45
+        )
     verification = {"status": "PASS" if all(checks.values()) else "FAIL", "checks": checks,
                     "metrics": metrics, "batch_results": batch_results,
                     "new_rule_value_pairs": sorted(unique_pairs),
@@ -1048,6 +1191,22 @@ def main():
                         f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})")
         generation_note = "C18 使用当前正式页面与账本及首建前像。未再次运行正式全库生成；正式生成仅一次且未resume，P2/P3未启动。"
         limits_note = "完整+2、未解析−2，Y.G./A/C/整行推断/S4均0；数值规则体确认不等于句→1095字段归属确认，关联保持推断。仅认领两个非Y.G.攻击效果，额外param6与句外条件强化不并入；最终叠加与实机未验证。另有9张既有page_sha256信息性指纹漂移卡，不计C18收益，其余2,225卡逐字节不变；指纹指构建时输入页。候选N01–N05及父层／跨槽1095未知保留；两行完整度不等于语义确认。Y.G. backlog保持8,511。C17历史成果不变，联合第三方审查尚未执行；主持侧浏览器实际覆盖与未测项见回执，第三方浏览器与实机未测。"
+    elif args.cycle == "C19_R01":
+        status_text = "R01整改完成，待原第三方定向复核"
+        verdict_text = "原第三方REQUEST_CHANGES（R01）保留；主持未改写为PASS"
+        review_links = (f"- [原第三方REQUEST_CHANGES]({relative_href(args.output, cfg['direction_review'])})\n"
+                        f"- [R01整改任务卡]({relative_href(args.output, cfg['rectification_task'])})\n"
+                        f"- [旧正式独立终审]({relative_href(args.output, cfg['delivery_review'])})\n"
+                        f"- [原C19成果前像]({relative_href(args.output, cfg['original_cycle_report'])})")
+        generation_note = "C19-R01只使用同版本正式页面与账本重建成果展示。未运行正式全库生成、run_formal.py、resume或隔离卡页生成，未修改正式pages／ledger／rules；原C19目录和原第三方裁决保留。"
+        limits_note = "本版仅将35行45个同句未解效果补入默认阅读层，展开保留effect_id与正式backlog缺口证据。133行407条既有答案、来源、条件、推断等级、统计和4行既有split_flags不变，新增语义答案0。R02正确口径为run_formal.py总运行617.3秒、正式生成133.24秒，不是整个周期；R03为12个同号记录原始表示差异＝11个实质值差＋1个仅float32表示差（CID20713／42071301），CACHE答案不变。第三方浏览器UNTESTED，主持实际浏览器项目见回执；停在待原第三方定向复核。"
+    elif args.cycle == "C19":
+        status_text = "正式交付与正式独立终审完成，待第三方方向审查"
+        verdict_text = "正式独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、阻断 0"
+        review_links = (f"- [C19交付任务卡]({relative_href(args.output, cfg['delivery_task'])})\n"
+                        f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})")
+        generation_note = "C19 使用当前正式页面与账本及首建前像。未再次运行正式全库生成；正式生成仅一次且未resume，P3未启动。"
+        limits_note = "133卡133行407答案／407效果净增，Y.G.52／非Y.G.355；完整+95、部分+34、未解析−129，A/C/整行推断/S4均0。数值规则体确认不等于句→载体字段归属确认，关联保持推断。缺param5不补零，额外param6与句外条件强化不并入；130行仍有45个其他effect未解，4行既有split_flags未新增。绝对变化并集139卡（交集7250／30107／30220），其余2,097卡逐字节不变；终审F1文档哈希已同步、F2不写成142。候选N01–N05保留；12个APK同名不同值只取CACHE，type8既有quantity_kind回退。C17/C18历史成果不变，第三方方向审查尚未执行；主持侧浏览器实际覆盖与未测项见回执，第三方浏览器与实机未测。"
     else:
         status_text = "整改完成，待原第三方定向复查"
         verdict_text = "第三方原裁决 REQUEST_CHANGES（R01/R02）未改"
