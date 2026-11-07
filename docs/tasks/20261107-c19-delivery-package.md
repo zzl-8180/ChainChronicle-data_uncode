@@ -1,7 +1,7 @@
 # C19 交付包任务卡（1095与type8同族扩大）
 
 - 创建：2026-11-07；主持：`new-provider/kimi-k3-1-pro-261024`。
-- 状态：**原第三方R01定向复核通过，R01 CLOSED，阻断0；C19清理已完成，Git提交／推送进行中，不启动C20或发布**。campaign `99bee2a166e5ec5f9c03ac97b555d4ada2f6f30d1535258add16bc64c7227c66`，snapshot `99bee2a1-cf9451c6ff47fcfb`；正式独立终审PASS_WITH_EXPLICIT_SCOPE_LIMITS、阻塞0、47/47（28项独立重算＋19项只读引用）；成果页详细验证21/21、坏链接0；RETAINED 4/12。
+- 状态：**原第三方R01定向复核通过，R01 CLOSED，阻断0；C19清理与主提交`e2e864624b407682a6c2ab6798bea37ff6ea12bb`已推送，最终文档回执随本提交同步，不启动C20或发布**。campaign `99bee2a166e5ec5f9c03ac97b555d4ada2f6f30d1535258add16bc64c7227c66`，snapshot `99bee2a1-cf9451c6ff47fcfb`；正式独立终审PASS_WITH_EXPLICIT_SCOPE_LIMITS、阻塞0、47/47（28项独立重算＋19项只读引用）；成果页详细验证21/21、坏链接0；RETAINED 4/12。
 - 周期卡：`docs/tasks/20261107-c19-cycle.md`；批次卡：`20261107-c19-p1-1095-attack-families.md`、`20261107-c19-p2-type8-basic-attack.md`。
 
 ## 合并前置条件

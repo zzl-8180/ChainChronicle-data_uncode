@@ -1,7 +1,7 @@
 # C19 周期收口记录（1095与type8同族扩大）
 
 - 日期：2026-11-07；主持：`new-provider/kimi-k3-1-pro-261024`。
-- 状态：**原第三方R01定向复核通过，R01 CLOSED，阻断0；C19清理已完成，Git提交／推送进行中，不启动C20或发布。**
+- 状态：**原第三方R01定向复核通过，R01 CLOSED，阻断0；C19清理与主提交`e2e864624b407682a6c2ab6798bea37ff6ea12bb`已推送，最终文档回执随本提交同步，不启动C20或发布。**
 - 周期／批次／交付任务卡：`20261107-c19-cycle.md`／`20261107-c19-p1-1095-attack-families.md`／`20261107-c19-p2-type8-basic-attack.md`／`20261107-c19-delivery-package.md`。
 
 ## 1. 正式范围与数值
@@ -75,4 +75,4 @@ R02继续明确617.3秒仅为`run_formal.py`总运行时间、正式生成133.24
 
 清理journal 4,472项、失败0；RETAINED 4/12→0/12，reserved_bytes 2,645,358,782→0，实测可用空间+2,585,399,296 B。postcheck与删除后verify_full 17/17通过，campaign及正式pages／ledger／rules未改。回执：`output/storage_retention/cycle_closeout_c19_20261107/README.md`；任务卡：`docs/tasks/20261107-c19-closeout-cleanup-git.md`。
 
-Git仅显式暂存本周期生产模块、共享接线与成果生成器、任务文档、清理脚本和当前交接，不纳入其他对话改动或output大型产物。当前为清理完成、Git提交／推送进行中；不启动C20或发布。
+Git仅显式暂存本周期生产模块、共享接线与成果生成器、任务文档、清理脚本和当前交接，不纳入其他对话改动或output大型产物。主提交`e2e864624b407682a6c2ab6798bea37ff6ea12bb`已推送，`origin/main`已核对一致；最终文档回执随本提交同步，Git证据见`output/storage_retention/cycle_closeout_c19_20261107/git_commit_manifest.json`。不启动C20或发布。
