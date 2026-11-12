@@ -1,13 +1,15 @@
 """Export cid30236's icon and distinct image forms from acquired cache.
 
 Run from the project root with the existing .venv. Original APK/cache are read
-only; all derived files go to output/card_images/cid30236 (or --output).
+only; all derived files go to a fresh version directory (or a new --output).
 """
 import argparse
 import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, path_reference
+from versioned_outputs import fresh_output
 
 import UnityPy
 from UnityPy.enums import TextureFormat
@@ -20,8 +22,8 @@ from metadata_targets import Metadata
 
 
 CID = 30236
-INVENTORY = Path('output/cache_refresh_20261015/composite_inventory.jsonl')
-RECORDS = Path('output/cache_full_20261015_v3/records.jsonl')
+INVENTORY = read_path(Path('output/cache_refresh_20261015/composite_inventory.jsonl'))
+RECORDS = read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 TARGETS = {
     'portrait': ('Card_Icon', 'cha_2d_icon_30236', 'portrait.png', '头像；卡框与星级已烘焙在原始纹理中'),
     'standing_partial': ('Trimmed_Whole', 'cha_2d_whole_30236', 'standing_partial.png', '原始透明上半身图；画面边缘截断身体及装饰，不是完整全身立绘'),
@@ -80,7 +82,7 @@ def binding_evidence(out):
 
 
 def export_one(decoder, source, role, name, filename, description, expected_container, out):
-    path = Path(source['work_file'])
+    path = read_path(Path(source['work_file']))
     raw = path.read_bytes()
     assert len(raw) == source['bytes']
     pointer = decoder.e.allocate(len(raw), raw)
@@ -146,10 +148,9 @@ def export_one(decoder, source, role, name, filename, description, expected_cont
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path, default=Path('output/card_images/cid30236'))
+    parser.add_argument('--output', type=Path, help='A new run directory')
     args = parser.parse_args()
-    out = args.output
-    out.mkdir(parents=True, exist_ok=True)
+    out = fresh_output('projects/assets/data/card_image_runs', 'cid30236', args.output)
     records = [json.loads(line) for line in RECORDS.open(encoding='utf-8')]
     record, = [r for r in records if r['table'] == 'charainfo' and r['raw'].get('cid') == CID]
     assert record['raw']['name'] == 'チーカ' and record['raw']['title'] == '《Y.G.1009》竜の眷属'
@@ -170,18 +171,18 @@ def main():
     missing_routes = ['files/Bundle/Trimmed_WholeLong/cha_2d_wholeLong_30236.bdl',
                       'Resource/Card/cha_2d_card_30236.scr']
     apk_matches = []
-    apk_index = Path('output/unity/objects.jsonl')
+    apk_index = read_path(Path('output/unity/objects.jsonl'))
     for line in apk_index.open(encoding='utf-8'):
         obj = json.loads(line)
         if '30236' in str(obj.get('name')) or 'chica' in str(obj.get('name')).lower():
             apk_matches.append(obj)
-    resource_index = Path('output/unity/ResourceManager_13.json')
+    resource_index = read_path(Path('output/unity/ResourceManager_13.json'))
     containers = json.loads(resource_index.read_bytes())['m_Container']
     resource_matches = [r for r in containers if '30236' in r[0] or 'chica' in r[0].lower()]
     manifest = {
         'cid': CID, 'name': '《Y.G.1009》竜の眷属 チーカ',
         'status': 'PORTRAIT_CONFIRMED_FULL_BODY_NOT_LOCATED_PARTIAL_ART_EXPORTED',
-        'inventory': str(INVENTORY), 'record': str(RECORDS),
+        'inventory': path_reference(INVENTORY), 'record': path_reference(RECORDS),
         'record_pointer': record['location']['json_pointer'],
         'dependencies': {'UnityPy': UnityPy.__version__, 'Pillow': Image.__version__},
         'decoder_initialization': decoder.provenance, 'images': results,
@@ -191,8 +192,8 @@ def main():
             'cache_cid_filename_matches': [r['path'] for r in rows if '30236' in r['path']],
             'wholelong_route_inventory_hits': [r['path'] for r in rows if r['path'] == missing_routes[0]],
             'hires_scr_filename_inventory_hits': [r['path'] for r in rows if 'cha_2d_card_30236.scr' in r['path']],
-            'apk_object_name_index': str(apk_index), 'apk_name_matches': apk_matches,
-            'apk_resource_index': str(resource_index), 'apk_resource_key_matches': resource_matches,
+            'apk_object_name_index': path_reference(apk_index), 'apk_name_matches': apk_matches,
+            'apk_resource_index': path_reference(resource_index), 'apk_resource_key_matches': resource_matches,
             'limits': 'Index non-matches are not proof that the asset does not exist. Other bundles, private storage, and server content are outside this single-character check. No layout exists in the five self-contained bundles to recover truncated body parts or separate baked card layers.',
             'minimum_next_step': 'Obtain an authoritative cid30236 unframed full-body asset reference from the resource/download index. First check whether the confirmed WholeLong naming route is actually assigned to this cid. If a validated target is outside the acquired cache, collect only that target. The .scr route is an optional higher-resolution CARD lead, not proof of a complete standalone illustration.',
         },
@@ -233,7 +234,7 @@ def main():
         '',
         '复现：在 E:\\代码项目\\锁链战记数据解包 根目录执行：',
         '.venv\\Scripts\\python.exe -B scripts/extract_cid30236_images.py',
-        '可加 --output output/card_images/cid30236_rerun 写入另一个独立目录。',
+        '可加 --output projects/assets/data/card_image_runs/cid30236-rerun-01 指定尚不存在的目录。',
         '依赖全部来自现有 .venv；还需要现有恢复镜像、APK证书、原缓存工作副本及上述索引。未安装新工具。',
     ]
     (out / 'SOURCES.txt').write_text('\n'.join(lines) + '\n', encoding='utf-8')

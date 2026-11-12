@@ -86,6 +86,7 @@ import re
 import struct
 import unicodedata
 from pathlib import Path
+from project_layout_paths import read_path
 
 MODULE_VERSION = 'c15_p1_denju_damage_direct_20261103'
 #: 账本消费用 scope：复用既有 G1-B1 来源限定窄映射（effect_ledger.G1B1_SCOPE）。
@@ -307,7 +308,7 @@ class Inputs:
     def __init__(self, root, decoded=None, rules=None):
         self.root = Path(root).resolve()
         if decoded is None:
-            self.decoded = self.root / DECODED_REL
+            self.decoded = read_path(self.root / DECODED_REL, root=self.root)
         else:
             dpath = Path(decoded)
             self.decoded = (dpath if dpath.is_absolute() else self.root / dpath).resolve()
@@ -336,7 +337,7 @@ class Inputs:
                              % (path, declared, actual))
         doc = json.loads(path.read_text(encoding='utf-8-sig'))
         self.versions[stem] = {
-            'path': path.relative_to(self.root).as_posix(),
+            'path': DECODED_REL + '/' + stem + '.data5.json.raw',
             'declared_sha256': declared,
             'actual_sha256': actual,
             'match': True,

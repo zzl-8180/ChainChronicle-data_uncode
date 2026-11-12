@@ -95,7 +95,7 @@ def _resolve_field_evidence(field):
     if not entries:
         raise ValueError(f'模板批 3 type8 证据解析异常（INFR-01）：skilllist|8|/{field} 的 rules.json evidence 为空')
     path_files = [e for e in entries if e.startswith(('scripts/', 'output/'))]
-    missing = [p for p in path_files if not Path(p).is_file()]
+    missing = [p for p in path_files if not ((Path(__file__).resolve().parents[2] / p) if p.startswith("scripts/") else R.read_path(Path(p))).is_file()]
     if missing:
         raise FileNotFoundError(f'模板批 3 type8 证据文件缺失（INFR-01）：{missing}')
     return entries, path_files

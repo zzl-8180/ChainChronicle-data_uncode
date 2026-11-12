@@ -3,13 +3,17 @@ from __future__ import annotations
 import collections,csv,hashlib,json,os,subprocess,sys
 from pathlib import Path
 import common as C
-BASE=C.ROOT/'output/character_skills';OUT=BASE/'remaining_five';BEFORE=C.ROOT/'work/character_skills_p3b5/before'
-def rows(p):return [json.loads(x) for x in Path(p).open(encoding='utf8')]
+from project_layout_paths import layout_active, write_path
+BASE=C.read_path(C.ROOT/'output/character_skills', root=C.ROOT)
+OUT_LOGICAL=C.ROOT/'output/character_skills/remaining_five'
+BEFORE=C.read_path(C.ROOT/'work/character_skills_p3b5/before', root=C.ROOT)
+def rows(p):return [json.loads(x) for x in C.read_path(Path(p), root=C.ROOT).open(encoding='utf8')]
 def canon(x):return json.dumps(x,sort_keys=True,ensure_ascii=False,separators=(',',':'))
 def holders(rr):
  for r in rr:
   for h in [r]+r['children']:yield r['rec_key'],h
 def main():
+ OUT=write_path(OUT_LOGICAL, root=C.ROOT)
  C.enable_utf8_console();checks=[]
  def check(name,ok,**detail):checks.append(dict(name=name,passed=bool(ok),**detail))
  old,now=rows(BEFORE/'profiles/records.jsonl'),rows(BASE/'profiles/records.jsonl')
@@ -23,8 +27,9 @@ def main():
  check('only_six_fields_added',all(json.loads(k[3])['rule_key'] in newkeys for k in added),rows=sum(added.values()))
  curr={r['rec_key']:r for r in now}
  check('baseline101_31_type8_type26_and_all_fragments_unchanged',all(r['baseline_answers']==curr[r['rec_key']]['baseline_answers'] and r['fragments']==curr[r['rec_key']]['fragments'] for r in old))
- binding=[p for folder in ['description_bindings/type8','type26_mana'] for p in (BEFORE/folder).glob('*.json*') if 'bindings' in p.name or 'type8' in str(p.parent)]
- check('all_old_binding_bytes_preserved',all(p.read_bytes()==(BASE/p.relative_to(BEFORE)).read_bytes() for p in binding),files=len(binding))
+ binding=[p for folder in ['description_bindings/type8','type26_mana'] for p in C.read_path(BEFORE/folder, root=C.ROOT).glob('*.json*') if 'bindings' in p.name or 'type8' in str(p.parent)]
+ before_physical=C.read_path(BEFORE, root=C.ROOT)
+ check('all_old_binding_bytes_preserved',all(p.read_bytes()==C.read_path(BASE/p.relative_to(before_physical), root=C.ROOT).read_bytes() for p in binding),files=len(binding))
  uses=collections.defaultdict(list)
  for p in newp:
   for g in p['groups']:
@@ -37,7 +42,7 @@ def main():
  # are resolved by the actual layer/table/ID, retaining all duplicate candidates.
  docs={};source_maps={};source_paths={}
  for layer,table,path,pointer in [('APK','charainfo',C.ROOT/'output/base_master/_mdCharacter.json','/charainfo'),('APK','bossskill',C.ROOT/'output/base_master/_mdBossInfo.json','/bossskill'),('CACHE','charainfo',C.ROOT/'output/cache_full_20261015_v3/decoded/charainfo.data5.json.raw','/charainfo'),('CACHE','bossskill',C.ROOT/'output/cache_full_20261015_v3/decoded/bossinfo.data5.json.raw','/bossinfo/bossskill')]:
-  payload=path.read_bytes();doc=json.loads(payload);rr=doc
+  payload=C.read_path(path, root=C.ROOT).read_bytes();doc=json.loads(payload);rr=doc
   for part in pointer.strip('/').split('/'):rr=rr[part]
   byid=collections.defaultdict(list)
   for i,r in enumerate(rr):byid[r['cid'] if table=='charainfo' else r['skillid']].append((pointer+'/'+str(i),r))
@@ -125,6 +130,9 @@ def main():
  print(json.dumps(dict(new_pages=page,new_rows=len(ledger),new_keys=len(keys),affected=len(affected),sources=len(sources),checks=f"{sum(r['passed'] for r in checks)}/{len(checks)}"),ensure_ascii=False))
  if not all(r['passed'] for r in checks):raise SystemExit(1)
 def freeze():
+ if layout_active():
+  raise RuntimeError('Historical P3B5 frozen manifest cannot be regenerated under relocated layout')
+ OUT=OUT_LOGICAL
  files=[C.ROOT/'scripts/character_skills'/x for x in ['remaining_five.py','p3b5_remaining_five.py','p3b5_dom.js','rules.py','profiles.py','verify_p1.py','crosscheck_raw.py']]
  files += [BASE/x for x in ['README.md','P3B5_HANDOFF.md']]
  for folder in ['remaining_five','profiles','gaps','charainfo_params']:

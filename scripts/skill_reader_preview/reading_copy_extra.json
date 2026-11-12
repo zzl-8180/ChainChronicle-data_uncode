@@ -1,0 +1,249 @@
+{
+  "version": 1,
+  "rows": {
+    "30236-special_move-special_move-pattern1-lvorder1-f0": {
+      "original": "【共鳴必殺/連撃/設置】前方範囲内の全ての敵に5回ダメージを与え、弾き飛ばす。",
+      "textZh": "【共鸣必杀/连击/设置】对前方范围内的所有敌人造成5次伤害，并将其击飞。"
+    },
+    "30236-special_move-special_move-pattern1-lvorder1-f1": {
+      "original": "その後、侵入している全ての敵に、一定間隔ごとに5回まで小ダメージを与え、転倒させる攻撃範囲を2つ重ねて複数設置する。",
+      "textZh": "随后设置多处由2个攻击范围重叠形成的区域；进入范围的敌人每隔一定时间受到一次小额伤害，最多5次，并被击倒。"
+    },
+    "30236-special_move-special_move-pattern1-lvorder1-f2": {
+      "original": "さらに味方全体の攻撃力と防御力と移動速度とクリティカル発生率とクリティカル威力が一定時間上がる。",
+      "textZh": "此外，我方全体的攻击力、防御力、移动速度、暴击率和暴击伤害在一段时间内提高。"
+    },
+    "30236-special_move-special_move-pattern1-lvorder1-f3": {
+      "original": "地形が砂漠の時、必殺技を発動する時に必要なマナが1つ減り、必殺技の威力と味方にかかる効果が上がる。",
+      "textZh": "地形为沙漠时，发动必杀技所需的法珠减少1个，必杀技威力及施加给我方的效果提高。"
+    },
+    "30236-special_move-special_move-pattern2-lvorder2-f0": {
+      "original": "【超共鳴必殺/連撃/設置】前方範囲内の全ての敵に5回ダメージを与え、弾き飛ばす。",
+      "textZh": "【超共鸣必杀/连击/设置】对前方范围内的所有敌人造成5次伤害，并将其击飞。"
+    },
+    "30236-special_move-special_move-pattern2-lvorder2-f1": {
+      "original": "その後、侵入している全ての敵に、一定間隔ごとに5回まで小ダメージを与え、転倒させる攻撃範囲を2つ重ねて複数設置する。",
+      "textZh": "随后设置多处由2个攻击范围重叠形成的区域；进入范围的敌人每隔一定时间受到一次小额伤害，最多5次，并被击倒。"
+    },
+    "30236-special_move-special_move-pattern2-lvorder2-f2": {
+      "original": "さらに味方全体の攻撃力と防御力と移動速度とクリティカル発生率とクリティカル威力が一定時間上がる。",
+      "textZh": "此外，我方全体的攻击力、防御力、移动速度、暴击率和暴击伤害在一段时间内提高。"
+    },
+    "30236-special_move-special_move-pattern2-lvorder2-f3": {
+      "original": "この技は0マナで発動でき、発動時、万象マナを1つ獲得する。",
+      "textZh": "此技能可消耗0法珠发动，发动时获得1个万象法珠。"
+    },
+    "30236-special_move-special_move-skilltext-lvorder3-f0": {
+      "original": "【共鳴必殺/連撃/設置】前方範囲内の全ての敵に5回ダメージを与え、弾き飛ばす。",
+      "textZh": "【共鸣必杀/连击/设置】对前方范围内的所有敌人造成5次伤害，并将其击飞。"
+    },
+    "30236-special_move-special_move-skilltext-lvorder3-f1": {
+      "original": "その後、侵入している全ての敵に、一定間隔ごとに5回まで小ダメージを与え、転倒させる攻撃範囲を2つ重ねて複数設置する。",
+      "textZh": "随后设置多处由2个攻击范围重叠形成的区域；进入范围的敌人每隔一定时间受到一次小额伤害，最多5次，并被击倒。"
+    },
+    "30236-special_move-special_move-skilltext-lvorder3-f2": {
+      "original": "さらに味方全体の攻撃力と防御力と移動速度とクリティカル発生率とクリティカル威力が一定時間上がる。",
+      "textZh": "此外，我方全体的攻击力、防御力、移动速度、暴击率和暴击伤害在一段时间内提高。"
+    },
+    "30236-special_move-special_move-skilltext-lvorder3-f3": {
+      "original": "地形が砂漠の時、必殺技を発動する時に必要なマナが1つ減り、必殺技の威力と味方にかかる効果が上がる。",
+      "textZh": "地形为沙漠时，发动必杀技所需的法珠减少1个，必杀技威力及施加给我方的效果提高。"
+    },
+    "30236-ability-ability-skillid_1_-lvorder0-f0": {
+      "original": "時の楔を1つ持った状態で戦闘を開始する。",
+      "textZh": "持有1个时之楔开始战斗。"
+    },
+    "30236-ability-ability-skillid_1_-lvorder0-f1": {
+      "original": "この効果はサブパーティでも発動する。",
+      "textZh": "此效果在副队伍中也会发动。"
+    },
+    "30236-ability-ability-skillid_1_-lvorder0-f2": {
+      "original": "攻撃力とクリティカル威力が上がる。",
+      "textZh": "攻击力和暴击伤害提高。"
+    },
+    "30236-ability-ability-skillid_1_-lvorder0-f3": {
+      "original": "さらに敵を倒した時、一定確率で全ての必殺技が使えるマナを獲得する。",
+      "textZh": "此外，击败敌人时有一定概率获得可用于发动所有必杀技的法珠。"
+    },
+    "30236-ability-ability-skillid_1_-lvorder0-f4": {
+      "original": "地形が砂漠の場合、必ずマナを獲得する。",
+      "textZh": "地形为沙漠时，必定获得法珠。"
+    },
+    "30236-ability-ability-skillid_1_-lvorder0-f5": {
+      "original": "また戦闘開始時とWAVE開始時、地形を砂漠に一定時間変更し、味方全体に10回まで防御力を上げ、全状態異常を防ぎ、防御無視攻撃によるダメージと炎/氷属性ダメージも防ぐバリアをはる必殺技が発動する。",
+      "textZh": "此外，战斗开始时和每个WAVE开始时会发动必杀技，将地形暂时变为沙漠，并为我方全体设置护盾，最多抵挡10次攻击；护盾提高防御力、防止所有异常状态，也能抵挡无视防御的攻击伤害以及炎/冰属性伤害。"
+    },
+    "30236-ability-ability-skillid_1_-lvorder0-f6": {
+      "original": "このバリアは必殺技で攻撃された場合のみ、回数を消費する。",
+      "textZh": "此护盾只有受到必杀技攻击时才会消耗次数。"
+    },
+    "30236-ability-ability-skillid_1_-lvorder0-f7": {
+      "original": "必殺技の威力が上がる。",
+      "textZh": "必杀技威力提高。"
+    },
+    "30236-ability-ability-skillid_1_-lvorder0-f8": {
+      "original": "さらに攻撃時、攻撃した敵の攻撃力と防御力と移動速度が一定時間下がる。",
+      "textZh": "此外，攻击时会使被攻击敌人的攻击力、防御力和移动速度在一段时间内降低。"
+    },
+    "30236-ability-ability-skillid_1_-lvorder0-f9": {
+      "original": "またクリティカル攻撃時、クリティカル攻撃が6回になり、範囲攻撃になる。",
+      "textZh": "此外，暴击攻击时会变为6段范围攻击。"
+    },
+    "30236-ability-ability-skillid_2_-lvorder1-f0": {
+      "original": "戦場にいる味方の攻撃力と防御力と移動速度が上がる。",
+      "textZh": "战场上我方的攻击力、防御力和移动速度提高。"
+    },
+    "30236-ability-ability-skillid_2_-lvorder1-f1": {
+      "original": "地形が砂漠の時、効果が上がり、さらにクリティカル発生率とクリティカル威力が上がる。",
+      "textZh": "地形为沙漠时，效果增强，暴击率和暴击伤害也提高。"
+    },
+    "30236-ability-ability-skillid_2_-lvorder1-f2": {
+      "original": "自身の場合、さらに効果が上がり、攻撃間隔が早くなる。",
+      "textZh": "自身满足条件时，效果进一步增强，攻击间隔缩短。"
+    },
+    "30236-ability-ability-skillid_2_-lvorder1-f3": {
+      "original": "WAVEが進むたび、味方全体の攻撃力と防御力と移動速度とクリティカル発生率とクリティカル威力が一定時間上がる。",
+      "textZh": "每推进一个WAVE，我方全体的攻击力、防御力、移动速度、暴击率和暴击伤害都会在一段时间内提高。"
+    },
+    "30236-ability-ability-skillid_2_-lvorder1-f4": {
+      "original": "戦士の場合、効果が上がる。",
+      "textZh": "对象为战士时，效果增强。"
+    },
+    "30236-ability-ability-skillid_2_-lvorder1-f5": {
+      "original": "また1stChain以上を達成した時、一定確率で万象マナを1つ獲得する。",
+      "textZh": "此外，达成1st Chain以上时，有一定概率获得1个万象法珠。"
+    },
+    "30236-ability-ability-skillid_2_-lvorder1-f6": {
+      "original": "ただし同じChain内で1つしか獲得できない。",
+      "textZh": "但同一Chain内最多只能获得1个。"
+    },
+    "30236-sympathy-sympathy-sympathy_skill_info__id_30236__ability0-lvorder0-f0": {
+      "original": "【共鳴アビリティ】自身を含む<味方>が≪共鳴必殺≫を発動するたび、戦場にいる<味方>の攻撃力とクリティカル威力が一定時間上がる。",
+      "textZh": "【共鸣能力】包括自身在内的<我方>每次发动≪共鸣必杀≫时，战场上<我方>的攻击力和暴击伤害都会在一段时间内提高。"
+    },
+    "30236-sympathy-sympathy-sympathy_skill_info__id_30236__ability0-lvorder0-f1": {
+      "original": "この効果は、サブパーティでも発動する。",
+      "textZh": "此效果在副队伍中也会发动。"
+    },
+    "30236-sympathy-sympathy-sympathy_skill_info__id_30236__ability0-lvorder0-f2": {
+      "original": "【共鳴アビリティ】MAXChainで自身を含む<味方>が≪共鳴必殺≫を発動した時、「地形を砂漠に一定時間変更する必殺技」が発動する。",
+      "textZh": "【共鸣能力】在MAX Chain时，包括自身在内的<我方>发动≪共鸣必杀≫后，会发动“将地形暂时变为沙漠的必杀技”。"
+    },
+    "30236-sympathy-sympathy-sympathy_skill_info__id_30236__ability0-lvorder0-f3": {
+      "original": "ただし、自身が必殺技発動中に条件を満たした場合は発動しない。",
+      "textZh": "但若满足条件时自身正在发动必杀技，则不会发动。"
+    },
+    "30236-sympathy-sympathy-sympathy_skill_info__id_30236__ability0-lvorder0-f4": {
+      "original": "また、同じChain内で1回しか発動しない。",
+      "textZh": "此外，同一Chain内只会发动1次。"
+    },
+    "30236-leader-leader-leader_ability_cid_30236_-lvorder0-f0": {
+      "original": "味方全体の攻撃力が60%上がり、地形が砂漠の時、攻撃力が10%上がる。",
+      "textZh": "我方全体攻击力提高60%；地形为沙漠时，攻击力再提高10%。"
+    },
+    "30236-leader-leader-leader_ability_cid_30236__sympathy_text-lvorder1-f0": {
+      "original": "味方全体の攻撃力が3%上がり、地形が砂漠の時、攻撃力が2%上がる。",
+      "textZh": "我方全体攻击力提高3%；地形为沙漠时，攻击力再提高2%。"
+    },
+    "30236-class-class-job_ability_cids_contains_cid-lvorder0-f0": {
+      "original": "攻撃力と防御力と移動速度とクリティカル発生率とクリティカル威力が上がる。",
+      "textZh": "攻击力、防御力、移动速度、暴击率和暴击伤害提高。"
+    },
+    "30236-class-class-job_ability_cids_contains_cid-lvorder0-f1": {
+      "original": "戦場にいる味方の攻撃力と防御力と移動速度が上がる。",
+      "textZh": "战场上我方的攻击力、防御力和移动速度提高。"
+    },
+    "30236-class-class-job_ability_cids_contains_cid-lvorder0-f2": {
+      "original": "クリティカル攻撃時に与えたダメージ量に応じて、自身のHPが上限を超えて回復する。",
+      "textZh": "暴击攻击时，自身会根据造成的伤害量回复HP，且可超过上限。"
+    },
+    "30236-extra-extra-extra_abilities_0_-lv1-f0": {
+      "original": "万象マナを1つ持った状態で戦闘を開始する。",
+      "textZh": "持有1个万象法珠开始战斗。"
+    },
+    "30236-extra-extra-extra_abilities_0_-lv1-f1": {
+      "original": "味方が必殺ボタンを使用して必殺技を発動すると、同じChain内で次に使用する必殺技のChainによる威力の上昇量が32%上がる。",
+      "textZh": "队友使用必杀按钮发动必杀技后，同一Chain内下一次发动的必杀技，其由Chain带来的威力提升量增加32%。"
+    },
+    "30236-extra-extra-extra_abilities_0_-lv1-f2": {
+      "original": "この効果はサブパーティでも発動する。",
+      "textZh": "此效果在副队伍中也会发动。"
+    },
+    "30236-extra-extra-extra_abilities_1_-lv2-f0": {
+      "original": "万象マナを1つ持った状態で戦闘を開始する。",
+      "textZh": "持有1个万象法珠开始战斗。"
+    },
+    "30236-extra-extra-extra_abilities_1_-lv2-f1": {
+      "original": "味方が必殺ボタンを使用して必殺技を発動すると、同じChain内で次に使用する必殺技のChainによる威力の上昇量が34%上がる。",
+      "textZh": "队友使用必杀按钮发动必杀技后，同一Chain内下一次发动的必杀技，其由Chain带来的威力提升量增加34%。"
+    },
+    "30236-extra-extra-extra_abilities_1_-lv2-f2": {
+      "original": "この効果はサブパーティでも発動する。",
+      "textZh": "此效果在副队伍中也会发动。"
+    },
+    "30236-extra-extra-extra_abilities_2_-lv3-f0": {
+      "original": "万象マナを1つ持った状態で戦闘を開始する。",
+      "textZh": "持有1个万象法珠开始战斗。"
+    },
+    "30236-extra-extra-extra_abilities_2_-lv3-f1": {
+      "original": "味方が必殺ボタンを使用して必殺技を発動すると、同じChain内で次に使用する必殺技のChainによる威力の上昇量が36%上がる。",
+      "textZh": "队友使用必杀按钮发动必杀技后，同一Chain内下一次发动的必杀技，其由Chain带来的威力提升量增加36%。"
+    },
+    "30236-extra-extra-extra_abilities_2_-lv3-f2": {
+      "original": "この効果はサブパーティでも発動する。",
+      "textZh": "此效果在副队伍中也会发动。"
+    },
+    "30236-extra-extra-extra_abilities_3_-lv4-f0": {
+      "original": "万象マナを1つ持った状態で戦闘を開始する。",
+      "textZh": "持有1个万象法珠开始战斗。"
+    },
+    "30236-extra-extra-extra_abilities_3_-lv4-f1": {
+      "original": "味方が必殺ボタンを使用して必殺技を発動すると、同じChain内で次に使用する必殺技のChainによる威力の上昇量が38%上がる。",
+      "textZh": "队友使用必杀按钮发动必杀技后，同一Chain内下一次发动的必杀技，其由Chain带来的威力提升量增加38%。"
+    },
+    "30236-extra-extra-extra_abilities_3_-lv4-f2": {
+      "original": "この効果はサブパーティでも発動する。",
+      "textZh": "此效果在副队伍中也会发动。"
+    },
+    "30236-extra-extra-extra_abilities_4_-lvMAX-f0": {
+      "original": "万象マナを1つ持った状態で戦闘を開始する。",
+      "textZh": "持有1个万象法珠开始战斗。"
+    },
+    "30236-extra-extra-extra_abilities_4_-lvMAX-f1": {
+      "original": "味方が必殺ボタンを使用して必殺技を発動すると、同じChain内で次に使用する必殺技のChainによる威力の上昇量が40%上がる。",
+      "textZh": "队友使用必杀按钮发动必杀技后，同一Chain内下一次发动的必杀技，其由Chain带来的威力提升量增加40%。"
+    },
+    "30236-extra-extra-extra_abilities_4_-lvMAX-f2": {
+      "original": "この効果はサブパーティでも発動する。",
+      "textZh": "此效果在副队伍中也会发动。"
+    },
+    "30236-bond-bond-supporterskill_ability_id____cid-lvorder0-f0": {
+      "original": "万象マナを1つ持った状態で戦闘を開始する。",
+      "textZh": "持有1个万象法珠开始战斗。"
+    },
+    "30236-bond-bond-supporterskill_ability_id____cid-lvorder0-f1": {
+      "original": "地形が砂漠の時、味方全体の攻撃力が上がる。",
+      "textZh": "地形为沙漠时，我方全体攻击力提高。"
+    },
+    "30236-bond-bond-supporterskill_ability_id____cid-lvorder0-f2": {
+      "original": "自身の場合、効果が上がる。",
+      "textZh": "对象为自身时，效果增强。"
+    },
+    "30236-bond-bond-supporterskill_ability_id____cid-lvorder0-f3": {
+      "original": "必殺技の威力が上がる。",
+      "textZh": "必杀技威力提高。"
+    },
+    "29-special_move-special_move-skilltext-lvorder0-f0": {
+      "original": "直線範囲上にいる全ての敵に小ダメージを与える。",
+      "textZh": "对直线范围上的所有敌人造成少量伤害。"
+    },
+    "29-ability-ability-skillid_1_-lvorder0-f0": {
+      "original": "マナを１つ持った状態で戦闘を開始する。",
+      "textZh": "持有1颗法珠开始战斗。"
+    },
+    "1-special_move-special_move-skilltext-lvorder0-f0": {
+      "original": "全ての敵に大ダメージを与え、さらに弾き飛ばす。",
+      "textZh": "对所有敌人造成大量伤害，并将其击飞。"
+    }
+  }
+}

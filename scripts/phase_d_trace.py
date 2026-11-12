@@ -10,6 +10,7 @@ from pathlib import Path
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from il2cpp_sample_code import Native
 from metadata_targets import Metadata
+from project_layout_paths import write_path
 
 
 def main():
@@ -20,7 +21,7 @@ def main():
     m = Metadata('work/protection/metadata_aei_decoded.bin')
     n = Native(m)
     md = Cs(CS_ARCH_ARM64,CS_MODE_ARM)
-    out = Path('output/phase_d/code')
+    out = write_path(Path('projects/skill-research/evidence/phase_d/20261111/code'))
     out.mkdir(parents=True,exist_ok=True)
     report = []
     for index in args.methods:

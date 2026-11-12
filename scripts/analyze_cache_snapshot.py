@@ -5,6 +5,7 @@ import json
 import re
 from collections import Counter,defaultdict
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 from build_field_guide import build_dictionary,csv_view,descendants,HIGHHP,meaning
 from export_master import strict_load,lookup,write_json,write_lines,sha
@@ -12,11 +13,11 @@ from export_master import strict_load,lookup,write_json,write_lines,sha
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--input',type=Path,required=True)
-    args=parser.parse_args();out=args.input/'analysis';out.mkdir(exist_ok=True)
+    args=parser.parse_args();logical_input=args.input;args.input=read_path(logical_input);out=write_path(logical_input/'analysis');out.mkdir(exist_ok=True)
     report=strict_load((args.input/'decode_report.json').read_bytes())
     records=[strict_load(line) for line in (args.input/'records.jsonl').open(encoding='utf-8')]
     by_key={r['record_key']:r for r in records};assert len(by_key)==len(records)
-    active=strict_load(Path('output/sample/active_skill_trace.json').read_bytes())
+    active=strict_load(read_path(Path('output/sample/active_skill_trace.json')).read_bytes())
     build_dictionary(out,records,active)
     # Scalar array members have a stable JSON pointer too; retain an explicit
     # unknown dictionary entry rather than omitting them for lacking field names.
@@ -48,7 +49,7 @@ def main():
             row['examples']={'preview':example[:2000],'truncated_for_csv':True,'full_value':f'field_dictionary.json#/{index}/examples'}
         csv_dictionary.append(row)
     csv_view(out/'field_dictionary.csv',csv_dictionary,list(zip(keys,headers)))
-    selected=strict_load(Path('output/export/latest.json').read_bytes());base=Path(selected['directory'])
+    selected=strict_load(read_path(Path('output/export/latest.json')).read_bytes());base=read_path(Path(selected['directory']))
     manifest=strict_load((base/'manifest.json').read_bytes())
     # APK candidates remain separately sourced. Only daSkill uses the established
     # conditional per-ID lookup; no fields or other namespaces are merged.
@@ -73,7 +74,7 @@ def main():
         _,located_boss=parse_records(boss_raw,table)
         for raw,loc in located_boss:
             entry={'record_key':'APK/_mdBossInfo.json#'+loc['json_pointer'],'raw':raw,'location':loc,
-                   'source_key':'APK/_mdBossInfo.json','layer':'APK','table':table,'original_file':str(base/boss_source['copied_file'])}
+             'source_key':'APK/_mdBossInfo.json','layer':'APK','table':table,'original_file':path_reference(base/boss_source['copied_file'])}
             apk_domains[table][raw.get('patternid' if table=='bosspattern' else 'skillid')].append(entry);apk_boss.append(entry)
     write_lines(out/'apk_boss_records.jsonl',apk_boss)
     refs=[]
@@ -155,8 +156,8 @@ def main():
                'failed':row['status']!='DECODED','error':row.get('error'),'meaning':'逐字段字典；未知保留',
                'expected_basis':'本次外部目录清单；记录依据已解码JSON数组/文档边界','source':row['source'],'sha256':row['source_sha256'],
                'needs_phone':False} for row in report['files']]
-    extraction=strict_load(Path('output/phone_full_20261015/extraction/extraction.json').read_bytes())
-    inventory=[strict_load(line) for line in Path('output/phone_full_20261015/inventory.jsonl').open(encoding='utf-8')]
+    extraction=strict_load(read_path(Path('output/phone_full_20261015/extraction/extraction.json')).read_bytes())
+    inventory=[strict_load(line) for line in read_path(Path('output/phone_full_20261015/inventory.jsonl')).open(encoding='utf-8')]
     bundles=sum(r['path'].endswith('.bdl') for r in inventory)
     coverage.append({'category':'bdl容器','expected_files':bundles,'acquired_files':bundles,'decoded_files':0,'parsed_record_views':None,
                      'exported_record_views':None,'failed':None,'meaning':'原封装与路径已保存；头部不直接识别为UnityFS，目标比例未知',
@@ -173,7 +174,7 @@ def main():
              'reference_results':dict(Counter(r['resolution']['status'] for r in refs)),
              'reference_scope':'当前缓存sub/四槽、Boss候选及已列辅助字段；八槽角色及其他命名空间未声明完整图',
              'previous_nine_missing_ids':previous,'highhp_records':len({r['skill_id'] for r in highhp}),
-             'old_E_build':str(base),'old_E_manifest_sha256':sha((base/'manifest.json').read_bytes()),
+             'old_E_build':path_reference(base),'old_E_manifest_sha256':sha((base/'manifest.json').read_bytes()),
              'limits':['全游戏覆盖未知','未验证私有目录或服务端完整性','当前加载版本/玩家状态未知','全部bdl已采但尚未解码','无入边不等于失效；全部记录保留'],
              'producer_sha256':sha(Path(__file__).read_bytes())}
     write_json(out/'summary.json',summary)

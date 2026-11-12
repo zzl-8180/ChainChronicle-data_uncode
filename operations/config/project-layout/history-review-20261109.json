@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "kind": "SIX_FROZEN_HISTORY_READONLY_ROUTE_ACTIVE",
+  "repository_root": "E:\\代码项目\\锁链战记数据解包",
+  "aliases": [
+    {
+      "alias": "work/review_p2b5_thirdparty/iso/output/base_master",
+      "source_root": "output/base_master",
+      "target_relative_suffix": "",
+      "old_target_raw": "\\\\?\\E:\\代码项目\\锁链战记数据解包\\output\\base_master",
+      "old_dev": 1926460150158795819,
+      "old_ino": 281474978534930,
+      "old_tag": 2684354563,
+      "new_target": "projects/unpack/data/apk/base_master",
+      "source_root_dev": 1926460150158795819,
+      "source_root_ino": 281474977448462,
+      "new_root_dev": 1926460150158795819,
+      "new_root_ino": 281474977448462
+    },
+    {
+      "alias": "work/review_p2b5_thirdparty/iso/output/boss_heal",
+      "source_root": "output/boss_heal",
+      "target_relative_suffix": "",
+      "old_target_raw": "\\\\?\\E:\\代码项目\\锁链战记数据解包\\output\\boss_heal",
+      "old_dev": 1926460150158795819,
+      "old_ino": 281474978534940,
+      "old_tag": 2684354563,
+      "new_target": "projects/skill-research/evidence/boss_heal",
+      "source_root_dev": 1926460150158795819,
+      "source_root_ino": 281474977540885,
+      "new_root_dev": 1926460150158795819,
+      "new_root_ino": 281474977540885
+    },
+    {
+      "alias": "work/review_p2b5_thirdparty/iso/output/cache_full_20261015_v3",
+      "source_root": "output/cache_full_20261015_v3",
+      "target_relative_suffix": "",
+      "old_target_raw": "\\\\?\\E:\\代码项目\\锁链战记数据解包\\output\\cache_full_20261015_v3",
+      "old_dev": 1926460150158795819,
+      "old_ino": 281474978534929,
+      "old_tag": 2684354563,
+      "new_target": "projects/unpack/data/cache/cache_full_20261015_v3",
+      "source_root_dev": 1926460150158795819,
+      "source_root_ino": 281474977540221,
+      "new_root_dev": 1926460150158795819,
+      "new_root_ino": 281474977540221
+    },
+    {
+      "alias": "work/review_p2b5_thirdparty/iso/output/card_comparison_cid30236",
+      "source_root": "output/card_comparison_cid30236",
+      "target_relative_suffix": "",
+      "old_target_raw": "\\\\?\\E:\\代码项目\\锁链战记数据解包\\output\\card_comparison_cid30236",
+      "old_dev": 1926460150158795819,
+      "old_ino": 281474978534936,
+      "old_tag": 2684354563,
+      "new_target": "projects/skill-research/evidence/card_comparison_cid30236",
+      "source_root_dev": 1926460150158795819,
+      "source_root_ino": 562949954251647,
+      "new_root_dev": 1926460150158795819,
+      "new_root_ino": 562949954251647
+    },
+    {
+      "alias": "work/review_p2b5_thirdparty/iso/output/char_roster",
+      "source_root": "output/char_roster",
+      "target_relative_suffix": "",
+      "old_target_raw": "\\\\?\\E:\\代码项目\\锁链战记数据解包\\output\\char_roster",
+      "old_dev": 1926460150158795819,
+      "old_ino": 281474978534938,
+      "old_tag": 2684354563,
+      "new_target": "projects/skill-research/data/char_roster",
+      "source_root_dev": 1926460150158795819,
+      "source_root_ino": 1125899908499465,
+      "new_root_dev": 1926460150158795819,
+      "new_root_ino": 1125899908499465
+    },
+    {
+      "alias": "work/review_p2b5_thirdparty/iso/output/reference_analysis",
+      "source_root": "output/reference_analysis",
+      "target_relative_suffix": "",
+      "old_target_raw": "\\\\?\\E:\\代码项目\\锁链战记数据解包\\output\\reference_analysis",
+      "old_dev": 1926460150158795819,
+      "old_ino": 7036874419586000,
+      "old_tag": 2684354563,
+      "new_target": "projects/reference-analysis/history/reference_analysis",
+      "source_root_dev": 1926460150158795819,
+      "source_root_ino": 281474978529788,
+      "new_root_dev": 1926460150158795819,
+      "new_root_ino": 281474978529788
+    }
+  ],
+  "limits": "Only after authorized physical move and post-move root identity check; missing new root fails closed."
+}

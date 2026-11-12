@@ -1,8 +1,11 @@
 """Extract APK-owned tabular/story records with provenance and unresolved semantics."""
+import argparse
 import csv
 import hashlib
 import json
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 
 def write(path, value):
@@ -10,10 +13,13 @@ def write(path, value):
 
 
 def main():
-    out = Path("output/structured")
-    out.mkdir(parents=True, exist_ok=True)
-    assets = [json.loads(line) for line in Path("output/unity/textassets.jsonl").read_text(encoding="utf-8").splitlines()]
-    identity = json.loads(Path("output/apk/baseline.json").read_text(encoding="utf-8"))["identity"]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path)
+    parser.add_argument("--textassets", type=Path, default=Path("output/unity/textassets.jsonl"))
+    args = parser.parse_args()
+    out = fresh_output("projects/skill-research/data/structured", "apk", args.output)
+    assets = [json.loads(line) for line in read_path(args.textassets).read_text(encoding="utf-8").splitlines()]
+    identity = json.loads(read_path(Path("output/apk/baseline.json")).read_text(encoding="utf-8"))["identity"]
 
     def provenance(row, locator):
         return {"apk_entry": "assets/bin/Data/data.unity3d", "asset_file": row["asset_file"],
@@ -22,7 +28,7 @@ def main():
 
     casts, commands, table = [], [], []
     for row in assets:
-        raw = Path(row["text_path"]).read_bytes()
+        raw = read_path(Path(row["text_path"])).read_bytes()
         if hashlib.sha256(raw).hexdigest() != row["text_sha256"]:
             raise ValueError("TextAsset no longer matches scan")
         try:
@@ -54,7 +60,7 @@ def main():
                 commands.append({"source": provenance(row, f"line:{line_number}"), "section": section,
                                  "raw_columns": next(csv.reader([line]))})
     enemy_row = next(r for r in assets if r["name"] == "EnemyTableDefault")
-    enemy = json.loads(Path(enemy_row["text_path"]).read_bytes())
+    enemy = json.loads(read_path(Path(enemy_row["text_path"])).read_bytes())
     helpers = [{"source": provenance(enemy_row, f"/battleInfo/helper/{i}/card"), "raw_record": r["card"],
                 "scope": "APK default battle fixture; active master/runtime use unknown"}
                for i, r in enumerate(enemy["battleInfo"]["helper"])]

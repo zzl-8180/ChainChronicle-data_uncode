@@ -123,7 +123,7 @@ def _field_evidence(param):
                 raise ValueError(f'批 10 证据解析异常（INFR-01）：skilllist|2003|/{param} 的 '
                                  f'rules.json evidence 条目 {e!r} 不在允许前缀 {_EVIDENCE_DIRS} 内')
             files.append(e)
-    missing = [p for p in files if not B8.Path(p).is_file()]
+    missing = [p for p in files if not R.read_path(B8.Path(p)).is_file()]
     if missing:
         raise FileNotFoundError(f'批 10 证据文件缺失（INFR-01）：{missing}')
     _EVIDENCE_CACHE[param] = files

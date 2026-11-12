@@ -32,3 +32,8 @@ adbkey.pub
 Thumbs.db
 .DS_Store
 *.tmp
+
+# Local agent state and generated root preview (preserved on disk)
+/.zcode/
+/nul
+/角色数据库预览.html

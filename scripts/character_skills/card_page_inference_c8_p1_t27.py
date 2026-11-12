@@ -71,6 +71,10 @@ import re
 import struct
 import unicodedata
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
 
 MODULE_VERSION = 'c8_p1_t27_periodic_heal_20261030'
 #: 账本消费用 scope：effect_ledger.C8P1_T27_SCOPE（来源限定窄映射，唯一消费标记）。
@@ -204,7 +208,7 @@ def tables(data):
     root = Path(getattr(data, 'root', Path('.'))).resolve()
     key = str(root)
     if key not in _TABLES:
-        base = root / 'output/cache_full_20261015_v3/decoded'
+        base = read_path(root / 'output/cache_full_20261015_v3/decoded', root=root)
         boss = _read(base / 'bossinfo.data5.json.raw')['bossinfo']
         patterns, skills = {}, {}
         for i, rec in enumerate(boss.get('bosspattern') or []):

@@ -51,6 +51,9 @@ import shutil
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path, write_path
+
 from card_page_policy import summary_text, INFERENCE_STATUS
 # P3（目标整改 §三.4/A8，20261023）：行首屏同句呈现未解决效果——判定与效果账本同源
 # （effect_ledger.analyze_row 单一事实来源），未解决不呈现为完整、推断不呈现为确认。
@@ -58,7 +61,7 @@ import effect_ledger as EFFECT_LEDGER
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PAGES = ROOT / 'output' / 'character_skills' / 'pages'
-ART_SRC = ROOT / 'output' / 'full_unpack' / 'objects'
+ART_SRC = read_path(ROOT / 'output' / 'full_unpack' / 'objects', root=ROOT)
 
 NO_SOURCE = '外部/网站维护'
 BINDING_EVIDENCE_REL = 'output/card_images/cid30236/binding_evidence.json'
@@ -132,7 +135,7 @@ def art_model(cid):
         item = dict(kind=kind, label=label, src_rel=src_rel, dest_rel=dest_rel,
                     url=f'../art/{cid}/{dest}', binding=BINDING_TEXT,
                     extra=extras.get(kind), tried=[])
-        src_path = ROOT / src_rel
+        src_path = read_path(ROOT / src_rel, root=ROOT)
         if src_path.is_file():
             item['bytes'] = src_path.stat().st_size
         else:
@@ -143,14 +146,14 @@ def art_model(cid):
 
 def copy_art(cids, pages_dir):
     """从 full_unpack objects 复制立绘 PNG 到 pages/art/<cid>/；返回统计。"""
-    pages_dir = Path(pages_dir)
+    pages_dir = write_path(Path(pages_dir), root=ROOT)
     counts = dict(card=0, whole=0, icon=0)
     missing = {k: [] for k in counts}
     total_bytes = 0
     for cid in cids:
         padded = str(cid).zfill(5)
         for kind, subdir, fname, dest, _label in art_kinds(padded):
-            src = ROOT / 'output' / 'full_unpack' / 'objects' / subdir / fname
+            src = ART_SRC / subdir / fname
             target = pages_dir / 'art' / str(cid) / dest
             if src.is_file():
                 target.parent.mkdir(parents=True, exist_ok=True)
@@ -931,7 +934,7 @@ def run_checks(card, doc):
         if not g['skills'] and '本输入快照未关联' not in doc:
             failures.append(f'空组缺少「本输入快照未关联」: {g["group"]}')
     # 立绘：相对路径引用存在且目标文件在盘上；缺失回退与尝试路径完整
-    art_root = DEFAULT_PAGES / 'art'
+    art_root = read_path(DEFAULT_PAGES, root=ROOT) / 'art'
     for it in art_model(card['cid']):
         tag = 'art_' + it['kind']
         if it.get('bytes') is not None:
@@ -969,12 +972,12 @@ def main():
     ap.add_argument('--pages-dir', default=str(DEFAULT_PAGES))
     ap.add_argument('--cids', default='', help='逗号分隔 cid；缺省=读 cohort manifest 全 2236')
     args = ap.parse_args()
-    pages_dir = Path(args.pages_dir)
+    pages_dir = write_path(Path(args.pages_dir), root=ROOT)
     if args.copy_art:
         if args.cids:
             cids = [int(c) for c in args.cids.split(',') if c.strip()]
         else:
-            m = json.loads((ROOT / 'output/character_skills/r2_preparation/cohorts/manifest.json')
+            m = json.loads(read_path(ROOT / 'output/character_skills/r2_preparation/cohorts/manifest.json', root=ROOT)
                            .read_text(encoding='utf-8'))
             cids = [mem['cid'] for mem in m['members']]
         stats = copy_art(cids, pages_dir)

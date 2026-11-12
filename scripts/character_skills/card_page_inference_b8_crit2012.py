@@ -158,7 +158,7 @@ def _registered_rule(param):
     只读共享依赖，已在 card_page_dependencies.data_paths 声明清单内）。"""
     global _REGISTERED_RULES
     if _REGISTERED_RULES is None:
-        p = Path('output/character_skills/profiles/rules.json')
+        p = R.read_path(Path('output/character_skills/profiles/rules.json'))
         _REGISTERED_RULES = json.loads(p.read_text(encoding='utf-8')) if p.is_file() else {}
     return _REGISTERED_RULES.get(f'skilllist|2012|/{param}') or {}
 
@@ -178,7 +178,7 @@ def _field_evidence(param):
     if not files or any(not p.startswith(dirs) for p in files):
         raise ValueError(f'批 8 证据解析异常（INFR-01）：skilllist|2012|/{param} 的 rules.json '
                          f'evidence 未解析为 {dirs} 下的文件，实际 {files!r}')
-    missing = [p for p in files if not Path(p).is_file()]
+    missing = [p for p in files if not R.read_path(Path(p)).is_file()]
     if missing:
         raise FileNotFoundError(f'批 8 证据文件缺失（INFR-01）：{missing}')
     _EVIDENCE_CACHE[param] = (dirs, files)
@@ -307,9 +307,9 @@ _BI_CACHE = None
 def _bossinfo_idx():
     global _BI_CACHE
     if _BI_CACHE is None:
-        cache = json.loads(Path('output/cache_full_20261015_v3/decoded/'
-                                'bossinfo.data5.json.raw').read_text(encoding='utf-8'))['bossinfo']
-        apk = json.loads(Path('output/base_master/_mdBossInfo.json').read_text(encoding='utf-8'))
+        cache = json.loads(R.read_path(Path('output/cache_full_20261015_v3/decoded/'
+                                           'bossinfo.data5.json.raw')).read_text(encoding='utf-8'))['bossinfo']
+        apk = json.loads(R.read_path(Path('output/base_master/_mdBossInfo.json')).read_text(encoding='utf-8'))
         _BI_CACHE = ({r.get('patternid'): r for r in cache['bosspattern']},
                      {r.get('skillid'): r for r in cache['bossskill']},
                      {r.get('patternid'): r for r in apk['bosspattern']},

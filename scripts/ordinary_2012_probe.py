@@ -9,6 +9,8 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from unicorn.arm64_const import UC_ARM64_REG_S0,UC_ARM64_REG_S8
@@ -17,8 +19,7 @@ from il2cpp_sample_code import Native
 from chica_timed_support import TimedGuest
 from phase_d_chain_probe import BASE,fbits,fvalue
 
-OUT=Path('output/ordinary_effects/ability2012')
-SOURCE=Path('output/cache_full_20261015_v3/records.jsonl')
+SOURCE=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 
 
 class SupportGuest(TimedGuest):
@@ -110,7 +111,7 @@ def main():
                    zero_job_filter_bypass=(0x13ab338,0x13ab38c),job_filter_return=(0x13ab43c,0x13ab458),
                    probability_sum=(0x172ebec,0x172ecb4),damage_sum=(0x172ecb4,0x172ed7c),
                    duration_store=(0x1777598,0x17775b4),countdown=(0x172e55c,0x172e578))
-    OUT.mkdir(parents=True,exist_ok=True)
+    OUT=fresh_output('projects/skill-research/evidence/ordinary_effects/ability2012','native-checks')
     for name,(begin,end) in fragments.items():
         lines=[]
         for ins in d.disasm(n.raw[begin:end],begin):

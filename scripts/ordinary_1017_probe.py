@@ -8,6 +8,8 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from unicorn.arm64_const import UC_ARM64_REG_X29
@@ -16,8 +18,7 @@ from il2cpp_sample_code import Native
 from chica_ordinary_rules import LocalGuest
 from phase_d_chain_probe import BASE,STACK,fbits,fvalue
 
-OUT=Path('output/ordinary_effects/ability1017')
-SOURCE=Path('output/cache_full_20261015_v3/records.jsonl')
+SOURCE=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 JOB_ZH={'WARRIOR':'战士','ARCHERY':'弓手','WIZARD':'法师','HEALER':'僧侣','SHIELD':'骑士','ALMIGHTY':'ALMIGHTY（枚举5；实际对象另论）'}
 
 
@@ -98,7 +99,7 @@ def main():
                    defence_job_load=(0x1599efc,0x1599f30),defence_job_bit=(0x1599fcc,0x1599ff4),
                    defence_provider=(0x159a040,0x159a068),defence_gate_multiply=(0x159ac1c,0x159ace8),
                    type_cached_index=(0x1576c78,0x1576c8c))
-    OUT.mkdir(parents=True,exist_ok=True)
+    OUT=fresh_output('projects/skill-research/evidence/ordinary_effects/ability1017','native-checks')
     for name,(begin,end) in fragments.items():
         lines=[]
         for ins in d.disasm(n.raw[begin:end],begin):
@@ -126,7 +127,7 @@ def main():
         if r['raw']['skillid'] in extreme_ids:
             job=next(j for j in range(5) if r['raw']['iParam0']&(1<<j))
             for field in ('param1','param3'):checks.append(run_case(n.raw,r,field,job,True))
-    prior=Path('output/card_comparison_cid30236/ordinary_rules/trace.json')
+    prior=read_path(Path('output/card_comparison_cid30236/ordinary_rules/trace.json'))
     old=json.loads(prior.read_text(encoding='utf-8'))
     assert old['native_sha256']==hashlib.sha256(n.raw).hexdigest()
     trace=dict(effect_type=1017,namespace='ordinary skilllist',source=str(SOURCE),source_sha256=hashlib.sha256(SOURCE.read_bytes()).hexdigest(),

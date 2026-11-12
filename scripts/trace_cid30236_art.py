@@ -14,9 +14,11 @@ from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 
 from il2cpp_sample_code import Native
 from metadata_targets import Metadata
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 
-ROOT = Path('output/card_images/cid30236')
+ROOT = read_path(Path('output/card_images/cid30236'))
 METHODS = (7789, 10729, 10732, 24567, 24593, 24910, 24918, 29204, 32896, 33237,
            34848, 35662, 35666, 38777, 38778, 39015)
 
@@ -129,10 +131,9 @@ def widget_from_owner(assets, component_id, field_index, field_name, out, pointe
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path, default=ROOT / 'followup')
+    parser.add_argument('--output', type=Path, help='A new run directory')
     args = parser.parse_args()
-    out = args.output
-    out.mkdir(parents=True, exist_ok=True)
+    out = fresh_output('projects/assets/data/card_image_runs', 'cid30236-trace', args.output)
     m = Metadata('work/protection/metadata_aei_decoded.bin')
     n = Native(m)
     methods = [dump_method(n, mi, out) for mi in METHODS]
@@ -148,7 +149,7 @@ def main():
     jump = list(n.raw[0x206fb38:0x206fb3d])
     branches = {name: hex(0x1399378 + 4 * jump[value]) for name, value in enum.items()}
     assert branches['WholeLong'] == '0x1399440' and branches['Body'] == '0x139967c'
-    inventory_path = Path('output/cache_refresh_20261015/composite_inventory.jsonl')
+    inventory_path = read_path(Path('output/cache_refresh_20261015/composite_inventory.jsonl'))
     rows = [json.loads(line) for line in inventory_path.open(encoding='utf-8')]
     index_names = {'files2.json', 'files.json', 'filelist.json'}
     full_body = {

@@ -80,6 +80,10 @@ import re
 import struct
 import unicodedata
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
 
 MODULE_VERSION = 'c7_p3_denju_damage_20261030'
 #: 账本消费用 scope：沿用既有 G1-B1 来源限定映射（effect_ledger.G1B1_SCOPE）。
@@ -215,7 +219,7 @@ def _bossinfo(root):
     """CACHE bossinfo 的 pattern/skill 索引（只读；本模块不读 APK 表）。"""
     key = str(Path(root).resolve())
     if key not in _BOSSINFO_CACHE:
-        path = Path(root) / 'output/cache_full_20261015_v3/decoded/bossinfo.data5.json.raw'
+        path = read_path(Path(root) / 'output/cache_full_20261015_v3/decoded/bossinfo.data5.json.raw', root=Path(root))
         doc = json.loads(path.read_text(encoding='utf-8-sig'))['bossinfo']
         _BOSSINFO_CACHE[key] = dict(
             patterns={p['patternid']: (i, p) for i, p in enumerate(doc.get('bosspattern') or [])},

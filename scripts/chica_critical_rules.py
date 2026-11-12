@@ -1,6 +1,7 @@
 """Confirm Always3 critical probability and critical-damage baseline separately."""
 import hashlib,json,struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from metadata_targets import Metadata
 from il2cpp_sample_code import Native
@@ -8,12 +9,12 @@ from chica_timed_support import TimedGuest
 from phase_d_chain_probe import BASE,STACK,fbits,fvalue
 from unicorn.arm64_const import UC_ARM64_REG_S0,UC_ARM64_REG_X29
 
-OUT=Path('output/card_comparison_cid30236/critical')
+OUT=write_path(Path('output/card_comparison_cid30236/critical'))
 
 
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
-    source=Path('output/cache_full_20261015_v3/records.jsonl')
+    source=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
     records=[json.loads(s) for s in source.read_text(encoding='utf-8').splitlines()]
     ids=(43023601,65000001,43023607,43023606,43023608,43023609,43023612,43023613,43023614,43023611)
     selected=[r for r in records if r['table']=='skilllist' and r['raw'].get('skillid') in ids]

@@ -3,6 +3,8 @@ import argparse
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
+from versioned_outputs import fresh_output, require_new_files, write_new_text
 
 from elftools.elf.elffile import ELFFile
 
@@ -11,8 +13,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
     parser.add_argument("--slot", action="append", type=lambda x: int(x, 0), default=[])
-    parser.add_argument("--output", type=Path, default=Path("output/protection/relocations.json"))
+    parser.add_argument("--output", type=Path, help="Path to a new report file")
     args = parser.parse_args()
+    args.source = read_path(args.source)
+    output = write_path(args.output) if args.output else (
+        fresh_output("projects/unpack/reports/phase_c", "relocations") / "relocations.json"
+    )
+    require_new_files(output)
     raw = args.source.read_bytes()
     with args.source.open("rb") as stream:
         elf = ELFFile(stream)
@@ -56,9 +63,8 @@ def main():
                 row.update(relative_target=target, relative_target_hex=hex(target),
                            target_unrelocated_file_value=word(target))
             results.append(row)
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps({"source": str(args.source), "selected_slots": results,
-                                          "all_relocations": relocs}, indent=2), encoding="utf-8")
+        write_new_text(output, json.dumps({"source": path_reference(args.source), "selected_slots": results,
+                                           "all_relocations": relocs}, indent=2))
         print(json.dumps({"relocation_count": len(relocs), "selected_slots": results}, indent=2))
 
 

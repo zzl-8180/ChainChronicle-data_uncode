@@ -1,17 +1,18 @@
 """Leader category2 job list, Warrior0 and minimum matching count4."""
 import hashlib,json
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from metadata_targets import Metadata
 from il2cpp_sample_code import Native
 from phase_d_chain_probe import Guest
 
-OUT=Path('output/card_comparison_cid30236/leader_condition')
+OUT=write_path(Path('output/card_comparison_cid30236/leader_condition'))
 
 
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
-    source=Path('output/cache_full_20261015_v3/records.jsonl')
+    source=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
     row=next(r for r in map(json.loads,source.open(encoding='utf-8')) if r['table']=='leader_ability' and r['raw'].get('cid')==30236)
     assert row['raw']['border']==4 and row['raw']['category']==2 and row['raw']['conditions']==[0]
     m=Metadata('work/protection/metadata_aei_decoded.bin');n=Native(m);d=Cs(CS_ARCH_ARM64,CS_MODE_ARM)

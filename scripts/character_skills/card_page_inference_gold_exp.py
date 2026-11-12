@@ -472,9 +472,9 @@ def super_limit_sources(root=None):
     """读取三处位表（只读）：type_rules.json、boss_heal/constants.json、rules 常量。"""
     from pathlib import Path
     root = Path(root or '.')
-    tr = json.loads((root / 'output/character_skills/boss_heal_types/type_rules.json')
+    tr = json.loads(R.read_path(root / 'output/character_skills/boss_heal_types/type_rules.json')
                     .read_text(encoding='utf-8'))['heal_family']
-    const = json.loads((root / 'output/boss_heal/constants.json').read_text(encoding='utf-8'))
+    const = json.loads(R.read_path(root / 'output/boss_heal/constants.json').read_text(encoding='utf-8'))
     return dict(type_rules_bits=list(tr['over_heal_bits']),
                 type_rules_ratios=list(tr['over_heal_ratios']),
                 constants_bits=list(const['bits']['values']),
@@ -532,8 +532,8 @@ def verify_super_limit(root=None, *, pages=None):
     # 交叉验证卡（原始记录独立给出，不读页面）
     cross = {}
     if pages is not None:
-        cache = json.loads((__import__('pathlib').Path(root or '.') /
-                            'output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw')
+        cache = json.loads(R.read_path(__import__('pathlib').Path(root or '.') /
+                                      'output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw')
                            .read_text(encoding='utf-8'))['skilllist']
         by_id = {r.get('skillid'): r for r in cache}
         # 第三项标签修正（2026-10-28 批4 落修，第三方向审查范围限制②）：记录 40129210

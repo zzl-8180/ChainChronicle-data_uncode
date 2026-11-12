@@ -28,6 +28,8 @@ def _find_root():
 
 ROOT = _find_root()
 sys.path.insert(0, str(ROOT / 'scripts' / 'character_skills'))
+sys.path.insert(0, str(ROOT / 'scripts'))
+from project_layout_paths import read_path as layout_read_path
 import os
 os.chdir(ROOT)
 from effect_ledger import analyze_row
@@ -236,9 +238,10 @@ case('A7-6c 原值 0 不冒充方向',
 # layer 各归各层；②各自行内答案引用 raw_value 恰为本层记录原值（不得出现另一层值）；
 # ③两层原值确实不同（异值前提成立）——账本分源不合并由①②③共同实证。
 sys.path.insert(0, str(ROOT / 'scripts' / 'character_skills'))
-cache_doc = json.loads((ROOT / 'output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw')
+cache_doc = json.loads(layout_read_path(ROOT / 'output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw', root=ROOT)
                        .read_text(encoding='utf-8'))
-apk_doc = json.loads((ROOT / 'output/base_master/_mdSkill.json').read_text(encoding='utf-8'))
+apk_doc = json.loads(layout_read_path(ROOT / 'output/base_master/_mdSkill.json', root=ROOT)
+                     .read_text(encoding='utf-8'))
 rec_cache = next(r for r in cache_doc['skilllist'] if str(r.get('skillid')) == '42030603')
 rec_apk = next(r for r in apk_doc['skilllist'] if str(r.get('skillid')) == '42030603')
 

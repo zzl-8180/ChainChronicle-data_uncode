@@ -2,14 +2,18 @@
 import json
 import re
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
+from versioned_outputs import experiment_output
 from collections import Counter
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / 'output/skill_mechanism_scale/20261104'
+OUT = experiment_output('skill_mechanism_scale')
 EXCLUDE = {7250,30105,30301,30329,30334,30236,30239,20234,30110,30333,30107,30313}
 
 def read(p):
-    return json.loads((ROOT / p).read_text(encoding='utf-8-sig'))
+    return json.loads(read_path(ROOT / p, root=ROOT).read_text(encoding='utf-8-sig'))
 
 def main():
     skills = {x['skillid']:x for x in read('output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw')['skilllist']}
@@ -17,7 +21,7 @@ def main():
     patterns = {x['patternid']:x for x in boss['bosspattern']}
     bs = {x['skillid']:x for x in boss['bossskill']}
     descriptions = []
-    with (ROOT/'output/character_skills/effect_ledger/ledger.jsonl').open(encoding='utf-8') as f:
+    with read_path(ROOT/'output/character_skills/effect_ledger/ledger.jsonl', root=ROOT).open(encoding='utf-8') as f:
         for line in f:
             x = json.loads(line)
             if x['record_type']=='description' and x['cid'] not in EXCLUDE and x['effect_status_counts']['unresolved'] and not x['answer_ref_count']:

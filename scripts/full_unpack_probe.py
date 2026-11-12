@@ -8,13 +8,14 @@ import json
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from decode_data5 import NativeDecoder
 
-INVENTORY = Path('output/cache_refresh_20261015/composite_inventory.jsonl')
-REPORT = Path('work/full_unpack/probe_report.json')
+INVENTORY = read_path(Path('output/cache_refresh_20261015/composite_inventory.jsonl'))
+REPORT = write_path(Path('work/full_unpack/probe_report.json'))
 
 
 def category_of(path):
@@ -42,7 +43,7 @@ def main():
         for r in picks:
             sample = {'path': r['path'], 'bytes': r['bytes']}
             try:
-                raw = Path(r['work_file']).read_bytes()
+                raw = read_path(Path(r['work_file'])).read_bytes()
                 assert len(raw) == r['bytes'], 'size mismatch'
                 watermark = decoder.e.heap  # 每样本结束后复位受控堆
                 pointer = decoder.e.allocate(len(raw), raw)

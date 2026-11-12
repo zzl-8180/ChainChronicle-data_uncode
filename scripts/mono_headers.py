@@ -4,6 +4,8 @@ import json
 import re
 from collections import Counter
 from pathlib import Path
+from versioned_outputs import fresh_output
+from project_layout_paths import read_path, path_reference
 
 import UnityPy
 
@@ -11,9 +13,10 @@ import UnityPy
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source")
-    parser.add_argument("--output", type=Path, default=Path("output/unity"))
+    parser.add_argument("--output", type=Path, help="Fresh MonoBehaviour scan directory")
     args = parser.parse_args()
-    args.output.mkdir(parents=True, exist_ok=True)
+    args.source=read_path(args.source)
+    args.output=fresh_output('projects/assets/data/unity', 'mono-headers', args.output)
     env = UnityPy.load(args.source)
     scripts, rows, selected, errors = {}, [], [], []
     counts = Counter()
@@ -37,7 +40,7 @@ def main():
                 dest = args.output / "mono_candidates" / f"{Path(obj.assets_file.name).name}_{obj.path_id}_{scripts[key]}.bin"
                 dest.parent.mkdir(exist_ok=True)
                 dest.write_bytes(raw)
-                row["raw_file"] = dest.as_posix()
+                row["raw_file"] = Path(path_reference(dest)).as_posix()
                 row["field_layout_status"] = "UNKNOWN"
                 try:
                     obj.parse_as_dict(check_read=True)

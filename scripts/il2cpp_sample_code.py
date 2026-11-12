@@ -3,6 +3,7 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from metadata_targets import Metadata
@@ -12,7 +13,7 @@ class Native:
     def __init__(self, metadata, image_name='Assembly-CSharp.dll'):
         self.m = metadata
         self.image_name = image_name
-        self.raw = Path('work/protection/il2cpp_loader_seed1.bin').read_bytes()
+        self.raw = read_path('work/protection/il2cpp_loader_seed1.bin').read_bytes()
         name = image_name.encode('utf-8')+b'\0'
         string = self.raw.index(name)
         if self.raw.find(name, string+1) >= 0:
@@ -147,7 +148,7 @@ def main():
     n = Native(m)
     md = Cs(CS_ARCH_ARM64,CS_MODE_ARM)
     methods = []
-    out = Path('output/il2cpp/sample_code')
+    out = write_path('output/il2cpp/sample_code')
     out.mkdir(exist_ok=True)
     for index in (8886,3849,4175,38581,38583,38585,38587,38589,38591,38652):
         row = n.method(index)
@@ -186,7 +187,7 @@ def main():
               'HighHPAll_apply_branch_rvas':branch_addresses,
               'InitializeData_JSON_key_usages':json_keys,
               'schema_source':'https://raw.githubusercontent.com/Perfare/Il2CppDumper/master/Il2CppDumper/Il2Cpp/Il2CppClass.cs'}
-    Path('output/il2cpp/sample_code.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+    write_path('output/il2cpp/sample_code.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({'HighHPAll':enums['ABILITY_TYPE']['HighHPAll'],'apply_branches':branch_addresses,
                      'handler':n.method(8886),'registration':hex(n.registration_rva)},ensure_ascii=False,indent=2))
 

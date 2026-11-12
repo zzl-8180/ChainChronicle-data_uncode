@@ -6,6 +6,8 @@ import tarfile
 from collections import Counter
 from pathlib import Path, PurePosixPath
 
+from project_layout_paths import read_path, write_path
+
 
 def main():
     parser=argparse.ArgumentParser()
@@ -13,6 +15,9 @@ def main():
     parser.add_argument('--work',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
+    args.snapshot=read_path(args.snapshot)
+    args.work=write_path(args.work)
+    args.output=write_path(args.output)
     acquisition=json.loads((args.snapshot/'acquisition.json').read_bytes())
     assert acquisition['status']=='STREAM_COPIED_NEEDS_VALIDATION'
     user=acquisition['probe']['android_user']

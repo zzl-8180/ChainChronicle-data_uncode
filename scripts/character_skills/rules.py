@@ -32,7 +32,7 @@ import math
 import struct
 from pathlib import Path
 
-from common import CARD_COMPARISON, DECODED, load_json
+from common import CARD_COMPARISON, DECODED, load_json, read_path
 # ---------------------------------------------------------------------------
 # rule loading
 # ---------------------------------------------------------------------------
@@ -102,7 +102,7 @@ def _skilllist_type_rules() -> list[dict]:
     merged only for keys the earlier dictionaries do not already define.
     """
     src = Path("output") / "character_skills" / "skilllist_types" / "field_dictionary.json"
-    if not src.exists():
+    if not read_path(src).exists():
         return []
     out = []
     for r in load_json(src):
@@ -143,7 +143,7 @@ def _boss_attack_type_rules() -> list[dict]:
     the earlier dictionaries do not already define.
     """
     src = Path("output") / "character_skills" / "boss_attack_types" / "field_dictionary.json"
-    if not src.exists():
+    if not read_path(src).exists():
         return []
     out = []
     for r in load_json(src):
@@ -184,7 +184,7 @@ def _boss_heal_type_rules() -> list[dict]:
     ``native_checks.json``; merged only for keys the earlier dictionaries do not define.
     """
     src = Path("output") / "character_skills" / "boss_heal_types" / "field_dictionary.json"
-    if not src.exists():
+    if not read_path(src).exists():
         return []
     out = []
     for r in load_json(src):
@@ -985,7 +985,7 @@ def rules() -> list[dict]:
         for r in (_boss_extra_rules() + _skilllist_type_rules() + _boss_attack_type_rules()
                   + _boss_heal_type_rules() + _sa2003_rules()
                   + (load_json(Path('output/character_skills/remaining_five/field_dictionary.json'))
-                     if Path('output/character_skills/remaining_five/field_dictionary.json').exists() else [])):
+                     if read_path(Path('output/character_skills/remaining_five/field_dictionary.json')).exists() else [])):
             key = (r["table"], r["effect_type"], r["field_path"])
             if key not in have:
                 merged.append(r)

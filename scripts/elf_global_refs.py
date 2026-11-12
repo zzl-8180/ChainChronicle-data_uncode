@@ -3,6 +3,8 @@ import argparse
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
+from versioned_outputs import fresh_output, require_new_files, write_new_text
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from elftools.elf.elffile import ELFFile
@@ -14,8 +16,13 @@ def main():
     parser.add_argument("--slot", type=lambda x: int(x, 0), required=True)
     parser.add_argument("--window", type=int, default=64,
                         help="maximum ADRP-to-use distance in bytes; multiple of four")
-    parser.add_argument("--output", type=Path, default=Path("output/protection/global_refs.json"))
+    parser.add_argument("--output", type=Path, help="Path to a new report file")
     args = parser.parse_args()
+    args.source = read_path(args.source)
+    output = write_path(args.output) if args.output else (
+        fresh_output("projects/unpack/reports/phase_c", "global-refs") / "global_refs.json"
+    )
+    require_new_files(output)
     if args.window < 4 or args.window % 4:
         parser.error("--window must be a positive multiple of four")
     raw = args.source.read_bytes()
@@ -74,8 +81,7 @@ def main():
                                  "slot": target, "access": access, "context": context,
                                  "window_bytes": args.window,
                                  "status": "STATIC_REFERENCE; register flow/branch context still requires review"})
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(refs, indent=2), encoding="utf-8")
+    write_new_text(output, json.dumps(refs, indent=2))
     print(json.dumps(refs, indent=2))
 
 

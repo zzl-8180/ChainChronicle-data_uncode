@@ -3,16 +3,17 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from metadata_targets import Metadata
 
 
 def main():
-    raw = Path('work/protection/metadata_aei_decoded.bin').read_bytes()
+    raw = read_path(Path('work/protection/metadata_aei_decoded.bin')).read_bytes()
     m = Metadata(raw)
     expected = hashlib.sha256(raw).hexdigest()
-    native = json.loads(Path('output/il2cpp/metadata_aei_probe_native.json').read_text())
-    model = json.loads(Path('output/il2cpp/metadata_aei_probe_lz4_model.json').read_text())
+    native = json.loads(read_path(Path('output/il2cpp/metadata_aei_probe_native.json')).read_text())
+    model = json.loads(read_path(Path('output/il2cpp/metadata_aei_probe_lz4_model.json')).read_text())
     assert native['decoded_sha256']==model['decoded_sha256']==expected
     assert native['optional_lz4_model'] is None
     assert model['optional_lz4_model']['guest_blocks'][0]['compressed_bytes']==3779379
@@ -32,12 +33,12 @@ def main():
             checks.append(name+': rejected')
         else:
             raise AssertionError('Malformed metadata accepted: '+name)
-    source = Path(native['source']).read_bytes()
+    source = read_path(Path(native['source'])).read_bytes()
     assert hashlib.sha256(source).hexdigest()==native['source_sha256']==model['source_sha256']
     checks.append('Encrypted metadata input unchanged')
     result = {'status':'PASS','decoded_sha256':expected,'checks':checks,
               'limit':'Structural validity and selected native analysis; no normal Android runtime initialization claim'}
-    Path('output/validation/metadata_checks.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
+    write_path(Path('output/validation/metadata_checks.json')).write_text(json.dumps(result,indent=2),encoding='utf-8')
     print(json.dumps(result,indent=2))
 
 

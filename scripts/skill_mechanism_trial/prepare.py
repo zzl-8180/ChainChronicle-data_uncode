@@ -3,9 +3,13 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
+from versioned_outputs import experiment_output
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / 'output/skill_mechanism_trial/20261104'
+OUT = experiment_output('skill_mechanism_trial')
 PACKET = OUT / 'input'
 TARGETS = [
     ('A1', 'attack', 30110, '30110-ability-ability-skillid_1_-lvorder0-f0'),
@@ -26,7 +30,7 @@ def main():
     manifest = {'started_at': datetime.now(timezone.utc).isoformat(), 'files': {}}
 
     def freeze(rel):
-        p = ROOT / rel
+        p = ROOT / rel if rel.startswith('scripts/') else read_path(ROOT / rel,root=ROOT)
         before = p.stat()
         data = p.read_bytes()
         after = p.stat()
@@ -43,18 +47,18 @@ def main():
         freeze('output/cache_full_20261015_v3/decoded/' + name + '.data5.json.raw')
     cards = {cid: freeze(f'output/character_skills/pages/{cid}/card.json') for _, _, cid, _ in TARGETS}
     for folder in ['output/ordinary_effects/ability1095', 'output/character_skills/boss_heal_types', 'output/boss_heal']:
-        for p in (ROOT / folder).iterdir():
+        for p in read_path(ROOT / folder,root=ROOT).iterdir():
             if p.is_file() and p.suffix in ('.md', '.json', '.txt'):
                 if p.stat().st_size > 4 * 1024**2:
                     raise RuntimeError('Unexpectedly large evidence: ' + str(p))
-                freeze(p.relative_to(ROOT).as_posix())
+                freeze(folder+'/'+p.name)
     for name in ['card_page_inference_b11_sa1095.py', 'card_page_inference_b12_1095ext.py',
                  'card_page_inference_type8.py', 'skilllist_types.py', 'boss_heal_types.py', 'rules.py']:
         freeze('scripts/character_skills/' + name)
     row_ids = {row_id for _, _, _, row_id in TARGETS}
     descriptions, effects = {}, []
     digest = hashlib.sha256()
-    ledger_path = ROOT / 'output/character_skills/effect_ledger/ledger.jsonl'
+    ledger_path = read_path(ROOT / 'output/character_skills/effect_ledger/ledger.jsonl',root=ROOT)
     before = ledger_path.stat()
     with ledger_path.open('rb') as stream:
         for line in stream:
@@ -82,7 +86,8 @@ def main():
                         'baseline_answers': row['answers'], 'source_skill': {k: skill[k] for k in ['table', 'record_id', 'layer', 'reference_field', 'source']}})
     save(PACKET / 'targets.json', targets)
     # Recheck originals only during preparation; subsequent research reads this packet only.
-    drift = [rel for rel, entry in manifest['files'].items() if hashlib.sha256((ROOT / rel).read_bytes()).hexdigest() != entry['sha256']]
+    drift = [rel for rel, entry in manifest['files'].items()
+             if hashlib.sha256((ROOT / rel if rel.startswith('scripts/') else read_path(ROOT / rel, root=ROOT)).read_bytes()).hexdigest() != entry['sha256']]
     assert not drift, drift
     manifest['files']['targets.json'] = {'sha256': hashlib.sha256((PACKET / 'targets.json').read_bytes()).hexdigest(), 'bytes': (PACKET / 'targets.json').stat().st_size}
     manifest['source_freeze_check'] = 'UNCHANGED_DURING_FREEZE'

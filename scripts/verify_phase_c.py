@@ -1,4 +1,5 @@
 """Regression for the concrete 20-byte callback-reference miss and false hits."""
+import argparse
 import hashlib
 import io
 import json
@@ -6,23 +7,27 @@ import struct
 import subprocess
 import sys
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 from elftools.elf.elffile import ELFFile
 
 
 def main():
-    source = Path("work/apk/lib/arm64-v8a/libcompatible.so")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, help="A new run directory")
+    args = parser.parse_args()
+    work = fresh_output("projects/unpack/reports/phase_c", "checks", args.output)
+    source = read_path(Path("work/apk/lib/arm64-v8a/libcompatible.so"))
     raw = source.read_bytes()
     elf = ELFFile(io.BytesIO(raw))
     assert any(s["p_type"] == "PT_LOAD" and s["p_offset"] == s["p_vaddr"]
                and s["p_vaddr"] <= 0x91a2c < 0x91aa4 <= s["p_vaddr"] + s["p_filesz"]
                for s in elf.iter_segments())
     before = hashlib.sha256(raw).hexdigest()
-    work = Path("work/phase_c_checks")
-    work.mkdir(parents=True, exist_ok=True)
 
     def scan(path, window, label, slot="0x19c6e0"):
         output = work / f"{label}.json"
-        subprocess.run([sys.executable, "scripts/elf_global_refs.py", str(path), "--slot", slot,
+        subprocess.run([sys.executable, "-B", str(Path(__file__).resolve().parent / "elf_global_refs.py"), str(path), "--slot", slot,
                         "--window", str(window), "--output", str(output)],
                        check=True, stdout=subprocess.DEVNULL)
         return json.loads(output.read_text())
@@ -46,16 +51,18 @@ def main():
     copy.write_bytes(changed)
     flag_refs = scan(copy, 64, "synthetic_flag", "0x1a46a0")
     assert any(r["ldr_address"] == 0x91a30 and r["access"] == "STR_TO_ADDRESS" for r in flag_refs)
-    subprocess.run([sys.executable, "scripts/callback_sample.py"], check=True, stdout=subprocess.DEVNULL)
+    callback = work / "callback"
+    subprocess.run([sys.executable, "-B", str(Path(__file__).resolve().parent / "callback_sample.py"),
+                    "--output", str(callback)], check=True, stdout=subprocess.DEVNULL)
     assert hashlib.sha256(source.read_bytes()).hexdigest() == before
-    sample = json.loads(Path("output/protection/callback_sample.json").read_text())
+    sample = json.loads((callback / "callback_sample.json").read_text(encoding="utf-8"))
     assert sample["sha256"] == before and sample["instruction_count"] == 40
     result = {"status": "PASS", "checks": ["16-byte miss reproduced; 64-byte finds actual write reference",
               "Intervening register overwrite rejected", "Synthetic byte store recognized",
               "Complete callback assignment block modeled for two flag values and two load biases",
               "Original library unchanged"],
               "limits": "Synthetic flag/store/load biases are not game runtime observations; main-table decoding unverified"}
-    Path("output/validation/phase_c_checks.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+    (work / "phase_c_checks.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps(result, indent=2))
 
 

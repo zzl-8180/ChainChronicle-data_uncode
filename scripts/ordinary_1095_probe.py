@@ -7,6 +7,8 @@ import hashlib
 import json
 import math
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from unicorn.arm64_const import UC_ARM64_REG_S8, UC_ARM64_REG_X29
@@ -15,8 +17,7 @@ from il2cpp_sample_code import Native
 from chica_ordinary_rules import LocalGuest
 from phase_d_chain_probe import fbits, fvalue
 
-OUT=Path('output/ordinary_effects/ability1095')
-SOURCE=Path('output/cache_full_20261015_v3/records.jsonl')
+SOURCE=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 
 
 def main():
@@ -27,7 +28,7 @@ def main():
     for r in selected:
         assert all(type(r['raw'][f]) in (int,float) and math.isfinite(r['raw'][f]) for f in ('param1','param3'))
     m=Metadata('work/protection/metadata_aei_decoded.bin');n=Native(m)
-    prior=Path('output/card_comparison_cid30236/ordinary_rules/trace.json')
+    prior=read_path(Path('output/card_comparison_cid30236/ordinary_rules/trace.json'))
     old=json.loads(prior.read_text(encoding='utf-8'))
     assert old['native_sha256']==hashlib.sha256(n.raw).hexdigest()
     enum=next(f for f in n.fields(718) if f['name']=='Always3')
@@ -35,7 +36,7 @@ def main():
     fragments=dict(attack_dispatch=(0x1107680,0x11076ac),attack_getter=(0x1107958,0x110797c),
                    attack_multiply=(0x1107c84,0x1107c88),defence_dispatch=(0x1107fec,0x1108018),
                    defence_getter_multiply=(0x1108124,0x1108148))
-    OUT.mkdir(parents=True,exist_ok=True)
+    OUT=fresh_output('projects/skill-research/evidence/ordinary_effects/ability1095','native-checks')
     d=Cs(CS_ARCH_ARM64,CS_MODE_ARM)
     for name,(begin,end) in fragments.items():
         lines=[]

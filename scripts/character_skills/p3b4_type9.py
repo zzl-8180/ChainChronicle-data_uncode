@@ -9,12 +9,14 @@ from pathlib import Path
 import subprocess
 import sys
 import common as C
+from project_layout_paths import write_path
 
-BASE=C.ROOT/'output/character_skills';OUT=BASE/'type9_crit'
-BEFORE=C.ROOT/'work/character_skills_p3b4/before'
+BASE=C.read_path(C.ROOT/'output/character_skills', root=C.ROOT)
+OUT_LOGICAL=C.ROOT/'output/character_skills/type9_crit'
+BEFORE=C.read_path(C.ROOT/'work/character_skills_p3b4/before', root=C.ROOT)
 
 
-def rows(p):return [json.loads(s) for s in Path(p).open(encoding='utf-8')]
+def rows(p):return [json.loads(s) for s in C.read_path(Path(p), root=C.ROOT).open(encoding='utf-8')]
 def canon(v):return json.dumps(v,sort_keys=True,ensure_ascii=False,separators=(',',':'))
 def holders(rr):
     for r in rr:
@@ -23,6 +25,7 @@ def holders(rr):
 
 
 def main():
+    OUT=write_path(OUT_LOGICAL, root=C.ROOT)
     C.enable_utf8_console();checks=[]
     def check(name,passed,**detail):checks.append(dict(name=name,passed=bool(passed),**detail))
     old=rows(BEFORE/'profiles/records.jsonl');now=rows(BASE/'profiles/records.jsonl')
@@ -38,9 +41,10 @@ def main():
         nr=new_by[r['rec_key']]
         if r['baseline_answers']!=nr['baseline_answers'] or r['fragments']!=nr['fragments']:changed.append(r['rec_key'])
     check('baseline101_and_all31_type8_type26_bindings_and_fragments_preserved',not changed,changed=changed)
-    binding_paths=[p for p in (BEFORE/'description_bindings/type8').glob('*.json*')]
-    binding_paths+=[p for p in (BEFORE/'type26_mana').glob('bindings.json*')]
-    check('prior_binding_artifact_bytes_unchanged',all(p.read_bytes()==(BASE/p.relative_to(BEFORE)).read_bytes() for p in binding_paths),files=[str(p.relative_to(BEFORE)) for p in binding_paths])
+    before_physical=C.read_path(BEFORE, root=C.ROOT)
+    binding_paths=[p for p in (before_physical/'description_bindings/type8').glob('*.json*')]
+    binding_paths+=[p for p in (before_physical/'type26_mana').glob('bindings.json*')]
+    check('prior_binding_artifact_bytes_unchanged',all(p.read_bytes()==C.read_path(BASE/p.relative_to(before_physical), root=C.ROOT).read_bytes() for p in binding_paths),files=[str(p.relative_to(before_physical)) for p in binding_paths])
     s0=C.load_json(BEFORE/'profiles/summary.json');s1=C.load_json(BASE/'profiles/summary.json');t0=s0['totals'];t1=s1['totals']
     desc_keys=['descriptions','descriptions_attributed','descriptions_with_hint','descriptions_from_baseline','descriptions_reviewed_bindings','descriptions_unexplained','fragments_attributed_confirmed']
     check('description_and_scope_accounting',all(t0[k]==t1[k] for k in desc_keys) and t1['baseline_answers']==101 and
@@ -63,7 +67,7 @@ def main():
     for r in ledger:
         src=r['source'];p=(C.ROOT/'output/cache_full_20261015_v3/decoded'/src['source_key'].split('/',1)[1]
                           if src['layer']=='CACHE' else C.ROOT/src['original_file'])
-        if p not in docs:payloads[p]=p.read_bytes();docs[p]=json.loads(payloads[p])
+        if p not in docs:payloads[p]=C.read_path(p, root=C.ROOT).read_bytes();docs[p]=json.loads(payloads[p])
         raw=docs[p]
         for part in src['json_pointer'].split('/')[1:]:
             part=part.replace('~1','/').replace('~0','~');raw=raw[int(part)] if isinstance(raw,list) else raw[part]
@@ -89,7 +93,7 @@ def main():
     # Every selected type9 record is separately accounted. CACHE wins the entire ID.
     selected={};inventory=[]
     for layer,path in [('APK',C.ROOT/'output/base_master/_mdSkill.json'),('CACHE',C.ROOT/'output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw')]:
-        rr=json.loads(path.read_bytes())['skilllist'];ss=[(i,r) for i,r in enumerate(rr) if r.get('ability')==9]
+        rr=json.loads(C.read_path(path, root=C.ROOT).read_bytes())['skilllist'];ss=[(i,r) for i,r in enumerate(rr) if r.get('ability')==9]
         inventory.append(dict(layer=layer,records=len(ss),present=sum('param0'in r for _,r in ss),missing=sum('param0'not in r for _,r in ss),
             null=sum(r.get('param0','MISSING') is None for _,r in ss),zero=sum('param0'in r and r['param0']==0 for _,r in ss),
             distribution=dict(collections.Counter(str(r.get('param0','MISSING')) for _,r in ss))))
@@ -114,7 +118,7 @@ def main():
     check('delta_three_calibers',len(ledger)==increment['field_answers_added_normalized_rows']==increment['field_answers_added_parent_holder_keys'] and
           sum(len(r['page_references']) for r in ledger)==increment['field_answers_added_pages'])
     check('character_status_zero_migration',not transitions and s0['status_counts']==s1['status_counts'])
-    with (BASE/'profiles/answers.csv').open(encoding='utf-8-sig',newline='') as f:
+    with C.read_path(BASE/'profiles/answers.csv', root=C.ROOT).open(encoding='utf-8-sig',newline='') as f:
         csvrows=list(csv.DictReader(f))
     # The shared CSV is compared to the same materialised answer set by the general verifier.
     check('csv_contract_and_new_coefficient',any('贯通命中后伤害输入' in canon(r) for r in csvrows) and 'evidence_scope' in csvrows[0])

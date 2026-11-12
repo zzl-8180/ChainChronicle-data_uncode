@@ -6,9 +6,13 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
+from versioned_outputs import experiment_output
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / 'output/skill_mechanism_trial/20261104'
+OUT = experiment_output('skill_mechanism_trial')
 INPUT = OUT / 'input'
 ARMS = ['card_serial', 'family_attack', 'family_heal']
 

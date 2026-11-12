@@ -3,6 +3,7 @@ import hashlib
 import json
 import zipfile
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from asn1crypto import cms
 
@@ -44,13 +45,13 @@ def main():
               "Actual CSTM encrypt/decrypt roundtrip for 16/32/272 bytes (not labeled CBC)", "APK v1 and v2 DER certificate bytes identical",
               "Truncated APK signing container rejected"]
     before = {str(path):hashlib.sha256(path.read_bytes()).hexdigest() for path in
-              [Path("チェンクロ.apk"),Path("work/apk/lib/arm64-v8a/libChronicleNUtils.so")] + list(Path("work/phone_candidates").glob("*.data5"))}
+              [Path("チェンクロ.apk"),read_path(Path("work/apk/lib/arm64-v8a/libChronicleNUtils.so"))] + list(read_path(Path("work/phone_candidates")).glob("*.data5"))}
     for name in ("charainfo.data5","skilllist.data5"):
-        source = Path("work/phone_candidates")/name
+        source = read_path(Path("work/phone_candidates"))/name
         data = source.read_bytes()
         first = decoder.decode(data,name)
         second = decoder.decode(data,name)
-        assert first["json_raw"] == second["json_raw"] == (Path("output/decoded")/(name+".json.raw")).read_bytes()
+        assert first["json_raw"] == second["json_raw"] == (read_path(Path("output/decoded"))/(name+".json.raw")).read_bytes()
         assert first["meta"] == second["meta"]
         assert first["record"] == second["record"]
         checks.append(f"{name}: repeat exact plaintext/JSON/key/IV; full SHA1/gzip CRC/JSON boundaries")
@@ -76,11 +77,11 @@ def main():
             raise AssertionError("Truncated gzip accepted")
         except (ValueError,EOFError,OSError):
             checks.append(f"{name}: truncated gzip with valid outer SHA1 rejected")
-    sample = json.loads(Path("output/sample/sample.json").read_text(encoding="utf-8"))
+    sample = json.loads(read_path(Path("output/sample/sample.json")).read_text(encoding="utf-8"))
     for identifier,location in sample["record_locations"].items():
         is_card = identifier == str(sample["card_id"])
         name,array = ("charainfo","charainfo") if is_card else ("skilllist","skilllist")
-        raw = Path(f"output/decoded/{name}.data5.json.raw").read_bytes()
+        raw = read_path(Path(f"output/decoded/{name}.data5.json.raw")).read_bytes()
         record,found = locate_record(raw,array,location["ordinal_zero_based"])
         assert found == location
         assert record["cid" if is_card else "skillid"] == int(identifier)
@@ -89,14 +90,14 @@ def main():
     checks.append("Real card/ability/sub links and exact JSON byte spans")
     assert before == {path:hashlib.sha256(Path(path).read_bytes()).hexdigest() for path in before}
     for row in sample["input_provenance"]:
-        assert hashlib.sha256(Path(row["local"]).read_bytes()).hexdigest() == row["sha256_local"]
+        assert hashlib.sha256(read_path(Path(row["local"])).read_bytes()).hexdigest() == row["sha256_local"]
     checks.append("APK, source library, work inputs and two original collected inputs unchanged")
-    assert Path("work/protection/nutils_loader_seed1.bin").read_bytes() == Path("work/protection/nutils_loader_seed2.bin").read_bytes()
+    assert read_path(Path("work/protection/nutils_loader_seed1.bin")).read_bytes() == read_path(Path("work/protection/nutils_loader_seed2.bin")).read_bytes()
     checks.append("Recovered NUtils guest image identical across two seeds")
     result = {"status":"PASS","checks":checks,"complete_sample_chains":1,
               "limits":["Decoder checks do not validate parameter semantics; see separate native code/boundary evidence. No real-device battle confirmation",
                         "No complete cache coverage or full Android initialization claim"]}
-    Path("output/validation/data5_checks.json").write_text(json.dumps(result,indent=2),encoding="utf-8")
+    write_path(Path("output/validation/data5_checks.json")).write_text(json.dumps(result,indent=2),encoding="utf-8")
     print(json.dumps(result,indent=2))
 
 

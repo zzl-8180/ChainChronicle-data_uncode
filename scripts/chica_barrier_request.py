@@ -3,6 +3,7 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from metadata_targets import Metadata
@@ -10,8 +11,8 @@ from il2cpp_sample_code import Native
 from phase_d_chain_probe import Guest, BASE, STACK, fbits, fvalue
 from unicorn.arm64_const import UC_ARM64_REG_S0, UC_ARM64_REG_X8, UC_ARM64_REG_X29
 
-OUT = Path('output/card_comparison_cid30236/barrier_request')
-SOURCE = Path('output/cache_full_20261015_v3/records.jsonl')
+OUT = write_path(Path('output/card_comparison_cid30236/barrier_request'))
+SOURCE = read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 
 
 class RequestGuest(Guest):
@@ -124,7 +125,7 @@ def main():
                  apk_coverage=[], rule_extra_field=next(f for f in n.fields(4286) if f['name']=='_debuff_extra_chain_rate'),
                  local_load_probe=dict(method=n.method(34472), filename_literal=n.literal(0x29b7e98),
                                        limit='Load reads helper.data5 here; not a captured battle-rule source'))
-    digest_path = Path('output/cache_full_20261015_v3/decoded/questdigest.data5.json.raw')
+    digest_path = read_path(Path('output/cache_full_20261015_v3/decoded/questdigest.data5.json.raw'))
     digest_bytes = digest_path.read_bytes()
     digest = json.loads(digest_bytes)
     rule_views = []
@@ -147,7 +148,7 @@ def main():
     for filename, table, field, sid in (('_mdSkill.json', 'skilllist', 'skillid', 43023603),
                                         ('_mdBossInfo.json', 'bosspattern', 'patternid', 43023603),
                                         ('_mdBossInfo.json', 'bossskill', 'skillid', 43023614)):
-        path = Path('output/base_master') / filename
+        path = read_path(Path('output/base_master')) / filename
         data = json.loads(path.read_text(encoding='utf-8'))
         hits = [r for r in data[table] if r.get(field) == sid]
         assert not hits

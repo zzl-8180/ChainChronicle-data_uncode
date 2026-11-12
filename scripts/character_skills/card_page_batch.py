@@ -18,7 +18,10 @@ from card_page_render_v2 import page
 from card_page_index import entry_pages_consistency
 from card_page_policy import metrics,summary_text
 from card_page_cohorts import sha
-from card_page_dependencies import source_paths,data_paths
+from card_page_dependencies import (
+    source_paths, dependency_declaration, dependency_signature as compute_dependency_signature,
+    generation_signature as compute_generation_signature, campaign_signature as compute_campaign_signature)
+from project_layout_paths import read_path
 from card_page_write import commit,reusable,state,retention,ArtifactWriteError
 from run_retention import reserve_run
 
@@ -119,20 +122,26 @@ def campaign(out,m,signature,cohort,report,run_dir):
 
 
 def run(args):
-    manifest=args.manifest.resolve();m=json.loads(manifest.read_text(encoding='utf-8'))
-    if sha(manifest.parent/m['frozen_csv'])!=m['source_sha256']:raise ValueError('Frozen roster hash mismatch')
     root=args.input_root.resolve();out=args.output.resolve()
-    if sha(root/m['source'])!=m['source_sha256']:raise ValueError('Current roster differs from frozen cohort')
+    code_root=Path(__file__).resolve().parents[2]
+    manifest=args.manifest.resolve()
+    if not args.manifest.is_absolute():
+        manifest=read_path(manifest,root=root)
+    manifest_bytes=manifest.read_bytes()
+    m=json.loads(manifest_bytes.decode('utf-8'))
+    manifest_sha256=hashlib.sha256(manifest_bytes).hexdigest()
+    if sha(manifest.parent/m['frozen_csv'])!=m['source_sha256']:raise ValueError('Frozen roster hash mismatch')
+    if sha(read_path(root/m['source'],root=root))!=m['source_sha256']:raise ValueError('Current roster differs from frozen cohort')
     expected=m['cohorts'][args.cohort];cids=expected
     if args.cid:
         if not set(args.cid)<=set(expected):raise ValueError('Subset cid is outside the explicit frozen cohort')
         cids=list(dict.fromkeys(args.cid))
     stamp=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]
     run_dir=out/'_batch'/args.cohort/'runs'/stamp;run_dir.mkdir(parents=True,exist_ok=False)
-    source_signature=hashlib.sha256(''.join(str(p.relative_to(root))+sha(p) for p in source_paths(root)).encode()).hexdigest()
-    generation=hashlib.sha256((sha(manifest)+source_signature).encode()).hexdigest()
+    source_signature=hashlib.sha256(''.join(str(p.relative_to(code_root))+sha(p) for p in source_paths(code_root)).encode()).hexdigest()
+    generation=compute_generation_signature(manifest_sha256,source_signature)
     plan=dict(mode='EXECUTE' if args.execute else 'PLAN_ONLY',cohort=args.cohort,cids=cids,count=len(cids),expected=len(expected),
-              subset=list(cids)!=list(expected),manifest_sha256=sha(manifest),source_signature=source_signature,generation_signature=generation,
+              subset=list(cids)!=list(expected),manifest_sha256=manifest_sha256,source_signature=source_signature,generation_signature=generation,
               run_id=stamp,run_directory=run_dir.relative_to(out).as_posix(),review_required_cids=[cid for cid in cids if cid in m['review_cids']],
               inference_layer='模板作用域推断层已启用十七批（type1017 试点 337 行＋批 3 type8 严格子集 '
                               'Tier1 40 行＋批 4 条件扩展候选 37 行＋批 5 跨表扩展 job_ability/'
@@ -177,14 +186,14 @@ def run(args):
     if not args.execute:
         dump(out/'_batch'/args.cohort/'plan_latest.json',dict(plan=(run_dir/'plan.json').relative_to(out).as_posix()))
         return plan
-    declared=[dict(path=p.relative_to(root).as_posix(),sha256=sha(p) if p.exists() else 'MISSING') for p in data_paths(root)]
-    dependency_signature=hashlib.sha256(json.dumps(declared,sort_keys=True).encode()).hexdigest()
-    signature=hashlib.sha256((generation+dependency_signature).encode()).hexdigest()
+    declared = dependency_declaration(root, require_files=True)
+    dependency_signature = compute_dependency_signature(declared)
+    signature = compute_campaign_signature(generation, dependency_signature)
     # Bound new backup growth; legacy runs remain untouched. Shared reservation
     # is atomic across parallel cohorts and survives failed/interrupted builds.
     retention_reservation=reserve_run(out,run_dir,[cid for cid in cids
         if not (args.resume and reusable(out/str(cid),signature))])
-    dump(run_dir/'signatures.json',dict(signature=signature,source_signature=source_signature,manifest_sha256=sha(manifest),dependency_signature=dependency_signature,data_dependencies=declared))
+    dump(run_dir/'signatures.json',dict(signature=signature,source_signature=source_signature,manifest_sha256=manifest_sha256,dependency_signature=dependency_signature,data_dependencies=declared))
     try:data=Inputs(root,cids)
     except Exception as error:
         dump(run_dir/'initialization_failure.json',dict(status='INITIALIZATION_FAILED',cids=cids,error_type=type(error).__name__,error=str(error),signature=signature))
@@ -198,7 +207,7 @@ def run(args):
                 card=build_card(data,cid);html=page(card);validate(card,html)
                 stage=run_dir/'transactions'/str(cid)/'new';dump(stage/'card.json',card);(stage/'index.html').write_text(html,encoding='utf-8')
                 commit(folder,stage,stage.parent/'backup',dict(signature=signature,source_signature=source_signature,
-                       dependency_signature=dependency_signature,manifest_sha256=sha(manifest),run_id=stamp))
+                       dependency_signature=dependency_signature,manifest_sha256=manifest_sha256,run_id=stamp))
                 status='GENERATED'
             attempts.append(dict(cid=cid,status=status,signature=signature))
         except Exception as error:
@@ -211,7 +220,7 @@ def run(args):
     stats,audit,pending,invalid,latest_failures=inventory(out,m,args.cohort,signature);cov=aggregate(stats)
     failed=[a for a in attempts if a['status']=='FAILED']
     result=dict(plan=plan,retention_reservation=retention_reservation,signature=signature,source_signature=source_signature,dependency_signature=dependency_signature,
-                manifest_sha256=sha(manifest),attempts=attempts,requested=len(cids),requested_completed=len(attempts)-len(failed),
+                manifest_sha256=manifest_sha256,attempts=attempts,requested=len(cids),requested_completed=len(attempts)-len(failed),
                 completed=len(stats),expected=len(expected),subset=plan['subset'],cohort_complete=len(stats)==len(expected),
                 reused=reused,failed=failed,unresolved_latest_failures=latest_failures,pending_cids=pending,stale_or_invalid_cids=invalid,coverage=cov,summary=metrics(cov),
                 statistics=stats,seconds=time.perf_counter()-start,review_status='Queue is NOT_REVIEWED; external review decisions stay in versioned review records',

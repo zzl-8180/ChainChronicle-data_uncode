@@ -11,14 +11,15 @@ import sys
 from pathlib import Path
 import common as C
 import type26_mana as M
+from project_layout_paths import write_path
 
-BASE=C.ROOT/'output/character_skills'
-OUT=BASE/'type26_mana'
-BEFORE=C.ROOT/'work/character_skills_p3b3/before'
+BASE=C.read_path(C.ROOT/'output/character_skills', root=C.ROOT)
+OUT_LOGICAL=C.ROOT/'output/character_skills/type26_mana'
+BEFORE=C.read_path(C.ROOT/'work/character_skills_p3b3/before', root=C.ROOT)
 
 
 def rows(path):
-    return [json.loads(s) for s in Path(path).open(encoding='utf-8')]
+    return [json.loads(s) for s in C.read_path(Path(path), root=C.ROOT).open(encoding='utf-8')]
 
 
 def holders(records):
@@ -32,6 +33,7 @@ def canon(value):
 
 
 def main():
+    OUT=write_path(OUT_LOGICAL, root=C.ROOT)
     C.enable_utf8_console()
     old=rows(BEFORE/'records.jsonl');now=rows(BASE/'profiles/records.jsonl')
     oldp=rows(BEFORE/'profiles.jsonl');profiles=rows(BASE/'profiles/profiles.jsonl')
@@ -56,8 +58,8 @@ def main():
                 if f not in nr['fragments']:binding_lost.append(key)
     check('old_baseline_and_type8_bindings_complete_objects',not baseline_lost and not binding_lost,
           baseline_lost=baseline_lost,binding_lost=binding_lost)
-    check('type8_accepted_artifact_unchanged',(BEFORE/'accepted_type8.jsonl').read_bytes()==
-          (BASE/'description_bindings/type8/accepted.jsonl').read_bytes())
+    check('type8_accepted_artifact_unchanged',C.read_path(BEFORE/'accepted_type8.jsonl', root=C.ROOT).read_bytes()==
+          C.read_path(BASE/'description_bindings/type8/accepted.jsonl', root=C.ROOT).read_bytes())
     s0=C.load_json(BEFORE/'summary.json');s1=C.load_json(BASE/'profiles/summary.json')
     t0,t1=s0['totals'],s1['totals']
     check('status_and_accounting',s0['status_counts']==s1['status_counts'] and
@@ -91,7 +93,7 @@ def main():
         path=(C.ROOT/'output/cache_full_20261015_v3/decoded'/source['source_key'].split('/',1)[1]
               if source['layer']=='CACHE' else C.ROOT/source['original_file'])
         if str(path) not in documents:
-            payloads[str(path)]=path.read_bytes()
+            payloads[str(path)]=C.read_path(path, root=C.ROOT).read_bytes()
             documents[str(path)]=json.loads(payloads[str(path)])
         raw=documents[str(path)]
         for part in source['json_pointer'].split('/')[1:]:
@@ -147,7 +149,7 @@ def main():
     check('pinned_binding_negative_guards',all(rejections),cases=len(rejections))
     check('wrong_fragment_or_child_rejected',M.bind_type26(entry,'マナを２つ持った状態で戦闘を開始する',ans,[])[0] is None
           and M.bind_type26(entry,fragment,ans,[{'record_id':3102}])[0] is None)
-    with (BASE/'profiles/answers.csv').open(encoding='utf-8-sig',newline='') as stream:
+    with C.read_path(BASE/'profiles/answers.csv', root=C.ROOT).open(encoding='utf-8-sig',newline='') as stream:
         header=next(csv.reader(stream))
     check('csv_answer_contract','evidence_scope' in header and 'note' in header and 'unit' in header)
     # Default GBK CLI subprocesses; logs use bytes to avoid PowerShell transcoding.

@@ -11,12 +11,13 @@ import struct
 from collections import deque
 from collections import Counter
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from elftools.elf.elffile import ELFFile
 from unicorn import Uc, UcError, UC_ARCH_ARM64, UC_MODE_ARM, UC_HOOK_CODE, UC_HOOK_INTR, UC_HOOK_MEM_WRITE
 from unicorn.arm64_const import UC_ARM64_REG_X0, UC_ARM64_REG_X30, UC_ARM64_REG_SP, UC_ARM64_REG_PC, UC_ARM64_REG_TPIDR_EL0
 
-SOURCE = Path("work/apk/lib/arm64-v8a/libcompatible.so")
+SOURCE = read_path(Path("work/apk/lib/arm64-v8a/libcompatible.so"))
 BASE, HEAP, STACK, TLS, IMPORTS, STOP = 0x10000000, 0x20000000, 0x70000000, 0x71000000, 0x30000000, 0x40000000
 
 
@@ -50,7 +51,7 @@ class Experiment:
         self.uc.reg_write(UC_ARM64_REG_SP, STACK+0xf0000)
         symbols = next(s for s in elf.iter_sections() if s["sh_type"] == "SHT_DYNSYM")
         defined = {s.name: s["st_value"] for s in symbols.iter_symbols() if s["st_shndx"] != "SHN_UNDEF"}
-        relocations = json.loads(Path("output/protection/relocations.json").read_text())["all_relocations"]
+        relocations = json.loads(read_path(Path("output/protection/relocations.json")).read_text())["all_relocations"]
         imported = {}
         for row in relocations:
             if row["type"] == 1027:
@@ -314,9 +315,9 @@ def main():
     experiment.uc.mem_write(BASE+0x1458cc, restored)
     header = experiment.allocate(0x1070, raw[0x1407a8:0x1407a8+0x70])
     experiment.uc.mem_write(BASE+0x1a6948, struct.pack("<QQ", header, BASE))
-    output = Path("output/protection/emulation")
+    output = write_path(Path("output/protection/emulation"))
     output.mkdir(parents=True, exist_ok=True)
-    Path("work/protection").mkdir(parents=True, exist_ok=True)
+    write_path(Path("work/protection")).mkdir(parents=True, exist_ok=True)
     stages = []
     for index, rva in enumerate((0x1458cc, 0x146820, 0x1471b4), 1):
         status, returned, failure = "STOPPED", None, None
@@ -326,7 +327,7 @@ def main():
         except ValueError as error:
             failure = str(error)
         snapshot = bytes(experiment.uc.mem_read(BASE, 0x200000))
-        Path(f"work/protection/compatible_stage{index}_{label}.bin").write_bytes(snapshot)
+        write_path(Path(f"work/protection/compatible_stage{index}_{label}.bin")).write_bytes(snapshot)
         stages.append({"stage": index, "rva": hex(rva), "status": status,
                        "returned": hex(returned-BASE) if returned and BASE <= returned < BASE+0x200000 else hex(returned) if returned else None,
                        "failure": failure})

@@ -10,6 +10,7 @@ import json
 import re
 from collections import Counter, defaultdict
 from pathlib import Path, PurePosixPath
+from project_layout_paths import read_path, write_path, path_reference
 
 from export_master import compact, lookup, parse_records, strict_load, typed_value, write_json, write_lines
 
@@ -149,31 +150,35 @@ def meaning(record,path,active):
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--output-root',type=Path,default=Path('output/field_guide'))
+    parser.add_argument('--output-root',type=Path,default=write_path(Path('output/field_guide')))
+    parser.add_argument('--unity-header-audit',type=Path,default=Path('output/field_guide/unity_header_gap_audit.json'))
     args=parser.parse_args()
-    selected=strict_load(Path('output/export/latest.json').read_bytes());base=Path(selected['directory'])
-    manifest=strict_load((base/'manifest.json').read_bytes());active=strict_load(Path('output/sample/active_skill_trace.json').read_bytes())
-    inventory_path=Path('output/phone/inventory.jsonl')
+    audit_input=read_path(args.unity_header_audit)
+    audit_ref=args.unity_header_audit.as_posix()
+    args.output_root=write_path(args.output_root)
+    selected=strict_load(read_path(Path('output/export/latest.json')).read_bytes());base=read_path(Path(selected['directory']))
+    manifest=strict_load((base/'manifest.json').read_bytes());active=strict_load(read_path(Path('output/sample/active_skill_trace.json')).read_bytes())
+    inventory_path=read_path(Path('output/phone/inventory.jsonl'))
     inventory=[strict_load(line) for line in inventory_path.open(encoding='utf-8')]
-    collected=strict_load(Path('output/phone/collected_files.json').read_bytes())
+    collected=strict_load(read_path(Path('output/phone/collected_files.json')).read_bytes())
     inputs={'formal_manifest':sha((base/'manifest.json').read_bytes()),'device_inventory':sha(inventory_path.read_bytes()),
-            'active_trace':sha(Path('output/sample/active_skill_trace.json').read_bytes()),
-            'collection_list':sha(Path('output/phone/collected_files.json').read_bytes()),
-            'APK_component_JSON':sha(Path('output/base_master/ChronicleArchiveData.json').read_bytes()),
+            'active_trace':sha(read_path(Path('output/sample/active_skill_trace.json')).read_bytes()),
+            'collection_list':sha(read_path(Path('output/phone/collected_files.json')).read_bytes()),
+            'APK_component_JSON':sha(read_path(Path('output/base_master/ChronicleArchiveData.json')).read_bytes()),
             'producer':sha(Path(__file__).read_bytes())}
     for file in ('output/unity/summary.json','output/unity/mono_summary.json',
-                 'output/unity/mono_candidates.jsonl','output/unity/mono_errors.jsonl',
-                 'output/field_guide/unity_header_gap_audit.json'):
-        inputs[file]=sha(Path(file).read_bytes())
+                 'output/unity/mono_candidates.jsonl','output/unity/mono_errors.jsonl'):
+        inputs[file]=sha(read_path(Path(file)).read_bytes())
+    inputs[audit_ref]=sha(audit_input.read_bytes())
     output=args.output_root/('guide_'+sha(compact(inputs).encode())[:16])
     if output.exists():
         previous=strict_load((output/'manifest.json').read_bytes())
         for path,digest in previous['output_sha256'].items():assert sha((output/path).read_bytes())==digest,path
-        write_json(args.output_root/'latest.json',{'directory':str(output),'manifest':str(output/'manifest.json')})
+        write_json(args.output_root/'latest.json',{'directory':path_reference(output),'manifest':path_reference(output/'manifest.json')})
         write_root_readme(args.output_root,output)
         print(compact({'status':'EXISTING_GUIDE_VERIFIED','output':str(output)}));return
     output.mkdir(parents=True)
-    (output/'unity_header_gap_audit.json').write_bytes(Path('output/field_guide/unity_header_gap_audit.json').read_bytes())
+    (output/'unity_header_gap_audit.json').write_bytes(audit_input.read_bytes())
     all_records=[];supplemental=[];tables=[];sources={s['source_key']:s for s in manifest['sources']}
     for source in manifest['sources']:
         path=base/source['copied_file'];raw=path.read_bytes()
@@ -292,7 +297,7 @@ def main():
             if field in effect['raw']:highhp.append(compare(effect,'/'+field,description))
     write_json(output/'record_comparisons_highhp.json',highhp)
     build_dictionary(output,all_records,active)
-    build_references_and_audit(output,all_records,skills,cards,by_key,indexes,tables,inventory,collected,base,manifest)
+    build_references_and_audit(output,all_records,skills,cards,by_key,indexes,tables,inventory,collected,base,manifest,audit_ref)
     columns=[('example_kind','样例结构'),('card_contexts','卡牌ID日文名及定义来源JSON'),('client_version','客户端版本JSON'),
              ('skill_id','技能ID'),('active_type','必杀类型（不是技能ID）'),('skill_name_ja','效果记录日文名'),('effect_own_description_ja','效果记录自身原文'),
              ('description_skill_id','引用文案的技能ID'),('description_skill_name_ja','引用文案的技能名'),('description_ja','用于对照的原文描述'),
@@ -301,7 +306,7 @@ def main():
              ('conditions','条件'),('target','对象'),('duration','持续时间（空即未知）'),('status','确认状态'),('evidence','依据JSON')]
     csv_view(output/'record_comparisons_examples.csv',examples,columns)
     csv_view(output/'record_comparisons_highhp.csv',highhp,columns)
-    guide={'version':VERSION,'formal_E_build':str(base),'formal_E_manifest_sha256':inputs['formal_manifest'],'inputs':inputs,
+    guide={'version':VERSION,'formal_E_build':path_reference(base),'formal_E_manifest_sha256':inputs['formal_manifest'],'inputs':inputs,
            'producer_sha256':inputs['producer'],'all_record_views':len(all_records),'supplemental_record_views':len(supplemental),
            'example_rows':len(examples),'highhp_rule_rows':len(highhp),'source_tables':tables,
            'limits':['未连接手机；77个旧清单data5中仅11个已取得，其他目标覆盖未证实',
@@ -312,7 +317,7 @@ def main():
     make_readme(output,guide)
     guide['output_sha256']={p.relative_to(output).as_posix():sha(p.read_bytes()) for p in sorted(output.rglob('*')) if p.is_file() and p.name!='manifest.json'}
     write_json(output/'manifest.json',guide)
-    write_json(args.output_root/'latest.json',{'directory':str(output),'manifest':str(output/'manifest.json')})
+    write_json(args.output_root/'latest.json',{'directory':path_reference(output),'manifest':path_reference(output/'manifest.json')})
     write_root_readme(args.output_root,output)
     print(compact({'status':'PASS','output':str(output),'examples':len(examples),'HighHPAll_rows':len(highhp),'supplemental_records':len(supplemental)}))
 
@@ -351,7 +356,7 @@ def build_dictionary(output,records,active):
         ('records_with_field','含字段记录数'),('records_without_path','上下文内缺字段记录数'),('example_locations','示例定位JSON')])
 
 
-def build_references_and_audit(output,records,skills,cards,by_key,indexes,tables,inventory,collected,base,manifest):
+def build_references_and_audit(output,records,skills,cards,by_key,indexes,tables,inventory,collected,base,manifest,audit_ref):
     refs=[];nested=[]
     domains={'character':('charainfo','cid'),'boss_pattern':('bosspattern','patternid'),
              'boss_skill':('bossskill','skillid'),'supporter':('supporterskill','ability_id')}
@@ -450,13 +455,13 @@ def build_references_and_audit(output,records,skills,cards,by_key,indexes,tables
     acquired_by_remote={c['remote']:c for c in collected if c.get('status')=='COPIED'}
     data5=[r for r in inventory if PurePosixPath(r['path']).suffix.lower()=='.data5']
     other_files=[r for r in inventory if PurePosixPath(r['path']).suffix.lower() not in ('.data5','.bdl')]
-    other_acquired=sum(r['path'] in acquired_by_remote and Path(acquired_by_remote[r['path']]['local']).is_file() for r in other_files)
+    other_acquired=sum(r['path'] in acquired_by_remote and read_path(Path(acquired_by_remote[r['path']]['local'])).is_file() for r in other_files)
     related={'denju_lblist.data5','crossworldabilitylist.data5','weaponlist.data5','runelist.data5','buffinfo.data5',
              'battleinfo.data5','various.data5','homelist.data5','motionlist.data5','enemyinfo.data5','beloved_item.data5'}
     resources=[]
     for item in data5:
         name=PurePosixPath(item['path']).name;acquisition=acquired_by_remote.get(item['path'])
-        local=Path(acquisition['local']) if acquisition else None
+        local=read_path(Path(acquisition['local'])) if acquisition else None
         acquired=bool(local and local.is_file())
         matching=[s for s in manifest['sources'] if s['source_key']=='CACHE/'+name+'.json.raw']
         count=sum(t['parsed_records'] for t in tables if t.get('source_key')=='CACHE/'+name+'.json.raw') if matching else 0
@@ -465,7 +470,7 @@ def build_references_and_audit(output,records,skills,cards,by_key,indexes,tables
                           'inventory_size':item['size'],'expected_files':1,'expected_record_count':None,
                           'expected_basis':'2026-10-14实际文件清单，只证明当时文件存在，不证明全游戏/当前版本记录总数',
                           'acquired_files':int(acquired),'decoded_files':int(bool(matching)),'parsed_records':count,'exported_records':count,
-                          'local_source':str(local) if local else None,'unparsed_scope':None if matching else '尚未取得/解码，结构与记录数未知',
+            'local_source':path_reference(local) if local else None,'unparsed_scope':None if matching else '尚未取得/解码，结构与记录数未知',
                           'gap_reason':None if acquired else '电脑无本地采集件；不是字段语义未知造成',
                           'next_action':None if acquired else '用户连接后全量只读采集files/cache到新快照，再逐文件解码、保留失败并按目标分类',
                           'needs_phone':not acquired})
@@ -474,10 +479,10 @@ def build_references_and_audit(output,records,skills,cards,by_key,indexes,tables
         ('expected_files','清单预期文件数'),('expected_record_count','预期记录数（空=未知）'),('acquired_files','已取得文件数'),('decoded_files','已解码文件数'),
         ('parsed_records','已解析记录视图数'),('exported_records','已导出记录视图数'),('unparsed_scope','未解析范围'),('gap_reason','缺口原因'),('next_action','补齐动作'),('needs_phone','需要手机')])
     coverage=list(tables)
-    unity=strict_load(Path('output/unity/summary.json').read_bytes())
-    mono=strict_load(Path('output/unity/mono_summary.json').read_bytes())
-    gaps=strict_load(Path('output/field_guide/unity_header_gap_audit.json').read_bytes())
-    candidates=[strict_load(line) for line in Path('output/unity/mono_candidates.jsonl').open(encoding='utf-8')]
+    unity=strict_load(read_path(Path('output/unity/summary.json')).read_bytes())
+    mono=strict_load(read_path(Path('output/unity/mono_summary.json')).read_bytes())
+    gaps=strict_load((output/'unity_header_gap_audit.json').read_bytes())
+    candidates=[strict_load(line) for line in read_path(Path('output/unity/mono_candidates.jsonl')).open(encoding='utf-8')]
     assert gaps['count']==mono['errors'] and gaps['all_null_script'] and gaps['sizes']==[32]
     coverage.extend([
         {'source_file':'output/unity/summary.json; output/unity/objects.jsonl','layer':'APK','table':'Unity对象元信息（不是目标实体数）',
@@ -489,7 +494,7 @@ def build_references_and_audit(output,records,skills,cards,by_key,indexes,tables
          'expected_count':unity['textassets'],'expected_basis':'已有Unity目录TextAsset对象计数',
          'parsed_records':unity['textassets'],'exported_records':unity['textassets'],'filtered_records':0,'failed_records':0,
          'gap_reason':'不是全部结构化目标；其他MonoBehaviour和外部主表分别审计','needs_phone':False},
-        {'source_file':'output/unity/mono_summary.json; output/field_guide/unity_header_gap_audit.json','layer':'APK','table':'MonoBehaviour头及脚本类识别',
+        {'source_file':f'output/unity/mono_summary.json; {audit_ref}','layer':'APK','table':'MonoBehaviour头及脚本类识别',
          'expected_count':mono['headers'],'expected_basis':'已有MonoBehaviour目录边界；本轮只针对原19个异常对象读取',
          'parsed_records':mono['headers']-mono['errors'],'exported_records':mono['headers'],'filtered_records':0,'failed_records':mono['errors'],
          'unparsed_records':mono['errors'],'gap_reason':'19项都是32字节且脚本指针为空；保留原错误及608字节原始内容，不计成功解析的游戏记录',
@@ -580,7 +585,7 @@ def verify_guide(output,records,examples,highhp,base,manifest):
             assert typed_value(strict_load(sliced))==typed_value(record['raw'])
             assert typed_value(get_path(doc,loc['json_pointer']))==typed_value(record['raw'])
     checks.append('All normalized main/aux records match original decoded UTF8 slices and JSON pointers')
-    component=strict_load(Path('output/base_master/ChronicleArchiveData.json').read_bytes())
+    component=strict_load(read_path(Path('output/base_master/ChronicleArchiveData.json')).read_bytes())
     fields=[k for k in component if k.startswith('_md')]
     assert set(fields)=={'_mdCharacter','_mdSkill','_mdBossInfo','_mdSAbirity'}
     for field in fields:
@@ -632,9 +637,9 @@ def verify_guide(output,records,examples,highhp,base,manifest):
         assert sha((base/source['copied_file']).read_bytes())==source['sha256']
     checks.append('Auxiliary references preserve exact paths/counts and inferred status; phone77/11/66 are file counts, not game coverage')
     gaps=strict_load((output/'unity_header_gap_audit.json').read_bytes())
-    old_errors=[strict_load(line) for line in Path('output/unity/mono_errors.jsonl').open(encoding='utf-8')]
+    old_errors=[strict_load(line) for line in read_path(Path('output/unity/mono_errors.jsonl')).open(encoding='utf-8')]
     assert {(r['asset_file'],r['path_id']) for r in gaps['rows']}=={(r['asset_file'],r['path_id']) for r in old_errors}
-    assert gaps['source_sha256']==strict_load(Path('output/unity/summary.json').read_bytes())['sha256']
+    assert gaps['source_sha256']==strict_load(read_path(Path('output/unity/summary.json')).read_bytes())['sha256']
     for item in gaps['rows']:
         raw=bytes.fromhex(item['raw_hex'])
         assert len(raw)==item['byte_size']==32 and sha(raw)==item['sha256']
@@ -714,7 +719,7 @@ $env:PYTHONIOENCODING='utf-8'
 
 只读正式E的manifest及15份来源JSON，复用已有手机清单、采集清单、主表组件JSON、必杀追踪证据及Unity扫描/定向核对记录；新增文件仅在output/field_guide，STATUS单独维护。依赖为Python3.12.14标准库及本项目export_master辅助函数；不连接手机、不重新解密、不需要新增包。此脚本是当前输入的字段/覆盖交付器，不是新快照通用语义验收器。{len(checks['checks'])}项结构核对通过，不冒充独立审查或实机验证。
 
-若需重新产生19项定向头部证据，先运行`& .\\.venv\\Scripts\\python.exe -B scripts/audit_unity_headers.py`，需要已有UnityPy1.25.4、`work/apk/assets/bin/Data/data.unity3d`及`output/unity/mono_errors.jsonl`。只读原容器，写入`output/field_guide/unity_header_gap_audit.json`；随后再次运行字段交付器生成/选定新目录。未实现全缓存采集或未来快照的自动兼容：手机连接后会另存完整可访问外部files/cache采集件，先分类解码，再核对本审计缺口；图片音频不列为必须逐对象导出目标。
+若需重新产生19项定向头部证据，先运行`& .\\.venv\\Scripts\\python.exe -B scripts/audit_unity_headers.py`，需要已有UnityPy1.25.4、`work/apk/assets/bin/Data/data.unity3d`及`output/unity/mono_errors.jsonl`。只读原容器，写入`projects/skill-research/reports/field_guide/20261111/unity_header_gap_audit.json`；随后以 `--unity-header-audit` 显式指定该报告，再运行字段交付器。未实现全缓存采集或未来快照的自动兼容：手机连接后会另存完整可访问外部files/cache采集件，先分类解码，再核对本审计缺口；图片音频不列为必须逐对象导出目标。
 '''
     (output/'README.md').write_text(text,encoding='utf-8')
 

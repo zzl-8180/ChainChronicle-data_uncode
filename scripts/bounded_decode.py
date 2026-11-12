@@ -8,6 +8,7 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 
 def json_prefix(raw):
@@ -38,12 +39,12 @@ def word_transform(raw, bits, swap):
 
 
 def main():
-    rows = json.loads(Path("output/phone/cache_formats.json").read_text(encoding="utf-8"))
-    output = Path("output/phone/bounded_trials")
+    rows = json.loads(read_path(Path("output/phone/cache_formats.json")).read_text(encoding="utf-8"))
+    output = write_path(Path("output/phone/bounded_trials"))
     output.mkdir(parents=True, exist_ok=True)
     results, hits = [], []
     for row in rows:
-        source = Path(row["work_file"])
+        source = read_path(Path(row["work_file"]))
         raw = source.read_bytes()
         if hashlib.sha256(raw).hexdigest() != row["source_sha256"]:
             raise ValueError("Work input does not match acquired bytes")
@@ -63,7 +64,7 @@ def main():
                    "status": "STRUCTURE_ONLY; loading-route and semantics unconfirmed"}
             dest = output / f"{source.name}_{len(hits)}.json"
             dest.write_text(json.dumps(parsed, ensure_ascii=False, indent=2), encoding="utf-8")
-            hit["output"] = dest.as_posix()
+            hit["output"] = Path(path_reference(dest)).as_posix()
             hits.append(hit)
 
         for offset in (0, 16):

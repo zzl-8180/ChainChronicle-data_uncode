@@ -4,9 +4,11 @@ import hashlib
 import zipfile
 from pathlib import Path
 
+from project_layout_paths import read_path, write_path
+
 
 def read(path):
-    return json.loads(Path(path).read_text(encoding='utf-8'))
+    return json.loads(read_path(Path(path)).read_text(encoding='utf-8'))
 
 
 def main():
@@ -52,7 +54,9 @@ def main():
               'limits':['Coverage unions only; sources are not merged and overwrite priority is unknown',
                         'Record counts include base master categories/NPCs; not a playable-card count',
                         'Same identifier across sources does not establish equal fields or current live applicability']}
-    Path('output/base_master/source_comparison.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+    output = write_path(Path('projects/unpack/reports/master-source-comparison/20261111/source_comparison.json'))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(result,ensure_ascii=False,indent=2))
 
 

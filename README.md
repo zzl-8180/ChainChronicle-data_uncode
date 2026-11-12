@@ -1,11 +1,31 @@
 # 锁链战记（チェインクロニクル）数据解包工具
 
+## 现行入口
+
+| 类型 | 去哪里找 | 内容 |
+|---|---|---|
+| 正式成果 · 数据解包 | [解包导航](projects/unpack/README.md)、[缓存主表指针](projects/unpack/data/cache/cache_full_latest.json)、[APK 内置主表](projects/unpack/data/apk/base_master/) | 完整 JSON、记录视图、APK 基线、补采清单和历史缓存。 |
+| 正式成果 · 媒体资源 | [媒体导航](projects/assets/README.md)、[媒体导出](projects/assets/data/full_unpack/)、[角色图片](projects/assets/data/card_images/) | 纹理、音频、模型及角色图片来源。 |
+| 正式成果 · 技能研究 | [研究导航](projects/skill-research/README.md)、[正式规则](output/character_skills/profiles/rules.json)、[逐卡答案](output/character_skills/pages/)、[效果账本](output/character_skills/effect_ledger/) | 研究证据和实验在 `projects/skill-research/`。正式规则、答案和账本随页面事务保留在 `output/character_skills/`。 |
+| 正式成果 · 角色阅读器 | [阅读器导航](projects/reader/README.md)、[全库阅读页](output/character_skills/reader_full_20261106/index.html) | 全库阅读入口。数据和前端版本见各自回执。 |
+| 试点 · 角色阅读器 | [B02 试点页面](projects/reader/site/b02-20261108-v1/index.html)、[试点范围与验收](docs/project-layout/20261108-b02-candidate-v1/README.md) | 限定范围的前端候选。正式入口仍使用全库阅读页。 |
+| 参考资料分析 | [参考分析导航](projects/reference-analysis/README.md)、[历史对照结果](projects/reference-analysis/history/reference_analysis/)、[独立分析报告](projects/reference-analysis/reports/) | 外部资料对照、差异和候选。第三方原件分源保留。 |
+| 共享目录 | [工具源码](scripts/)、[原始采集](raw/)、[工作材料](work/)、[页面共享图片](output/character_skills/pages/art/) | 多个子项目共用的代码、输入、工作副本和页面媒体。 |
+| 运维与保留记录 | [运维配置](operations/config/)、[运维记录](operations/records/)、[存储保留](output/storage_retention/)、[项目布局记录](docs/project-layout/) | 路径配置、执行记录和历史保护说明。 |
+| 退役归档 · 工具与成果发行 | [旧发行保留材料](operations/history/retired-packaging/20261108/)、[退役清理回执](docs/project-layout/20261108-packaging-empty-cleanup-v1/REPORT.md)、[完整分享约定](AGENTS.md#8-完整解包工具与结果分享) | 旧打包支线的历史材料按原版本查阅。未来完整分享按 AGENTS 第 8 节。 |
+
+31 个成果目录与 2 份 latest 指针已迁移并验收。已适配的 CLI 通过[路径定位配置](scripts/project_layout_active.json)默认解析到新址。逐根新旧路径见[实际迁移回执](docs/project-layout/20261109-unified-physical-v1/REPORT.md)。第二批的 5 个 v2 停用联接按[评估记录](docs/project-layout/20261109-batch2-previous-assessment-v1/REPORT.md)继续留证。
+
+下方 §4—§6 的新成果示例使用 `projects/` 下的版本目录。运行前将示例中的 `run-01` 换成新的版本名。同一媒体批次的导出、合并和校验使用同一版本名与同一分片目录。
+
 把《锁链战记》日服客户端的游戏数据解包为可读的结构化数据与媒体文件：
 
 - **data5 主表**（77 个加密文件）→ 完整 JSON＋记录视图（records.jsonl，39,047 条）
 - **bdl 资源包**（68,655 个）→ UnityFS 对象导出（PNG／WAV／OBJ／TXT／typetree JSON）
 - **APK 内置主表**（chronicle.dat）→ ChronicleArchiveData JSON
 - 已有字段解释、查询脚本与对照页属研究成果，见 §7 获取方式
+
+> **2026-11-08 历史打包材料已迁移**：5,317项／108,004,454 B已迁至 `operations/history/retired-packaging/20261108/` 下的 `share_bundle/`、`distribution/`、`history-work/`；五个C14—C18正式隔离入口均指向新 `share_bundle`，各142文件验读及Sol验收、Astra独立复核通过。见[物理回执](docs/project-layout/20261108-packaging-physical-v1/REPORT.md)、[Astra独立复核](docs/project-layout/20261108-packaging-physical-v1/physical-independent-review.json)。该打包批次的五个旧联接已清理。只读维护入口为 `scripts/project_layout/retirement_runtime.py`。1,607项旧文件已按最终授权逐项删除，临前archive模式1,406对检查及后验通过；5个停用previous联接及9,467个旧空目录已按后续授权清理；9个必要祖先目录、11项原位文件及归档材料保留。见[空目录清理回执](docs/project-layout/20261108-packaging-empty-cleanup-v1/REPORT.md)和[此前文件删除回执](docs/project-layout/20261108-packaging-final-ready-v1/deletion-20261108-v1/REPORT.md)。未来完整分享仍适用AGENTS第8节。
 
 ## 1. 硬性版本边界
 
@@ -36,13 +56,13 @@ python -m venv .venv
 
 ## 4. data5 解包（核心链路，已在干净目录实测）
 
-首次运行需从 APK 生成三个前置文件（确定性的，内容与输入绑定）：
+在无既有产物的独立工作根首次运行时，需从 APK 生成三个前置文件（确定性的，内容与输入绑定）。现行工作区已有这些前置文件，可直接复用：
 
 ```powershell
-# A1 提取 APK 程序/配置 → work/apk/、output/apk/baseline.json
+# A1 提取 APK 程序/配置 → work/apk/、projects/unpack/data/apk/apk-baseline/baseline.json
 & .\.venv\Scripts\python.exe -B scripts/apk_baseline.py チェンクロ.apk
-# A2 解析保护库重定位 → output/protection/relocations.json
-& .\.venv\Scripts\python.exe -B scripts/elf_relocations.py work/apk/lib/arm64-v8a/libcompatible.so
+# A2 解析保护库重定位 → projects/unpack/research/protection/relocations.json
+& .\.venv\Scripts\python.exe -B scripts/elf_relocations.py work/apk/lib/arm64-v8a/libcompatible.so --output output/protection/relocations.json
 # A3 恢复 NUtils 原生镜像 → work/protection/nutils_loader_seed1.bin
 & .\.venv\Scripts\python.exe -B scripts/signal_region_probe.py --loader-probe
 ```
@@ -50,15 +70,16 @@ python -m venv .venv
 然后解码 data5：
 
 ```powershell
-# B1 解码目录内 data5 → output/decoded/（.json + .json.raw + report.json）
-& .\.venv\Scripts\python.exe -B scripts/decode_data5.py --input <data5目录> --output output/decoded [--apk <APK路径>]
-# B2 导出记录视图 → <新输出目录>/decoded、records.jsonl、tables.csv、decode_report.json
-& .\.venv\Scripts\python.exe -B scripts/decode_cache_snapshot.py --work <含data5的目录> --output <新输出目录> [--apk <APK路径>]
+# B1 解码目录内 data5 → 新版本目录（.json + .json.raw + report.json）
+& .\.venv\Scripts\python.exe -B scripts/decode_data5.py --input <data5目录> --output projects/unpack/data/cache/run-01-data5 [--apk <APK路径>]
+# B2 导出记录视图 → 新版本目录下的 decoded、records.jsonl、tables.csv、decode_report.json
+& .\.venv\Scripts\python.exe -B scripts/decode_cache_snapshot.py --work <含data5的目录> --output projects/unpack/data/cache/run-01-snapshot [--apk <APK路径>]
 ```
 
 - **B1 仅处理 gzip 偏移 6 包装**，遇其他变体（如 helper/search 的偏移 0）即报错中止；处理整目录请直接用 **B2**，自动识别两种包装并逐文件容错（失败文件记录、其余继续）。
 - 中断或换机重跑：`--reuse-dir <旧输出目录>` 在密文＋JSON 哈希一致时安全复用；`--prior-report <旧report.json>` 指定 decode_data5 旧报告（不存在时自动改为全原生解码并注明）。
-- 输出目录必须不存在（`exist_ok=False`），防止覆盖历史成果。
+- B1、B2 的输出目录必须尚不存在。阶段 A 的独立复核可用 `verify_phase_a.py --output projects/unpack/reports/validation/run-01`，其子工具产物也写入该次复核目录。
+- 阶段 C 的独立复核可用 `verify_phase_c.py --output projects/unpack/reports/phase_c/run-01`，扫描样本和 callback 回执会随本轮报告保存。单跑重定位、引用扫描或 callback 时，省略输出参数会新建报告版本。
 - B2 对两种包装变体（gzip 偏移 6／偏移 0）自动识别并留痕 `gzip_offset`；超大文件自动使用有界提升的指令上限，算法不变。
 
 ## 5. bdl 资源解包（已在干净目录小样本实测）
@@ -72,16 +93,16 @@ bdl 前 256 字节经原生 `DecodeXorData` 转换后即标准 UnityFS，由 Uni
 从工作副本生成清单的最小示例：
 
 ```powershell
-& .\.venv\Scripts\python.exe -B -c "import json;from pathlib import Path;root=Path('work/my_cache');f=open('my_inventory.jsonl','w',encoding='utf-8');[f.write(json.dumps({'path':p.relative_to(root).as_posix(),'bytes':p.stat().st_size,'work_file':str(p)},ensure_ascii=False)+'\n') for p in sorted(root.rglob('*.bdl'))];f.close()"
+& .\.venv\Scripts\python.exe -B -c "import json;from pathlib import Path;root=Path('work/my_cache');f=open('work/run-01-inventory.jsonl','x',encoding='utf-8');[f.write(json.dumps({'path':p.relative_to(root).as_posix(),'bytes':p.stat().st_size,'work_file':str(p)},ensure_ascii=False)+'\n') for p in sorted(root.rglob('*.bdl'))];f.close()"
 ```
 
 运行（分片续跑，中断自动跳过已完成）：
 
 ```powershell
-& .\.venv\Scripts\python.exe -B scripts/full_unpack_run.py --inventory my_inventory.jsonl --output output/my_unpack --workers 8
-& .\.venv\Scripts\python.exe -B scripts/full_unpack_merge.py --inventory my_inventory.jsonl --output output/my_unpack
-& .\.venv\Scripts\python.exe -B scripts/full_unpack_verify.py --inventory my_inventory.jsonl --output output/my_unpack
-& .\.venv\Scripts\python.exe -B scripts/full_unpack_finalize.py --inventory my_inventory.jsonl --output output/my_unpack
+& .\.venv\Scripts\python.exe -B scripts/full_unpack_run.py --inventory work/run-01-inventory.jsonl --output projects/assets/data/full_unpack/run-01 --shards work/full_unpack/run-01/shards --workers 8
+& .\.venv\Scripts\python.exe -B scripts/full_unpack_merge.py --inventory work/run-01-inventory.jsonl --output projects/assets/data/full_unpack/run-01 --shards work/full_unpack/run-01/shards
+& .\.venv\Scripts\python.exe -B scripts/full_unpack_verify.py --inventory work/run-01-inventory.jsonl --output projects/assets/data/full_unpack/run-01
+& .\.venv\Scripts\python.exe -B scripts/full_unpack_finalize.py --inventory work/run-01-inventory.jsonl --output projects/assets/data/full_unpack/run-01
 ```
 
 - 清单 `path` 须含 **`Bundle` 分量**（`files/Bundle/<类别>/…`）；导出树按 `Bundle` 之后的路径归入 `objects/<类别>/…`，缺 `Bundle` 分量的行会记录错误不导出。
@@ -96,17 +117,19 @@ bdl 前 256 字节经原生 `DecodeXorData` 转换后即标准 UnityFS，由 Uni
 需要一台已授权 Android 设备、ADB 与本机 `tools/platform-tools/adb.exe`；全程只读，不改手机：
 
 ```powershell
-& .\.venv\Scripts\python.exe -B scripts/phone_collect.py probe --output output/my_probe
-& .\.venv\Scripts\python.exe -B scripts/collect_cache_archive.py --probe output/my_probe --snapshot raw/<新快照名>
-& .\.venv\Scripts\python.exe -B scripts/extract_cache_archive.py --snapshot raw/<新快照名> --work work/<新工作目录> --output output/<提取报告>
+& .\.venv\Scripts\python.exe -B scripts/phone_collect.py probe --output projects/unpack/reports/acquisition/run-01/probe
+& .\.venv\Scripts\python.exe -B scripts/collect_cache_archive.py --probe projects/unpack/reports/acquisition/run-01/probe --snapshot raw/<新快照名>
+& .\.venv\Scripts\python.exe -B scripts/extract_cache_archive.py --snapshot raw/<新快照名> --work work/<新工作目录> --output projects/unpack/reports/acquisition/run-01/extraction
 ```
 
 ## 7. 查看结果与研究成果
 
+旧研究实验复跑时，先设置新的版本名，例如 `$env:CC_EXPERIMENT_RUN_ID = 'run-01'`。机制试验、规模实验和路线实验分别使用 `projects/skill-research/experiments/<实验名>/runs/run-01/`。同一实验的准备、收集或比对、汇总和报告步骤使用同一版本名。重新准备另一轮时换一个名字。只重建机制试验或规模实验的报告时，可省略该变量，直接读取原冻结输入并将报告写到各实验的 `reports/` 新版本。
+
 - `records.jsonl`：每行一条记录视图（原值、来源、JSON pointer、字节区间）；`tables.csv` 为表索引。
-- APK 内置主表（chronicle.dat）：`scripts/native_debug.py work/apk/lib/arm64-v8a/libChronicleNUtils.so` 后运行 `scripts/decode_chronicle.py` → `output/base_master/`。
+- APK 内置主表（chronicle.dat）直接读取[既有主表](projects/unpack/data/apk/base_master/)。在无既有产物的独立工作根首次生成时，先运行 `scripts/native_debug.py work/apk/lib/arm64-v8a/libChronicleNUtils.so`，再运行 `scripts/decode_chronicle.py`。
 - 字段字典、技能数值解释、对照页与查询脚本属**研究成果包**（另行发布，见发布清单）；查询示例：`scripts/query_effect_dictionary.py --id 43023606`（需研究成果数据文件）。
-- `scripts/build_char_roster.py` 需要 v3 主表与 bdl 头像产物，属展示线。
+- `scripts/build_char_roster.py` 读取 v3 主表与 bdl 头像产物。重跑默认在 `projects/skill-research/data/char_roster_runs/` 新建版本。
 
 ## 8. 已知限制
 
@@ -120,9 +143,12 @@ bdl 前 256 字节经原生 `DecodeXorData` 转换后即标准 UnityFS，由 Uni
 
 | 路径 | 内容 |
 |---|---|
-| `scripts/` | 全部解包／验证源码（含 `full_unpack_*.py` bdl 管线、`release/` 打包脚本） |
+| `projects/` | 各子项目的导航、成果及历史版本 |
+| `operations/` | 路径配置、运维记录与退役归档 |
+| `scripts/` | 解包／验证源码（含 `full_unpack_*.py` bdl 管线）；历史打包材料只读维护入口为 `scripts/project_layout/retirement_runtime.py` |
 | `docs/` | 任务交接与实施方案（含可复现性审计 `docs/tasks/20261016-reproducibility-audit.md`） |
 | `AGENTS.md` | 项目工作约定（协作、证据、Git 与分层发布规范） |
 | `HANDOFF.md`／`STATUS.md` | 当前进度入口与历史状态 |
 | `requirements-lock.txt` | 锁定依赖版本 |
-| `raw/`、`work/`、`output/`、`.venv/`、`tools/` | 本地输入与产物，**不入库**（见 `.gitignore`） |
+| `output/` | 正式技能页面与阅读器、存储保留及原位审查材料 |
+| `raw/`、`work/`、`.venv/`、`tools/` | 本地输入、工作副本与运行环境（见 `.gitignore`） |

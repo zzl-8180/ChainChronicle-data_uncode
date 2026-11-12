@@ -1,5 +1,8 @@
 """Package the reviewed, isolated experiment; never writes production data."""
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from versioned_outputs import experiment_report_source, fresh_output, report_links
 from datetime import datetime
 from html import escape
 from html.parser import HTMLParser
@@ -8,15 +11,15 @@ import hashlib
 import json
 
 ROOT = Path(__file__).resolve().parents[2]
-BASE = ROOT / 'output/skill_mechanism_trial/20261104'
+BASE = experiment_report_source('skill_mechanism_trial', ROOT/'output/skill_mechanism_trial/20261104')
 
 
 def read(relative):
     return json.loads((BASE / relative).read_text(encoding='utf-8-sig'))
 
 
-def write(relative, data):
-    (BASE / relative).write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+def write(output, relative, data):
+    (output / relative).write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
 def digest(path):
@@ -54,7 +57,8 @@ def main():
                              'review_reference': 'review/verdict.json',
                              'frozen_source_root': 'input/'})
     assert len(accepted) == 2
-    write('accepted_candidates.json', {
+    output = fresh_output('projects/skill-research/experiments/skill_mechanism_trial/reports','report')
+    write(output,'accepted_candidates.json', {
         'snapshot': verdict['snapshot'], 'scope': 'Two conditional partial description bindings; existing numeric rule',
         'new_formulas': 0, 'confirmed_description_answers': 0, 'production_promotions': 0,
         'candidates': accepted,
@@ -108,7 +112,8 @@ h1,h2{{line-height:1.35}}h2{{margin-top:32px}}table{{border-collapse:collapse;wi
 <li><a href="input/manifest.json">冻结输入清单</a> · <a href="arm_freeze_manifest.json">研究提交哈希</a></li>
 <li><a href="card_serial/timing.json">逐卡计时</a> · <a href="family_attack/timing.json">攻击族计时</a> · <a href="family_heal/timing.json">回复族计时</a></li>
 </ul><p><small>只读复算：项目根目录运行 .venv\\Scripts\\python.exe -B scripts/skill_mechanism_trial/report.py，仅更新本实验交付文件。研究过程本身无法由这些脚本自动重演。</small></p></html>'''
-    (BASE / 'report.html').write_text(report, encoding='utf-8')
+    report = report_links(report, BASE, output)
+    (output / 'report.html').write_text(report, encoding='utf-8')
 
     class Links(HTMLParser):
         def __init__(self):
@@ -119,11 +124,11 @@ h1,h2{{line-height:1.35}}h2{{margin-top:32px}}table{{border-collapse:collapse;wi
                 self.links.extend(v for k, v in attrs if k == 'href')
     parser = Links()
     parser.feed(report)
-    assert all((BASE / link).is_file() for link in parser.links)
+    assert all((output / link).is_file() for link in parser.links)
     source_files = sorted((ROOT / 'scripts/skill_mechanism_trial').glob('*.py'))
     for path in source_files:
         ast.parse(path.read_text(encoding='utf-8-sig'), filename=str(path))
-    write('delivery_validation.json', {
+    write(output,'delivery_validation.json', {
         'passed': True, 'input_hashes_checked': len(manifest['files']),
         'arm_hashes_checked': sum(map(len, frozen['arms'].values())),
         'report_links_checked': len(parser.links), 'source_files_parsed': len(source_files),
@@ -131,11 +136,11 @@ h1,h2{{line-height:1.35}}h2{{margin-top:32px}}table{{border-collapse:collapse;wi
         'same_reviewed_outcome': True, 'common_preparation_seconds': prep,
         'independent_review_seconds': review, 'candidate_count': len(accepted),
     })
-    files = [p for p in BASE.rglob('*') if p.is_file() and p.name != 'delivery_manifest.json'] + source_files
-    write('delivery_manifest.json', {'scope': 'Isolated experiment; no production promotion',
+    files = [p for p in BASE.rglob('*') if p.is_file() and p.name != 'delivery_manifest.json'] + [p for p in output.rglob('*') if p.is_file()] + source_files
+    write(output,'delivery_manifest.json', {'scope': 'Isolated experiment; no production promotion',
         'files': {p.relative_to(ROOT).as_posix(): {'bytes': p.stat().st_size, 'sha256': digest(p)} for p in sorted(files)}})
     print(json.dumps({'passed': True, 'candidates': len(accepted), 'report_links': len(parser.links),
-                      'report': str(BASE / 'report.html')}, ensure_ascii=True))
+                      'report': str(output / 'report.html')}, ensure_ascii=True))
 
 
 if __name__ == '__main__':

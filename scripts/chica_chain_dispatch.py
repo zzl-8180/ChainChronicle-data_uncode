@@ -3,6 +3,7 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from metadata_targets import Metadata
@@ -11,8 +12,8 @@ from chica_mana_chance import ManaGuest
 from phase_d_chain_probe import BASE, fbits
 from unicorn.arm64_const import UC_ARM64_REG_S0, UC_ARM64_REG_S1, UC_ARM64_REG_S2
 
-OUT = Path('output/card_comparison_cid30236/chain_dispatch')
-SOURCE = Path('output/cache_full_20261015_v3/records.jsonl')
+OUT = write_path(Path('output/card_comparison_cid30236/chain_dispatch'))
+SOURCE = read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 
 
 class DispatchGuest(ManaGuest):

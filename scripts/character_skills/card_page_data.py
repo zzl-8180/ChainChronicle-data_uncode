@@ -75,6 +75,10 @@ import card_page_inference_c17_p1_1095_attack_partial as C17_P1_1095_ATTACK_PART
 import card_page_inference_c18_p1_1095_attack_partial as C18_P1_1095_ATTACK_PARTIAL
 import card_page_inference_c19_p1_1095_attack_families as C19_P1_1095_ATTACK_FAMILIES
 import card_page_inference_c19_p2_type8_basic_attack as C19_P2_TYPE8_BASIC_ATTACK
+import card_page_inference_c20_p1_yg_direct_damage as C20_P1_YG_DIRECT_DAMAGE
+import card_page_inference_c20_p2_nonyg_direct_damage as C20_P2_NONYG_DIRECT_DAMAGE
+import card_page_inference_c21_p1_special_direct as C21_P1_SPECIAL_DIRECT
+import card_page_inference_c21_p2_denju_direct as C21_P2_DENJU_DIRECT
 import effect_ledger as B18_WORDFACE
 from card_page_policy import metrics,INFERENCE_STATUS
 from card_page_basic import apply_basic_display
@@ -482,7 +486,7 @@ def walk_entries(entry):
 
 class Inputs:
     def __init__(self,root:Path,cids):
-        self.root=root.resolve(); self.base=self.root/'output/character_skills'; self.cids=set(cids)
+        self.root=root.resolve(); self.base=C.read_path(self.root/'output/character_skills',root=self.root); self.cids=set(cids)
         self.links={r['cid']:r for r in lines(self.base/'links/character_skills.jsonl') if r['cid'] in self.cids}
         self.profiles={r['cid']:r for r in lines(self.base/'profiles/profiles.jsonl') if r['cid'] in self.cids}
         if set(self.links)!=self.cids or set(self.profiles)!=self.cids:
@@ -490,18 +494,18 @@ class Inputs:
         keys={e['rec_key'] for p in self.profiles.values() for g in p['groups'] for e in g['records']}
         self.old={r['rec_key']:r for r in lines(self.base/'profiles/records.jsonl') if r['rec_key'] in keys}
         self.rule_metadata=read(self.base/'profiles/rules.json')
-        self.decoded=self.root/'output/cache_full_20261015_v3/decoded'
-        self.apk=self.root/'output/base_master'
+        self.decoded=C.read_path(self.root/'output/cache_full_20261015_v3/decoded',root=self.root)
+        self.apk=C.read_path(self.root/'output/base_master',root=self.root)
         self.cache_chara={r['cid']:r for r in read(self.decoded/'charainfo.data5.json.raw')['charainfo']}
         self.apk_chara={r['cid']:r for r in read(self.apk/'_mdCharacter.json')['charainfo']}
         self.cache_skill={r['skillid']:(i,r) for i,r in enumerate(read(self.decoded/'skilllist.data5.json.raw')['skilllist'])}
         self.apk_skill={r['skillid']:(i,r) for i,r in enumerate(read(self.apk/'_mdSkill.json')['skilllist'])}
-        self.baseline=read(self.root/'output/card_comparison_cid30236/description_effects.json') if 30236 in self.cids else []
+        self.baseline=read(C.read_path(self.root/'output/card_comparison_cid30236/description_effects.json',root=self.root)) if 30236 in self.cids else []
         self.forward=read(self.base/'type1082/native_checks.json')['verdict']
         if self.forward!='FORWARD': raise ValueError('This sample implementation requires the frozen FORWARD verdict')
         self.raw_docs={}
         # Existing converters use root-relative source files: declare/rebind that root explicitly.
-        C.ROOT=self.root; C.DECODED=self.decoded; C.BASE_MASTER=self.apk; C.CARD_COMPARISON=self.root/'output/card_comparison_cid30236'
+        C.ROOT=self.root; C.DECODED=self.decoded; C.BASE_MASTER=self.apk; C.CARD_COMPARISON=C.read_path(self.root/'output/card_comparison_cid30236',root=self.root)
         C.RECORDS_JSONL=self.decoded.parent/'records.jsonl'
         R.DECODED=self.decoded; R.CARD_COMPARISON=C.CARD_COMPARISON
         os.chdir(self.root)
@@ -547,7 +551,7 @@ class Inputs:
             pointer=f'/job_ability/{index}' if table=='job_ability' else f'/bossinfo/{table}/{index}'
             source.update(source_key=f'CACHE/{stem}.data5.json.raw',
                           record_key=f'CACHE/{stem}.data5.json.raw#{pointer}',json_pointer=pointer,
-                          original_file=path.relative_to(self.root).as_posix(),
+                          original_file=f'output/cache_full_20261015_v3/decoded/{stem}.data5.json.raw',
                           source_resolution='RESOLVED_EXACT_DECODED_RECORD',
                           note='按实际解码JSON的引用ID及完整原始record唯一核对；只修复定位，不升级数值或关联证据')
         if table in ('extra_ability_info','passive_info','denju_limit_break_info'):
@@ -710,7 +714,7 @@ _C13_P1_BACKLOG = None
 
 def _c13_p1_frozen_backlog(data):
     """Read the reviewed, frozen candidate claims instead of the mutable F03 queue."""
-    payload = read(data.root / 'output/character_skills/c13_p1_supporterskill_type8_20261031/candidate_answers.json')
+    payload = read(C.read_path(data.root / 'output/character_skills/c13_p1_supporterskill_type8_20261031/candidate_answers.json',root=data.root))
     backlog = collections.defaultdict(list)
     for row in payload.get('rows') or []:
         for claim in row.get('claims') or []:
@@ -2125,6 +2129,20 @@ def build_card(data:Inputs,cid):
     C19_P1_1095_ATTACK_FAMILIES.apply_to_groups(data,cid,groups,scope=C19_P1_1095_ATTACK_FAMILIES.SCOPE)
     # C19-P2 APK type8 基础攻击（1063／1238／12220 三行）：整句与 source span 消歧。
     C19_P2_TYPE8_BASIC_ATTACK.apply_to_groups(data,cid,groups,scope=C19_P2_TYPE8_BASIC_ATTACK.SCOPE)
+    # C20-P1 Y.G. pattern 行直接伤害
+    # 9卡10效果10答案候选（冻结清单）：仅认领 CACHE pattern0 冻结行；
+    # 模块内冻结目标、句面形态与 source 定位，超范围不并入。
+    C20_P1_YG_DIRECT_DAMAGE.apply_to_groups(data,cid,groups,scope=C20_P1_YG_DIRECT_DAMAGE.SCOPE)
+    # C20-P2 非 Y.G. pattern 行直接伤害
+    # 7卡8效果15答案候选（冻结清单）：仅认领冻结行；
+    # 模块内冻结目标与句面形态，条件句与其他句不并入。
+    C20_P2_NONYG_DIRECT_DAMAGE.apply_to_groups(data,cid,groups,scope=C20_P2_NONYG_DIRECT_DAMAGE.SCOPE)
+    # C21-P1 special_move 直接多段／大伤害（766项／517卡，CACHE＋APK分源）
+    # 仅按冻结身份与真实pattern链认领；同型多记录、反響、周期与其它效果不并入。
+    C21_P1_SPECIAL_DIRECT.apply_to_groups(data,cid,groups,scope=C21_P1_SPECIAL_DIRECT.SCOPE)
+    # C21-P2 denju 直接多段／大伤害（134项／107卡，全部CACHE）
+    # 133项全文一致直接链＋CID30304一项条件镜像；保护卡与非冻结行不处理。
+    C21_P2_DENJU_DIRECT.apply_to_groups(data,cid,groups,scope=C21_P2_DENJU_DIRECT.SCOPE)
     # Enter own-record answers in pages before the same ledger consumes them.
     B18_WORDFACE.apply_to_groups(data,cid,groups)
     counts=collections.Counter(r['row_class'] for r in allrows); cross={c:{e:0 for e in ('确认','推断','未知')} for c in ('A','B','C')}

@@ -8,6 +8,7 @@ import argparse
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from unicorn import UC_HOOK_CODE
@@ -45,8 +46,8 @@ def main():
     if args.segment is not None and (args.segment % 32 or not 0 <= args.segment < 0x300):
         parser.error("segment must be a 32-byte descriptor offset below 0x300")
     experiment, raw, preparatory = prepare_experiment()
-    Path("work/protection").mkdir(parents=True, exist_ok=True)
-    Path("output/protection").mkdir(parents=True, exist_ok=True)
+    write_path(Path("work/protection")).mkdir(parents=True, exist_ok=True)
+    write_path(Path("output/protection")).mkdir(parents=True, exist_ok=True)
     before = bytes(experiment.uc.mem_read(BASE, 0x200000))
     reached = []
 
@@ -64,7 +65,7 @@ def main():
     except ValueError as error:
         stop = str(error)
     after = bytes(experiment.uc.mem_read(BASE, 0x200000))
-    Path("work/protection/compatible_jni_prefix.bin").write_bytes(after)
+    write_path(Path("work/protection/compatible_jni_prefix.bin")).write_bytes(after)
     # Explicitly isolate the later pure conversion region, with its original
     # frame/context pointers. No skipped JavaVM/environment result is invented.
     experiment.uc.hook_del(getenv_hook)
@@ -85,7 +86,7 @@ def main():
     except ValueError as error:
         conversion_result = str(error)
     conversion_image = bytes(experiment.uc.mem_read(BASE, 0x200000))
-    Path("work/protection/compatible_jni_conversion.bin").write_bytes(conversion_image)
+    write_path(Path("work/protection/compatible_jni_conversion.bin")).write_bytes(conversion_image)
     conversion_range = []
     segment_result = None
     md = Cs(CS_ARCH_ARM64, CS_MODE_ARM)
@@ -101,7 +102,7 @@ def main():
         conversion_range = [{"rva": hex(address-BASE), "bytes": length,
                              "decoded_prefix_bytes": sum(i.size for i in native),
                              "sha256": hashlib.sha256(code).hexdigest()}]
-        Path("output/protection/jni_secondary.txt").write_text("\n".join(f"{hex(i.address)}: {i.mnemonic} {i.op_str}" for i in native), encoding="utf-8")
+        write_path(Path("output/protection/jni_secondary.txt")).write_text("\n".join(f"{hex(i.address)}: {i.mnemonic} {i.op_str}" for i in native), encoding="utf-8")
         if args.segment is not None:
             descriptor = bytes(experiment.uc.mem_read(context_pointer+args.segment, 32))
             original_descriptor = bytes(experiment.uc.mem_read(context_pointer, 32))
@@ -122,9 +123,9 @@ def main():
                               "stop": segment_stop, "decoded_prefix_bytes": sum(i.size for i in native),
                               "sha256": hashlib.sha256(code).hexdigest(),
                               "status": "CONTROLLED_DESCRIPTOR_REUSE; semantics not yet verified"}
-            Path(f"output/protection/segment_{args.segment:x}.txt").write_text("\n".join(f"{hex(i.address)}: {i.mnemonic} {i.op_str}" for i in native), encoding="utf-8")
-            Path(f"work/protection/segment_{args.segment:x}.bin").write_bytes(code)
-            Path(f"work/protection/compatible_segment_{args.segment:x}.bin").write_bytes(bytes(experiment.uc.mem_read(BASE, 0x200000)))
+            write_path(Path(f"output/protection/segment_{args.segment:x}.txt")).write_text("\n".join(f"{hex(i.address)}: {i.mnemonic} {i.op_str}" for i in native), encoding="utf-8")
+            write_path(Path(f"work/protection/segment_{args.segment:x}.bin")).write_bytes(code)
+            write_path(Path(f"work/protection/compatible_segment_{args.segment:x}.bin")).write_bytes(bytes(experiment.uc.mem_read(BASE, 0x200000)))
             experiment.uc.mem_write(context_pointer, original_descriptor)
     changes = []
     # Small gaps combine instruction bytes that happen to stay equal.
@@ -140,7 +141,7 @@ def main():
     if start is not None:
         changes.append((start, last+1))
     md = Cs(CS_ARCH_ARM64, CS_MODE_ARM)
-    output = Path("output/protection/jni_prefix")
+    output = write_path(Path("output/protection/jni_prefix"))
     output.mkdir(parents=True, exist_ok=True)
     ranges = []
     for begin, end in changes:

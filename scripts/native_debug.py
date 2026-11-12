@@ -12,6 +12,8 @@ import json
 import re
 import struct
 from pathlib import Path
+from versioned_outputs import fresh_output
+from project_layout_paths import read_path
 
 from elftools.dwarf.dwarfinfo import DWARFInfo, DebugSectionDescriptor, DwarfConfig
 from elftools.elf.elffile import ELFFile
@@ -27,12 +29,13 @@ def normalize(value):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
-    parser.add_argument("--output", type=Path, default=Path("output/native"))
+    parser.add_argument("--output", type=Path, help="Fresh native analysis directory")
     args = parser.parse_args()
-    args.output.mkdir(parents=True, exist_ok=True)
+    args.source = read_path(args.source)
+    args.output = fresh_output('projects/unpack/research/native', 'debug', args.output)
     raw = args.source.read_bytes()
     sha = hashlib.sha256(raw).hexdigest()
-    baseline = json.loads(Path("output/apk/baseline.json").read_text(encoding="utf-8"))
+    baseline = json.loads(read_path(Path("output/apk/baseline.json")).read_text(encoding="utf-8"))
     expected = next(x["sha256"] for x in baseline["extracted"] if x["apk_entry"].endswith("libChronicleNUtils.so"))
     if sha != expected or sha != "adc5f1d91343b0885ff07357c0cad2a66310cd52cc6ed47659fb24e4732a92bb":
         raise ValueError("Input does not match baseline library; recover section ranges again for a new build")

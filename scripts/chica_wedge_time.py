@@ -1,13 +1,14 @@
 """TimeWedge normal5 / ClockUp8 constant and CharaStatus game timer."""
 import hashlib,json,struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from metadata_targets import Metadata
 from il2cpp_sample_code import Native
 from phase_d_chain_probe import Guest,BASE,fbits
 from unicorn.arm64_const import UC_ARM64_REG_S8
 
-OUT=Path('output/card_comparison_cid30236/wedge_time')
+OUT=write_path(Path('output/card_comparison_cid30236/wedge_time'))
 
 
 class WedgeGuest(Guest):
@@ -25,7 +26,7 @@ class WedgeGuest(Guest):
 
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
-    source=Path('output/cache_full_20261015_v3/records.jsonl')
+    source=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
     records=[json.loads(s) for s in source.open(encoding='utf-8')]
     row=next(r for r in records if r['table']=='skilllist' and r['raw'].get('skillid')==43023600)
     assert row['raw']['ability']==1110 and row['raw']['param0']==1

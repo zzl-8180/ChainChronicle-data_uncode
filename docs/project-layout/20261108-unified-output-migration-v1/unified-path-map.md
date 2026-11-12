@@ -1,0 +1,44 @@
+# output统一迁移总账（当前40项）
+当前仅方案：31个完整目录为适配后候选，2指针文件受控切换，6目录和1残留文件原位；没有物理操作。目标为项目根下路径。
+| 当前条目 | 裁决 | 目标 |
+|---|---|---|
+| `output/20261016-reproducibility-audit` | 原位保留 | `output/20261016-reproducibility-audit` |
+| `output/20261024-project-review` | 原位保留 | `output/20261024-project-review` |
+| `output/_p.tmp` | 原位保留 | `output/_p.tmp` |
+| `output/apk` | 完整目录，适配后同窗迁移 | `projects/unpack/data/apk/apk-baseline` |
+| `output/base_master` | 完整目录，适配后同窗迁移 | `projects/unpack/data/apk/base_master` |
+| `output/boss_chain` | 完整目录，适配后同窗迁移 | `projects/skill-research/evidence/boss_chain` |
+| `output/boss_heal` | 完整目录，适配后同窗迁移 | `projects/skill-research/evidence/boss_heal` |
+| `output/cache_full_20261015_v3` | 完整目录，适配后同窗迁移 | `projects/unpack/data/cache/cache_full_20261015_v3` |
+| `output/cache_full_latest.json` | 同窗迁移并受控更新指针 | `projects/unpack/data/cache/cache_full_latest.json` |
+| `output/cache_refresh_20261015` | 完整目录，适配后同窗迁移 | `projects/unpack/data/cache/cache_refresh_20261015` |
+| `output/cache_refresh_latest.json` | 同窗迁移并受控更新指针 | `projects/unpack/data/cache/cache_refresh_latest.json` |
+| `output/card_comparison_cid30236` | 完整目录，适配后同窗迁移 | `projects/skill-research/evidence/card_comparison_cid30236` |
+| `output/card_images` | 完整目录，适配后同窗迁移 | `projects/assets/data/card_images` |
+| `output/char_roster` | 完整目录，适配后同窗迁移 | `projects/skill-research/data/char_roster` |
+| `output/character_skills` | 原位保留 | `output/character_skills` |
+| `output/decoded` | 完整目录，适配后同窗迁移 | `projects/unpack/history/decoded` |
+| `output/export` | 完整目录，适配后同窗迁移 | `projects/unpack/data/export` |
+| `output/field_guide` | 完整目录，适配后同窗迁移 | `projects/skill-research/reports/field_guide` |
+| `output/full_unpack` | 完整目录，适配后同窗迁移 | `projects/assets/data/full_unpack` |
+| `output/git_sync_20261024` | 完整目录，适配后同窗迁移 | `operations/records/git-sync/20261024` |
+| `output/il2cpp` | 完整目录，适配后同窗迁移 | `projects/unpack/research/il2cpp` |
+| `output/native` | 完整目录，适配后同窗迁移 | `projects/unpack/research/native` |
+| `output/ordinary_effects` | 完整目录，适配后同窗迁移 | `projects/skill-research/evidence/ordinary_effects` |
+| `output/phase_d` | 完整目录，适配后同窗迁移 | `projects/skill-research/evidence/phase_d` |
+| `output/phone` | 完整目录，适配后同窗迁移 | `projects/unpack/reports/acquisition/phone` |
+| `output/phone_full_20261015` | 完整目录，适配后同窗迁移 | `projects/unpack/reports/acquisition/phone_full_20261015` |
+| `output/phone_refresh_20261015` | 完整目录，适配后同窗迁移 | `projects/unpack/reports/acquisition/phone_refresh_20261015` |
+| `output/project-layout` | 原位保留 | `output/project-layout` |
+| `output/project_overview` | 完整目录，适配后同窗迁移 | `operations/records/project-overview/20261020` |
+| `output/protection` | 完整目录，适配后同窗迁移 | `projects/unpack/research/protection` |
+| `output/reference_analysis` | 完整目录，适配后同窗迁移 | `projects/reference-analysis/history/reference_analysis` |
+| `output/sample` | 完整目录，适配后同窗迁移 | `projects/skill-research/evidence/sample` |
+| `output/skill_mechanism_scale` | 完整目录，适配后同窗迁移 | `projects/skill-research/experiments/skill_mechanism_scale` |
+| `output/skill_mechanism_trial` | 完整目录，适配后同窗迁移 | `projects/skill-research/experiments/skill_mechanism_trial` |
+| `output/skill_route_experiments` | 完整目录，适配后同窗迁移 | `projects/skill-research/experiments/skill_route_experiments` |
+| `output/storage_retention` | 原位保留 | `output/storage_retention` |
+| `output/structured` | 完整目录，适配后同窗迁移 | `projects/skill-research/data/structured` |
+| `output/unity` | 完整目录，适配后同窗迁移 | `projects/assets/history/unity` |
+| `output/validation` | 完整目录，适配后同窗迁移 | `projects/unpack/reports/validation` |
+| `output/审查报告` | 原位保留 | `output/审查报告` |

@@ -4,6 +4,7 @@ import csv
 import hashlib
 import json
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 from decode_data5 import NativeDecoder
 from export_master import parse_records, strict_load, typed_value
@@ -49,11 +50,14 @@ def main():
     parser.add_argument('--work',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--reuse-dir',type=Path)
-    parser.add_argument('--prior-report',type=Path,default=Path('output/decoded/report.json'),
+    parser.add_argument('--prior-report',type=Path,default=read_path(Path('output/decoded/report.json')),
                         help='earlier decode_data5 report for exact-ciphertext reuse; absent in a clean checkout')
     parser.add_argument('--apk',type=Path,default=Path('チェンクロ.apk'),
                         help='compatible APK supplying the signing certificate (default: repo-root name, same as decode_data5.py)')
     args=parser.parse_args()
+    args.work=read_path(args.work);args.output=write_path(args.output);args.apk=read_path(args.apk)
+    args.prior_report=read_path(args.prior_report)
+    if args.reuse_dir is not None:args.reuse_dir=read_path(args.reuse_dir)
     args.output.mkdir(parents=True,exist_ok=False)
     decoded_dir=args.output/'decoded';decoded_dir.mkdir()
     if args.prior_report.is_file():
@@ -65,7 +69,11 @@ def main():
     if args.reuse_dir:
         earlier=json.loads((args.reuse_dir/'decode_report.json').read_bytes())
         for row in earlier['files']:
-            if row['status']=='DECODED':verified[row['filename']]=(row['native_validation'],Path(row['json_file']))
+            if row['status']=='DECODED':
+                filename=row['filename']
+                if not isinstance(filename,str) or Path(filename).name!=filename or any(c in filename for c in '/\\:') or filename in ('','.','..'):
+                    raise ValueError('Unsafe reuse filename: '+repr(filename))
+                verified[filename]=(row['native_validation'],args.reuse_dir/'decoded'/(filename+'.json.raw'))
         for path in (args.reuse_dir/'recovered_variants').glob('*.report.json'):
             meta=json.loads(path.read_bytes())
             verified[meta['filename']]=(meta,path.with_name(meta['filename']+'.json.raw'))
@@ -77,7 +85,7 @@ def main():
     results=[];tables=[];count=0
     with (args.output/'records.jsonl').open('w',encoding='utf-8') as records:
         for source in sources:
-            raw=source.read_bytes();row={'source':str(source),'filename':source.name,'source_sha256':sha(raw),'source_bytes':len(raw)}
+            raw=source.read_bytes();row={'source':path_reference(source),'filename':source.name,'source_sha256':sha(raw),'source_bytes':len(raw)}
             try:
                 previous=old.get(source.name)
                 reused=verified.get(source.name)
@@ -87,7 +95,7 @@ def main():
                     document=strict_load(plaintext);row['method']='REUSE_THIS_SNAPSHOT_VERIFIED_DECODE'
                 elif previous and previous['source_sha256']==row['source_sha256']:
                     json_raw=previous.get('json_file') or args.prior_report.parent/(source.name+'.json.raw')
-                    plaintext=Path(json_raw).read_bytes()
+                    plaintext=read_path(Path(json_raw)).read_bytes()
                     assert sha(plaintext)==previous['json_raw_sha256']
                     document=strict_load(plaintext);meta=previous
                     row['method']='REUSE_EXACT_CIPHERTEXT_AND_VERIFIED_JSON'
@@ -101,7 +109,7 @@ def main():
                     row['method']='EXISTING_NATIVE_DECODER'
                     del decoder
                 out=decoded_dir/(source.name+'.json.raw');out.write_bytes(plaintext)
-                row.update(status='DECODED',json_file=str(out),json_raw_sha256=sha(plaintext),native_validation=meta)
+                row.update(status='DECODED',json_file=path_reference(out),json_raw_sha256=sha(plaintext),native_validation=meta)
                 arrays=[key for key,value in document.items() if isinstance(value,list)]
                 row['non_array_top_fields']=[key for key in document if key not in arrays]
                 row['tables']={}
@@ -115,11 +123,11 @@ def main():
                         assert typed_value(strict_load(span))==typed_value(value)
                         record={'record_key':'CACHE/'+source.name+'.json.raw#'+location['json_pointer'],
                                 'source_key':'CACHE/'+source.name+'.json.raw','layer':'CACHE','table':table,'table_path':table_path,
-                                'snapshot_id':args.output.name,'original_file':str(source),'source_sha256':row['source_sha256'],
+                                'snapshot_id':args.output.name,'original_file':path_reference(source),'source_sha256':row['source_sha256'],
                                 'location':location,'raw':value,'analysis_named_table':table=='@document'}
                         records.write(json.dumps(record,ensure_ascii=False,separators=(',',':'))+'\n');count+=1
                     row['tables'][table_path]=len(located)
-                    tables.append({'file':source.name,'table':table,'records':len(located),'basis':'Decoded array boundary' if table!='@document' else 'Root document analysis view','json_file':str(out)})
+                    tables.append({'file':source.name,'table':table,'records':len(located),'basis':'Decoded array boundary' if table!='@document' else 'Root document analysis view','json_file':path_reference(out)})
                 row['exported_record_views']=sum(row['tables'].values())
             except Exception as exc:
                 row.update(status='FAILED_RETAINED',error=f'{type(exc).__name__}: {exc}')
@@ -129,8 +137,8 @@ def main():
     report={'status':'PASS' if all(r['status']=='DECODED' for r in results) else 'PARTIAL_FAILURES_RETAINED',
             'input_files':len(sources),'decoded_files':sum(r['status']=='DECODED' for r in results),'exported_record_views':count,
             'files':results,'tables':tables,'producer_sha256':sha(Path(__file__).read_bytes()),
-            'decoder_sha256':sha(Path('scripts/decode_data5.py').read_bytes()),'native_provenance':{k:v for k,v in old_report.items() if k not in ('files','status','scope')},
-            'variant_parser_sha256':sha(Path('scripts/decode_cache_variants.py').read_bytes()),
+         'decoder_sha256':sha((Path(__file__).resolve().parent / 'decode_data5.py').read_bytes()),'native_provenance':{k:v for k,v in old_report.items() if k not in ('files','status','scope')},
+         'variant_parser_sha256':sha((Path(__file__).resolve().parent / 'decode_cache_variants.py').read_bytes()),
             'limits':['Current acquired data5 only; bdl containers preserved raw and not yet decoded','All raw JSON fields retained; no inferred live values','Non-array wrapper fields remain in complete source JSON; @document counts are not game entities']}
     (args.output/'decode_report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     with (args.output/'tables.csv').open('w',encoding='utf-8-sig',newline='') as stream:

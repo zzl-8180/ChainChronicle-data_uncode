@@ -4,6 +4,7 @@ import json
 import math
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 import boss_type105_probe as f
 from unicorn import UC_HOOK_CODE
@@ -341,5 +342,5 @@ result=dict(evidence_kind='CONTROLLED_NATIVE_FRAGMENT',
                     'ShootDelayBullet is intercepted during counter tests; manager deletion is captured, Unity destruction modeled.',
                     'Attack/AttackOther intercepted before defence, elements, flags and actual HP changes.',
                     'Shared base fixture is from boss_type105_probe; no panel ATK conversion or current player state.'])
-Path('output/boss_chain/type112/native_checks.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+write_path(Path('output/boss_chain/type112/native_checks.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
 print(json.dumps(dict(passed=len(checks))))

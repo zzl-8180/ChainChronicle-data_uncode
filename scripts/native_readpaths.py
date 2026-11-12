@@ -11,6 +11,8 @@ from pathlib import Path
 from elftools.dwarf.dwarfinfo import DWARFInfo, DebugSectionDescriptor, DwarfConfig
 from elftools.dwarf.dwarf_expr import DWARFExprParser
 
+from project_layout_paths import read_path, write_path
+
 SOURCE = Path("work/apk/lib/arm64-v8a/libChronicleNUtils.so")
 TARGETS = {"loadFile", "saveFile", "InitializeData", "initializeNative", "initializeNative_type0",
            "DecodeRotData", "DecodeXorData", "Native_CheckHashM", "InitializeEnesetDataNative_body"}
@@ -19,7 +21,7 @@ TARGETS.update({"Java_com_sega_chainchronicle_MainActivity_init_body", "callJava
 
 def main():
     raw = SOURCE.read_bytes()
-    recovery = json.loads(Path("output/native/debug_recovery.json").read_text())
+    recovery = json.loads(read_path(Path("output/native/debug_recovery.json")).read_text())
     assert hashlib.sha256(raw).hexdigest() == recovery["source_sha256"]
     kwargs = {k: None for k in inspect.signature(DWARFInfo).parameters if k != "config"}
     for name, (start, end) in recovery["ranges"].items():
@@ -89,7 +91,9 @@ def main():
               "call_sites": edges, "variables": variables,
               "limits": ["DWARF call sites do not recover executable control flow or all callers",
                          "data5, chronicle.dat and resource bundle input mappings remain UNKNOWN"]}
-    Path("output/native/readpaths.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    output = write_path(Path("projects/unpack/research/native/20261111/readpaths.json"))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"functions": len(functions), "call_sites": len(edges), "variables": len(variables),
                       "incoming": [{"caller": e["caller"], "callee": e["callee"]}
                                    for e in edges if e["callee"] in TARGETS]}, ensure_ascii=False, indent=2))

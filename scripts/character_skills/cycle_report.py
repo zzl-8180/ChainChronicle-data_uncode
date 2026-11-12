@@ -10,10 +10,12 @@ from __future__ import annotations
 import argparse
 import collections
 import copy
+import csv
 import hashlib
 import html
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -479,6 +481,95 @@ CYCLES = {
             },
         ],
     },
+    "C20": {
+        "title": "C20｜P1 Y.G. 与 P2 非 Y.G. 条件选档直接伤害周期",
+        "campaign": "754f04b6f552fc2a993c7c7b1de233fc7d138cbac35497c28ce12478a30f4373",
+        "snapshot": "754f04b6-cf9451c6ff47fcfb",
+        "rules": "294 键，SHA-16 cf9451c6ff47fcfb",
+        "before_cards": "output/character_skills/c20_delivery_20261108/corrective_rebuild/cards",
+        "use_player_text_default": True,
+        "allow_c14_p2_page_sha_drift": True,
+        "disclose_row_unresolved": True,
+        "disclose_row_split_flags": True,
+        "show_player_scope_default": True,
+        "split_effect_answer_summary": True,
+        "effect_label": "伤害效果",
+        "split_panel_note": "效果与答案不是同一口径：P2 的 HP 档、Chain 等分支在同一效果下给出多条答案，因此 18 个效果对应 25 条答案，不合并成一个数汇报。",
+        "delivery_review": "output/character_skills/review/c20_delivery_final_20261108_deepseek/REPORT.md",
+        "delivery_task": "docs/tasks/20261108-c20-delivery-package.md",
+        "candidate_review": "output/character_skills/review/c20_attack_candidates_20261108_deepseek/REPORT.md",
+        "expected_totals": {
+            "rows": 18, "cards": 16, "answers": 25, "effects": 18,
+            "yg_answers": 10, "non_yg_answers": 15,
+            "yg_effects": 10, "non_yg_effects": 8,
+            "p1": {"rows": 10, "cards": 9, "answers": 10, "effects": 10},
+            "p2": {"rows": 8, "cards": 7, "answers": 15, "effects": 8},
+        },
+        "batches": [
+            {
+                "id": "C20-P1",
+                "name": "P1｜Y.G. 必殺直接伤害（CACHE，10行10效果10答案）",
+                "binding": "c20_p1_yg_direct_damage",
+                "task": "docs/tasks/20261108-c20-p1-yg-direct-damage.md",
+                "review": "output/character_skills/review/c20_attack_candidates_20261108_deepseek/REPORT.md",
+                "verdict": "候选独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、零阻断；交付包正式生成 48/48 PASS",
+                "notes": "9卡10行10效果10答案，全部Y.G.，只取缓存层。按父记录的唯一子槽定位到伤害记录。数值是局部伤害输入（技能基值倍率），不是最终扣血、保证命中或实机伤害。缺参数不补零，其它档位／其它记录与句外强化不并入；句面到记录的归属为推断，未做运行时验证。同句未解子句（击飞、眩晕等）按行级拆分标志默认披露。",
+            },
+            {
+                "id": "C20-P2",
+                "name": "P2｜非 Y.G. 条件选档直接伤害（CACHE＋APK，8行8效果15答案）",
+                "binding": "c20_p2_nonyg_direct_damage",
+                "task": "docs/tasks/20261108-c20-p2-nonyg-direct-damage.md",
+                "review": "output/character_skills/review/c20_attack_candidates_20261108_deepseek/REPORT.md",
+                "verdict": "候选独立审查 PASS_WITH_EXPLICIT_SCOPE_LIMITS、零阻断；交付包正式生成 48/48 PASS",
+                "notes": "7卡8行8效果15答案，全部非Y.G.，缓存与安装包按行分层。HP档、Chain、次数上限、地形、职业法珠／废料计数等必要条件按完整父集合逐条给出；同一效果的多档答案属正常分支，不重复计效果。12226增强档按原表精度保留，不按玩家文案四舍五入。20332自身受伤与另一类效果另论；归属推断、未实机，最终扣血未验证。",
+            },
+        ],
+    },
+    "C21": {
+        "title": "C21｜全角色 special 与 denju 直接多段／大伤害来源绑定周期",
+        "campaign": "5492e173e3fa7c918eb3a2a701d6471e4a84246927e9450cf1cd99d3bc74e010",
+        "snapshot": "5492e173-cf9451c6ff47fcfb",
+        "rules": "294 键，SHA-16 cf9451c6ff47fcfb",
+        "before_cards": "output/character_skills/c21_delivery_20261111/pre_rebuild/cards",
+        "use_player_text_default": True,
+        "allow_c14_p2_page_sha_drift": True,
+        "disclose_row_unresolved": True,
+        "disclose_row_split_flags": True,
+        "show_player_scope_default": True,
+        "split_effect_answer_summary": True,
+        "effect_label": "伤害效果",
+        "split_panel_note": "效果与答案分别统计：本批每行恰一个目标伤害效果并新增一条答案，因此二者均为900；这不代表900行或518张卡已经全部解释完成。P1=766，P2=134；严格直接来源899项，CID30304首句条件镜像1项。",
+        "delivery_review": "output/character_skills/review/c21_delivery_final_20261111_deepseek/REPORT.md",
+        "delivery_task": "docs/tasks/20261111-c21-delivery-package.md",
+        "expected_totals": {
+            "rows": 900, "cards": 518, "answers": 900, "effects": 900,
+            "yg_answers": 11, "non_yg_answers": 889,
+            "yg_effects": 11, "non_yg_effects": 889,
+            "p1": {"rows": 766, "cards": 517, "answers": 766, "effects": 766},
+            "p2": {"rows": 134, "cards": 107, "answers": 134, "effects": 134},
+        },
+        "batches": [
+            {
+                "id": "C21-P1",
+                "name": "P1｜special 直接伤害（CACHE 259＋APK 507，766行766效果766答案）",
+                "binding": "c21_p1_special_direct_binding",
+                "task": "docs/tasks/20261111-c21-p1-special-direct.md",
+                "review": "output/character_skills/review/c21_special_candidates_20261111_deepseek/REPORT.md",
+                "verdict": "候选独立审查通过；正式独立终审23/23、阻断0",
+                "notes": "517卡766行766效果766答案，含Y.G.超共鸣直接伤害10项。逐行按同层charainfo→bosspattern→bossskill重导，CACHE与APK不混源；多段次数与skillparam6一致，大／中伤害使用单发型，反響不借首次直接攻击槽。数值是局部伤害输入，关联推断，未做新原生或实机验证。",
+            },
+            {
+                "id": "C21-P2",
+                "name": "P2｜denju 直接伤害与首句条件镜像（全部CACHE，134行134效果134答案）",
+                "binding": "c21_p2_denju_direct_binding",
+                "task": "docs/tasks/20261111-c21-p2-denju-direct.md",
+                "review": "output/character_skills/review/c21_denju_candidates_20261111_deepseek/REPORT.md",
+                "verdict": "候选独立审查通过；正式独立终审23/23、阻断0",
+                "notes": "107卡134行134效果134答案：133项传授全文一致的直接denju，加上CID30304一项首句条件镜像。父集合从denju记录重导，不误用charainfo；CID30304全文不一致明示，不与直接项混计。局部伤害输入不等于最终扣血或命中，关联均为推断。",
+            },
+        ],
+    },
 }
 
 # C19-R01仅重建展示，不改变原C19的周期配置或正式答案消费路径。
@@ -486,9 +577,42 @@ CYCLES["C19_R01"] = copy.deepcopy(CYCLES["C19"])
 CYCLES["C19_R01"].update({
     "title": "C19-R01｜同句未解效果就地披露整改",
     "disclose_row_unresolved": True,
+    "rectification_display": "R01",
     "direction_review": "output/character_skills/review/direction_c19_20261107_thirdparty/REPORT.md",
     "rectification_task": "docs/tasks/20261107-c19-r01-row-unresolved-rectification.md",
     "original_cycle_report": "output/character_skills/cycle_reports/C19/index.html",
+})
+
+# C20-R01只补展开层的父集合与分支证据，不改变正式答案消费路径。
+CYCLES["C20_R01"] = copy.deepcopy(CYCLES["C20"])
+CYCLES["C20_R01"].update({
+    "title": "C20-R01｜F01 完整父集合与合并／排除分支披露",
+    "rectification_display": "F01",
+    "direction_review": "output/character_skills/review/c20_post_closeout_independent_recheck_20261109_deepseek/v05/REPORT.md",
+    "rectification_task": "docs/tasks/20261109-c20-f01-expanded-parents.md",
+    "original_cycle_report": "output/character_skills/cycle_reports/C20/index.html",
+    "expected_batch_prefix": "C20",
+})
+
+CYCLES["C20_R02"] = copy.deepcopy(CYCLES["C20_R01"])
+CYCLES["C20_R02"].update({
+    "title": "C20-R02｜F01 描述来源父与本答案分支父标记",
+    "rectification_stage": "PARENT_MARKER",
+    "direction_review": "output/character_skills/review/c20_post_closeout_independent_recheck_20261109_deepseek/f01_recheck_v01/REPORT.md",
+    "rectification_task": "docs/tasks/20261109-c20-f01-parent-marker-r02.md",
+    "original_cycle_report": "output/character_skills/cycle_reports/C20_r01_20261109/index.html",
+})
+
+# C21-R01只改默认条件表达与展开证据，正式答案、原C21成果和原第三方裁决不变。
+CYCLES["C21_R01"] = copy.deepcopy(CYCLES["C21"])
+CYCLES["C21_R01"].update({
+    "title": "C21-R01｜F01／F02 必要条件与玩家Chain档位展示整改",
+    "condition_display": "C21_R01",
+    "rectification_c21_conditions": True,
+    "direction_review": "output/character_skills/review/direction_c21_20261112_thirdparty/REPORT.md",
+    "rectification_task": "docs/tasks/20261112-c21-r01-condition-display.md",
+    "original_cycle_report": "output/character_skills/cycle_reports/C21/index.html",
+    "expected_batch_prefix": "C21",
 })
 
 CSS = """
@@ -498,6 +622,7 @@ header{background:linear-gradient(120deg,#172554,#1e40af);color:white;padding:28
 h2{font-size:21px;margin:0 0 12px}h3{font-size:17px;margin:18px 0 8px}.muted{color:var(--muted)}.small{font-size:13px}.stats{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.stat{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 12px;font-weight:600;color:#1e40af}.badge{display:inline-block;border-radius:5px;padding:1px 7px;font-size:12px;margin-right:5px;background:#e2e8f0;color:#334155}.badge.pass{background:#d1fae5;color:#065f46}.badge.unknown{background:#fef3c7;color:#92400e}.badge.infer{background:#ede9fe;color:#5b21b6}
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#eaf0f7;font-weight:700}tr:nth-child(even) td{background:#f8fafc}.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}@media(max-width:640px){.table-wrap table{min-width:720px}}.jp{font-family:"Noto Sans CJK JP","Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif}.name{font-weight:650;white-space:nowrap}.num{font-variant-numeric:tabular-nums;white-space:nowrap}.links a{color:var(--blue);margin-right:14px}details{cursor:pointer}details summary{color:var(--blue)}.value{max-width:760px;white-space:pre-wrap}.warning{background:#fff7ed;border-left:4px solid var(--amber);padding:10px 14px}.footer{color:var(--muted);font-size:12px;margin:24px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.metric{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px}.metric b{display:block;font-size:20px;color:#1e40af}
 .table-wrap{overflow-x:auto}.value{overflow-wrap:anywhere}code{overflow-wrap:anywhere;word-break:break-word}details.unresolved-effect{margin:6px 0;padding:6px 8px;background:#fff7ed;border-left:3px solid var(--amber)}details.unresolved-effect summary{color:#92400e}details.unresolved-effect .value{color:#78350f}
+.answer-default{margin:0 0 4px}.answer-default-meta{background:#f1f5f9;border-left:3px solid #94a3b8;padding:4px 8px;border-radius:4px;margin:4px 0}.unresolved-row{margin:6px 0;padding:6px 8px;background:#fff7ed;border-left:3px solid var(--amber)}.unresolved-row>details{display:inline-block;margin-left:6px;vertical-align:top}
 @media(max-width:800px){main{padding:0 8px}header{padding:20px}table{font-size:12px}th,td{padding:5px}.name{white-space:normal}.value{max-width:100%}}
 """
 
@@ -677,6 +802,7 @@ def new_answer_rows(cfg: dict, batch: dict):
                     if not evidence or evidence.get("row_id") != row_id:
                         raise ValueError(f"正式backlog缺少同row_id未解证据：{effect['effect_id']}")
                     unresolved_effects.append(dict(effect, gap_evidence=evidence))
+            row_split_flags = list(after_analysis.get("split_flags") or [])
             rows.append({"cid": cid, "name": character_name(after_data), "row_id": row_id,
                          "japanese": after_row.get("japanese", ""),
                          "reference_field": after_row.get("reference_field"),
@@ -684,7 +810,9 @@ def new_answer_rows(cfg: dict, batch: dict):
                          "fragment_index": after_row.get("fragment_index"),
                          "before": before_row, "after": after_row, "answers": appended,
                          **({"unresolved_effects": unresolved_effects}
-                            if cfg.get("disclose_row_unresolved") else {})})
+                            if cfg.get("disclose_row_unresolved") else {}),
+                         **({"row_split_flags": row_split_flags}
+                            if cfg.get("disclose_row_split_flags") else {})})
     if stats["rows"] == 0:
         raise ValueError(f"批次没有新增答案：{batch['id']}")
     stats["cards"] = len(stats["cards"])
@@ -697,7 +825,265 @@ def relative_href(output_dir: Path, target: str) -> str:
     return os.path.relpath(ROOT / target, output_dir).replace(os.sep, "/")
 
 
-def answer_block(answer: dict, row: dict, output_dir: Path, cid: int, use_player_text: bool = False):
+def compact_json(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+def scope_answer_disclosure(answer: dict):
+    """Render parent order and branch evidence already present in C20 answer bindings."""
+    disclosure = next((value for value in (answer.get("binding") or {}).values()
+                       if isinstance(value, dict) and "complete_parent_set" in value), None)
+    if not disclosure:
+        return ""
+    current = disclosure.get("current_parent") or {}
+    selected = disclosure.get("selected") or {}
+    parents = disclosure.get("complete_parent_set") or []
+    first_ref = str((parents[0] if parents else {}).get("reference_field") or "")
+    parent_owner = "denju" if disclosure.get("denju") or first_ref.startswith("patternid") else "charainfo"
+    parts = [f'<div class="parent-set-disclosure"><b>完整父集合（按 {parent_owner} 引用顺序）</b><ol>']
+    for index, parent in enumerate(disclosure.get("complete_parent_set") or [], 1):
+        is_description_source = (parent.get("reference_field") == current.get("reference_field")
+                                 and parent.get("pattern_id") == current.get("pattern_id"))
+        is_answer_branch = (parent.get("reference_field") == selected.get("reference_field")
+                            and parent.get("pattern_id") == selected.get("pattern_id"))
+        markers = []
+        if is_description_source:
+            markers.append("当前描述来源父")
+        if is_answer_branch:
+            markers.append("本答案分支父")
+        marker_html = "；" + "；".join(f"<b>{marker}</b>" for marker in markers) if markers else ""
+        pointer = parent.get("json_pointer") or parent.get("pattern_json_pointer") or "未单列"
+        parts.append(
+            f'<li>引用顺序 {index}：{html.escape(str(parent.get("reference_field") or "未单列"))}'
+            f'；pattern={html.escape(str(parent.get("pattern_id")))}'
+            f'；pattern_index={html.escape(str(parent.get("pattern_index")))}'
+            f'；pattern_json_pointer=<code>{html.escape(str(pointer))}</code>'
+            f'{marker_html}<br>'
+            f'原始条件：{html.escape(compact_json(parent.get("conditions_raw") or {}))}<br>'
+            f'子记录（按 slot 顺序）：{html.escape(compact_json(parent.get("children") or []))}</li>')
+    parts.append('</ol></div>')
+    for field, label, css_class in (("merged_disclosures", "合并分支", "merged-branch-disclosure"),
+                                    ("excluded_branch_values", "排除分支", "excluded-branch-disclosure")):
+        for index, item in enumerate(disclosure.get(field) or [], 1):
+            selection = item.get("selection") or {}
+            source = selection.get("source") or {}
+            pattern_pointer = (selection.get("pattern_json_pointer") or selection.get("json_pointer")
+                               or "未单列")
+            parts.append(
+                f'<div class="{css_class}"><b>{label} {index}</b>：'
+                f'{html.escape(str(selection.get("reference_field") or "未单列"))}'
+                f'；pattern={html.escape(str(selection.get("pattern_id")))}'
+                f'；pattern_index={html.escape(str(selection.get("pattern_index")))}'
+                f'；pattern_json_pointer=<code>{html.escape(str(pattern_pointer))}</code><br>'
+                f'原始条件：{html.escape(compact_json(selection.get("parent_conditions_raw") or {}))}<br>'
+                f'child_slot={html.escape(str(selection.get("child_slot")))}'
+                f'；record={html.escape(str(selection.get("record_id")))}'
+                f'；record_index={html.escape(str(selection.get("record_index")))}'
+                f'；type={html.escape(str(selection.get("type")))}'
+                f'；field={html.escape(str(selection.get("field")))}'
+                f'；raw={html.escape(compact_json(selection.get("raw_value")))}'
+                f'；raw_state={html.escape(str(selection.get("raw_state")))}<br>'
+                f'规则键：{html.escape(str(selection.get("rule_key") or "未单列"))}'
+                f'；来源层：{html.escape(str(source.get("layer") or "未单列"))}'
+                f'；记录指针：<code>{html.escape(str(source.get("json_pointer") or "未单列"))}</code>'
+                f'；字段指针：<code>{html.escape(str(source.get("field_json_pointer") or "未单列"))}</code><br>'
+                f'理由：{html.escape(str(item.get("reason") or "未单列"))}</div>')
+    mirror = disclosure.get("mirror") or {}
+    if mirror:
+        parts.append(
+            '<div class="condition-mirror-disclosure"><b>首句条件镜像（不是全文一致直接绑定）</b><br>'
+            f'全文一致：{html.escape(str(mirror.get("full_text_equal")))}'
+            f'；首句一致：{html.escape(str(mirror.get("first_sentence_equal")))}'
+            f'；当前片段为首句：{html.escape(str(mirror.get("fragment_is_first_sentence")))}<br>'
+            f'首句：{html.escape(str(mirror.get("first_sentence") or "未单列"))}<br>'
+            f'denju全文：{html.escape(str(mirror.get("denju_full_text") or "未单列"))}<br>'
+            f'pattern全文：{html.escape(str(mirror.get("pattern_full_text") or "未单列"))}<br>'
+            f'同记录既有答案：{html.escape(compact_json(mirror.get("existing_same_record_answers") or []))}<br>'
+            f'说明：{html.escape(str(mirror.get("note") or "未单列"))}</div>')
+    return "".join(parts)
+
+
+def c21_binding(answer: dict):
+    """Return the unique C21 disclosure binding without altering the formal answer."""
+    return next((value for value in (answer.get("binding") or {}).values()
+                 if isinstance(value, dict) and str(value.get("scope") or "").startswith("C21_")
+                 and "complete_parent_set" in value), {})
+
+
+def c21_default_player_text(answer: dict, default_text: str):
+    """Keep denju source mechanics in the expanded layer, not the player summary."""
+    binding = c21_binding(answer)
+    if binding.get("scope") != "C21_P2_DENJU_DIRECT_20261111":
+        return default_text
+    base = default_text.split("条件：", 1)[0]
+    base = base.split("本项来自传授", 1)[0].split("本项是条件镜像", 1)[0].strip()
+    if binding.get("model") == "DENJU_CONDITION_MIRROR":
+        addition = ("仅适用于传授首句分支；传授全文与必杀原文不完全一致，"
+                    "本项是首句条件镜像，关联为推断。")
+    else:
+        addition = "本项来自传授链，传授原文与所选分支原文逐字一致；句面归属为推断。"
+    return f"{base} {addition}"
+
+
+def c21_default_conditions(answer: dict, conditions):
+    binding = c21_binding(answer)
+    if binding.get("scope") != "C21_P2_DENJU_DIRECT_20261111":
+        return conditions
+    mirror = binding.get("model") == "DENJU_CONDITION_MIRROR"
+    readable = []
+    for condition in conditions:
+        text = str(condition)
+        if text.startswith("来源链："):
+            continue
+        if "denju.patternid" in text or "denju.stext" in text or "pattern.sinfo" in text:
+            text = ("仅当传授首句分支被选中时；传授全文与必杀原文不完全一致，"
+                    "本项仅为首句条件镜像（推断）" if mirror else
+                    "对应传授分支被选中，且传授原文与该分支原文逐字一致")
+        elif text.startswith("条件镜像："):
+            text = "条件镜像：传授全文与必杀原文不完全一致，仅在首句身份及同来源同值答案同时成立时披露"
+        text = text.replace("CACHE静态原表", "静态数据对应").replace("denju", "传授")
+        if text and text not in readable:
+            readable.append(text)
+    return readable
+
+
+def c21_r01_raw_conditions(answer: dict):
+    """Read only the selected answer branch; never borrow a sibling branch's gates."""
+    selected = c21_binding(answer).get("selected") or {}
+    raw = selected.get("parent_conditions_raw") or selected.get("conditions_raw")
+    if not isinstance(raw, dict) or not raw:
+        raise ValueError(f"C21_R01缺少selected分支原始条件：{answer.get('record_id')}")
+    return raw
+
+
+def c21_r01_chain_label(chs: int, che: int):
+    labels = {
+        (0, 0): "未设置Chain区间条件（仅指该字段；其他必要条件另列）",
+        (0, 1): "通常（0thChain）当前分支",
+        (0, 2): "通常（0th）至1stChain当前分支",
+        (0, 3): "通常（0th）至2ndChain（适用玩家Chain路径；原始0的特殊无Chain路径见展开说明）",
+        (0, 4): "通常（0th）至3rdChain（适用玩家Chain路径；原始0的特殊无Chain路径见展开说明）",
+        (2, 5): "1stChain以上（含MaxChain）当前分支",
+        (4, 5): "3rdChain至MaxChain当前分支",
+    }
+    key = (chs, che)
+    if key not in labels:
+        raise ValueError(f"C21_R01未登记的Chain区间：{key}")
+    return labels[key]
+
+
+def c21_r01_mana_disclosure(raw: dict):
+    """Separate text-explicit facts from unresolved mana/scrap timing and selection semantics."""
+    text = str(raw.get("sinfo") or "")
+    known = []
+    scrap_gate = re.search(r"スクラップが(\d+)(?:個|つ)以上", text)
+    mana_gate = re.search(r"マナが(\d+)つ以上で(?:必殺技を)?発動", text)
+    mana_ceiling = re.search(r"マナが(\d+)つ以下で発動", text)
+    if scrap_gate:
+        known.append(f"原文含‘斯库拉普不少于{scrap_gate.group(1)}个’的条件描述")
+    if mana_gate:
+        known.append(f"原文含‘法珠不少于{mana_gate.group(1)}个时发动’的描述")
+    if mana_ceiling:
+        known.append(f"原文含‘法珠不超过{mana_ceiling.group(1)}个时发动’的描述")
+    if "マナが多いほど" in text:
+        known.append("原文含‘法珠越多威力越高’的强化描述，本项不解释该增幅")
+    if not known:
+        if "スクラップ" in text:
+            known.append("原文含斯库拉普相关描述")
+        elif "マナ" in text:
+            known.append("原文含法珠相关描述")
+        else:
+            known.append("原表存在法珠／废料计数门")
+    if "スクラップ" in text and ("生成" in text or "破壊" in text):
+        known.append("原文另有斯库拉普生成／破坏描述，不并入本伤害答案")
+    unknown = [
+        "原始计数区间的具体对象未完全确认",
+        "扣费前后阈值、重置时机及本分支完整选档未验证",
+    ]
+    return "；".join(known + unknown), known, unknown
+
+
+def c21_r01_condition_projection(answer: dict, conditions):
+    raw = c21_r01_raw_conditions(answer)
+    chs = raw.get("chs") or 0
+    che = raw.get("che") or 0
+    limit = raw.get("limit")
+    bgf = raw.get("bgf")
+    mne = raw.get("mne")
+    necessary = [c21_r01_chain_label(chs, che)]
+    kinds = []
+    if (chs, che) in ((0, 3), (0, 4), (4, 5)):
+        kinds.append("chain")
+    if limit == 1:
+        kinds.append("limit")
+        necessary.append("本分支已使用次数小于1次（不是整个技能第几次；重置时机、优先级／切换边界及完整选档未验证）")
+    elif limit not in (None, 0):
+        raise ValueError(f"C21_R01未登记的使用次数门：{limit}")
+    if bgf == 1114112:
+        kinds.append("terrain")
+        necessary.append("地形为沙滩／船上／海中（按原文；必要条件；不据此推导另一分支为地形补集）")
+    elif bgf == 4096:
+        kinds.append("terrain")
+        necessary.append("地形为荒地（按原文；必要条件；不据此推导另一分支为地形补集）")
+    elif bgf not in (None, 0):
+        raise ValueError(f"C21_R01未登记的地形门：{bgf}")
+    mana_known = []
+    mana_unknown = []
+    if mne not in (None, 0):
+        kinds.append("mana")
+        mana_text, mana_known, mana_unknown = c21_r01_mana_disclosure(raw)
+        necessary.append(mana_text)
+    retained = []
+    internal_labels = (
+        "当前基础档", "Chain计数", "0thChain（通常）当前档", "0th／1stChain当前档",
+        "1stChain以上（含MaxChain）当前档",
+    )
+    for condition in c21_default_conditions(answer, list(conditions)):
+        text = str(condition)
+        if any(label in text for label in internal_labels):
+            continue
+        if text and text not in retained:
+            retained.append(text)
+    readable = []
+    for text in necessary + retained:
+        if text and text not in readable:
+            readable.append(text)
+    return {
+        "raw": raw, "chain": [chs, che], "necessary": necessary,
+        "conditions": readable, "kinds": kinds,
+        "mana_known": mana_known, "mana_unknown": mana_unknown,
+    }
+
+
+def c21_r01_default_player_text(answer: dict, default_text: str):
+    binding = c21_binding(answer)
+    if binding.get("scope") == "C21_P2_DENJU_DIRECT_20261111":
+        base = c21_default_player_text(answer, default_text)
+    else:
+        base = default_text.split("条件：", 1)[0].strip()
+    necessary = c21_r01_condition_projection(answer, [])["necessary"]
+    return f"{base} 条件：{'；'.join(necessary)}"
+
+
+def c21_r01_expanded_condition(answer: dict):
+    projection = c21_r01_condition_projection(answer, [])
+    raw = projection["raw"]
+    chs, che = projection["chain"]
+    special = ("原始chs=0可包含特殊无Chain路径；玩家档位标签只用于适用玩家Chain路径，"
+               "完整选档与运行时装载未验证。" if chs == 0 and che >= 3 else
+               "完整选档与运行时装载未验证。")
+    mana = ""
+    if projection["mana_unknown"]:
+        mana = f'<br>法珠／废料未知边界：{html.escape("；".join(projection["mana_unknown"]))}'
+    return (f'<div class="c21-r01-condition-evidence"><b>C21-R01本答案分支条件证据</b><br>'
+            f'玩家可读必要条件：{html.escape("；".join(projection["necessary"]))}<br>'
+            f'selected.parent_conditions_raw：<code>{html.escape(compact_json(raw))}</code><br>'
+            f'Chain原始区间：[{chs}, {che}]；{html.escape(special)}'
+            f'{mana}</div>')
+
+
+def answer_block(answer: dict, row: dict, output_dir: Path, cid: int, use_player_text: bool = False,
+                 show_scope: bool = False, condition_display: str | None = None):
     source = answer.get("source") or {}
     table = answer.get("table") or source.get("table") or "未单列"
     record_id = answer.get("record_id")
@@ -721,6 +1107,10 @@ def answer_block(answer: dict, row: dict, output_dir: Path, cid: int, use_player
     player_text = answer.get("player_text") if use_player_text else None
     if player_text:
         default_text = str(player_text)
+        if condition_display == "C21_R01":
+            default_text = c21_r01_default_player_text(answer, default_text)
+        else:
+            default_text = c21_default_player_text(answer, default_text)
         if answer.get("association_evidence") == "推断" and "推断" not in default_text:
             default_text += " 句面到来源的关联为推断。"
         summary = html.escape(default_text)
@@ -729,13 +1119,64 @@ def answer_block(answer: dict, row: dict, output_dir: Path, cid: int, use_player
         summary = (f'{html.escape(str(answer.get("quantity_kind") or answer.get("unit") or "答案"))}：'
                    f'{html.escape(str(answer.get("value") or "未列值"))}')
         precise = ""
+    if show_scope:
+        # C20／C21：默认层给对象、局部量纲与必要条件；公式、原值、表／字段／指针与排除项留在展开层。
+        scope = answer.get("player_scope") if isinstance(answer.get("player_scope"), dict) else {}
+        bits = []
+        obj_disp = scope.get("object") or obj
+        if obj_disp and obj_disp != "未单列":
+            bits.append(f"对象：{html.escape(str(obj_disp))}")
+        qty_disp = scope.get("quantity") or answer.get("quantity_kind")
+        if qty_disp:
+            bits.append(f"局部量：{html.escape(str(qty_disp))}"
+                        f"（{html.escape(str(scope.get('unit') or answer.get('unit') or '未单列'))}）")
+        scope_conditions = scope.get("conditions")
+        if isinstance(scope_conditions, str):
+            scope_conditions = [scope_conditions]
+        if not scope_conditions:
+            scope_conditions = [conditions] if isinstance(conditions, str) else list(conditions)
+        scope_conditions = c21_default_conditions(answer, scope_conditions)
+        if condition_display == "C21_R01":
+            scope_conditions = c21_r01_condition_projection(answer, scope_conditions)["conditions"]
+        cond_disp = "；".join(html.escape(str(c)) for c in scope_conditions if c) or "未单列"
+        unknowns = [str(u) for u in scope.get("unknowns") or [] if u]
+        duration = scope.get("duration")
+        exclude_html = (f'排除／不并入与仍未验证：{html.escape("；".join(unknowns))}<br>'
+                        if unknowns else "")
+        duration_html = f'持续／周期：{html.escape(str(duration))}<br>' if duration else ""
+        rectified_condition_html = (c21_r01_expanded_condition(answer)
+                                    if condition_display == "C21_R01" else "")
+        return (f'<div class="answer-default">{summary}</div>'
+                f'<div class="answer-default-meta small">{"；".join(bits) or "对象：未单列"}<br>'
+                f'必要条件：{cond_disp}</div>'
+                f'<details><summary>展开：公式、原值、表／字段／指针与排除</summary><div class="value small">'
+                f'{precise}'
+                f'单位／量纲：{html.escape(str(answer.get("unit") or "未单列"))}<br>'
+                f'表：{html.escape(str(table))}<br>'
+                f'对象：{html.escape(str(obj))}<br>'
+                f'逐行 condition_label：{html.escape(str(condition_label))}<br>'
+                f'规则适用域 conditions：{html.escape(str(conditions))}<br>'
+                f'{duration_html}'
+                f'阶段：{html.escape(str(row.get("stage") or row.get("reference_field") or "未单列"))}'
+                f'　fragment={html.escape(str(row.get("fragment_index")))}<br>'
+                f'规则键：{html.escape(str(answer.get("rule_key") or "无"))}<br>'
+                f'原值：{html.escape(str(answer.get("raw_value")))}；记录：{html.escape(str(record_id))}'
+                f'（{html.escape(str(layer))}）<br>'
+                f'record_key：{html.escape(str(record_key))}<br>'
+                f'字段：{html.escape(str(field_path))}<br>'
+                f'来源：{html.escape(str(source_display))}<br>'
+                f'逐答案 json_pointer：{html.escape(str(pointer_display))}<br>'
+                f'{rectified_condition_html}'
+                f'{scope_answer_disclosure(answer)}'
+                f'{exclude_html}'
+                f'证据：{html.escape(evidence)}</div></details>')
     return (f'<details><summary>{summary}</summary><div class="value small">'
             f'{precise}'
             f'单位／量纲：{html.escape(str(answer.get("unit") or "未单列"))}<br>'
             f'表：{html.escape(str(table))}<br>'
             f'对象：{html.escape(str(obj))}<br>'
             f'逐行 condition_label：{html.escape(str(condition_label))}<br>'
-            f'规则适用域 conditions：{html.escape(conditions)}<br>'
+            f'规则适用域 conditions：{html.escape(str(conditions))}<br>'
             f'阶段：{html.escape(str(row.get("stage") or row.get("reference_field") or "未单列"))}'
             f'　fragment={html.escape(str(row.get("fragment_index")))}<br>'
             f'规则键：{html.escape(str(answer.get("rule_key") or "无"))}<br>'
@@ -779,6 +1220,37 @@ def unresolved_block(effect: dict):
             f'backlog_id=<code>{html.escape(str(evidence.get("backlog_id") or effect_id))}</code></div></details>')
 
 
+SPLIT_FLAG_LABELS = {
+    "S3_uncovered_clauses": "同句有未被效果主张覆盖的子句",
+    "S3b_residual_mechanisms": "同句含词表外机制词，未建立结构化覆盖",
+}
+
+
+def split_flag_block(flag: dict):
+    """行级拆分待核查标志的默认中文披露；子句位置与账本口径留展开层。"""
+    code = str(flag.get("code") or "未分类")
+    label = SPLIT_FLAG_LABELS.get(code, f"同句仍未核查（{code}）")
+    phrases = []
+    seen = set()
+    for item in flag.get("detail") or []:
+        if not isinstance(item, dict):
+            continue
+        text = item.get("clause") or item.get("text") or item.get("word")
+        idx = item.get("clause_index")
+        key = (text, idx)
+        if text and key not in seen:
+            seen.add(key)
+            phrases.append(str(text) + (f"（子句#{idx}）" if idx is not None else ""))
+    seq = "；".join(phrases) or "未单列"
+    return (f'<div class="unresolved-row small"><span class="badge unknown">同句未解</span> '
+            f'{html.escape(label)}：{html.escape(seq)}'
+            f'<details><summary>展开：子句位置、机制词与账本口径</summary><div class="value small">'
+            f'行级拆分标志：<code>{html.escape(code)}</code><br>'
+            f'原因口径：{html.escape(str(flag.get("reason") or "未单列"))}<br>'
+            f'明细：{html.escape(json.dumps(flag.get("detail") or [], ensure_ascii=False))}<br>'
+            f'来源：正式页当前行的 effect_ledger.analyze_row split_flags</div></details></div>')
+
+
 def render_new_answers(cfg: dict, batch: dict, output_dir: Path):
     computed = new_answer_rows(cfg, batch)
     rows = []
@@ -786,11 +1258,16 @@ def render_new_answers(cfg: dict, batch: dict, output_dir: Path):
         cid = item["cid"]
         answers = "<br>".join(
             answer_block(ans, item, output_dir, cid,
-                         use_player_text=cfg.get("use_player_text_default", False))
+                         use_player_text=cfg.get("use_player_text_default", False),
+                         show_scope=cfg.get("show_player_scope_default", False),
+                         condition_display=cfg.get("condition_display"))
             for ans in item["answers"])
         unknowns = "".join(unresolved_block(effect) for effect in item.get("unresolved_effects", []))
         if answers and unknowns:
             unknowns = "<br>" + unknowns
+        split_html = "".join(split_flag_block(flag) for flag in item.get("row_split_flags") or [])
+        if answers and split_html:
+            split_html = "<br>" + split_html
         page_path = history_card_path(cid, cfg["history_run_tag"]) if cfg.get("history_run_tag") else PAGES / str(cid) / "card.json"
         href = relative_href(output_dir, str(page_path.relative_to(ROOT)))
         rows.append(
@@ -798,7 +1275,7 @@ def render_new_answers(cfg: dict, batch: dict, output_dir: Path):
             f'<span class="muted small">cid{cid}</span></td><td class="jp">{html.escape(item["japanese"])}</td>'
             f'<td class="small"><code>{html.escape(item["row_id"])}</code><br>'
             f'<span class="muted">{html.escape(str(item["stage"] or item["reference_field"] or ""))}</span></td>'
-            f'<td>{answers}{unknowns}</td></tr>')
+            f'<td>{answers}{split_html}{unknowns}</td></tr>')
     stats = computed["stats"]
     stat_text = [f"{stats['rows']} 行 / {stats['cards']} 卡",
                  f"新增答案：Y.G. {stats['yg_answers']}／非 Y.G. {stats['non_yg_answers']}",
@@ -806,17 +1283,21 @@ def render_new_answers(cfg: dict, batch: dict, output_dir: Path):
                  f"完整增量：Y.G. {stats['yg_complete_net']:+d}／非 Y.G. {stats['non_yg_complete_net']:+d}",
                  f"S4 {stats['s4_after']}",
                  f"unresolved {stats['before_unresolved']}→{stats['after_unresolved']}"]
+    if cfg.get("split_effect_answer_summary"):
+        stat_text.insert(0, f"效果净增 {stats['effect_net']}／答案新增 {stats['answers']}（不同口径，分列）")
     return {"html": "".join(rows), "stat_text": stat_text, "computed": computed}
 
 
 def render_index(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path):
     batches = []
+    computed_all = []
     for batch in cfg["batches"]:
         rows = []
         if batch.get("binding"):
             rendered = render_new_answers(cfg, batch, output_dir)
             rows.append(rendered["html"])
             batch["computed_stats"] = rendered["stat_text"]
+            computed_all.append(rendered["computed"])
         for cid, spec in batch.get("examples", []):
             found = find_examples(cid, spec, cfg)
             for item in found:
@@ -847,6 +1328,27 @@ def render_index(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path):
         ("完整描述", f"{metrics['complete']['all']:,}（Y.G. {metrics['complete']['yg']:,}）"),
         ("剩余 backlog", f"{metrics['backlog']:,}（Y.G. {metrics['backlog_yg']:,}）"),
     ])
+    split_panel = ""
+    if cfg.get("split_effect_answer_summary") and computed_all:
+        effects_total = sum(item["stats"]["effect_net"] for item in computed_all)
+        answers_total = sum(item["stats"]["answers"] for item in computed_all)
+        rows_total = sum(item["stats"]["rows"] for item in computed_all)
+        cards_total = len({row["cid"] for item in computed_all for row in item["rows"]})
+        split_rows = [row for item in computed_all for row in item["rows"] if row.get("row_split_flags")]
+        split_flag_total = sum(len(row["row_split_flags"]) for row in split_rows)
+        disclosed_effects = sum(len(row.get("unresolved_effects") or [])
+                                for item in computed_all for row in item["rows"])
+        disclosure_note = ("本批目标行没有其它效果级未解项" if disclosed_effects == 0 else
+                           "同句其它效果级未解仍就地披露，不计入本批净增")
+        split_panel = f'''<section class="panel"><h2>本批规模：效果与答案分列</h2>
+<div class="grid">
+<div class="metric"><b>{effects_total}</b>{html.escape(cfg.get("effect_label", "效果"))}净增（行内效果，不是答案条数）</div>
+<div class="metric"><b>{answers_total}</b>新增答案（同一效果的多档分支各计一条答案）</div>
+<div class="metric"><b>{rows_total} 行 / {cards_total} 卡</b>归属变化的行与卡（并集）</div>
+<div class="metric"><b>{len(split_rows)} 行 / {split_flag_total} 项</b>同句未解（行级拆分标志，默认披露）</div>
+</div>
+<p class="small">{html.escape(cfg.get("split_panel_note", "效果与答案不是同一口径，不合并成一个数汇报。"))}同句未解在效果级为 {disclosed_effects} 项（{disclosure_note}），其余未解内容以行级拆分标志在每行默认列出，展开可见子句位置与口径。</p>
+</section>'''
     third_party = ""
     if cycle_id in ("C11", "C12"):
         report_href = relative_href(output_dir, "output/character_skills/review/direction_c11_c12_20261031_thirdparty/REPORT.md")
@@ -918,12 +1420,61 @@ def render_index(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path):
 <p>133卡133行407答案／407效果净增，Y.G.52／非Y.G.355；完整+95、部分+34、未解析−129，A/C/整行推断/S4均0。全库生成仅一次且未resume，final_diff 36/36、只读验证32/32、隔离24卡48文件一致。绝对变化并集139卡（133目标∪9漂移，交集3），其余2,097卡逐字节不变。关联推断、局部贡献与第三方浏览器／实机未测边界保留；P3未启动，第三方方向审查待用户安排，C20不启动。</p>
 <p class="small warning">候选N01–N05保留：45个其他effect未解、4行既有split_flags未新增、12个APK同名不同值只取CACHE、type8既有quantity_kind回退。终审F1文档哈希已同步为当前run_prechecks.py；F2并集139（7250／30107／30220同时是目标与漂移），不写成142。</p>
 <p class="links small"><a href="{review_href}">正式独立终审</a><a href="{task_href}">C19交付任务卡</a></p></section>'''
+    elif cycle_id == "C20_R02":
+        review_href = relative_href(output_dir, cfg["direction_review"])
+        task_href = relative_href(output_dir, cfg["rectification_task"])
+        final_href = relative_href(output_dir, cfg["delivery_review"])
+        original_href = relative_href(output_dir, cfg["original_cycle_report"])
+        third_party = f'''<section class="panel"><h2>原Sol F01父标记整改与停止点</h2>
+<p><span class="badge unknown">原Sol REQUEST_CHANGES（F01 OPEN）</span> <span class="badge infer">父标记整改完成，待原Sol再次定向复验</span></p>
+<p>R01已补齐25份完整父集合、6项合并和2项排除；原Sol复验380项中373项通过，剩余7条答案的父标记语义问题由本版处理。本版把描述来源行父明确标为“当前描述来源父”，把binding.selected对应父明确标为“本答案分支父”；两者相同时同时标注。</p>
+<p class="small warning">7条反例按同一数据规则修复，其余18条保留同父双标记。完整父集合顺序、原始条件、children、合并／排除字段和理由不变；16卡18行18效果25答案及正式pages／rules／effect_ledger不改。N01不纳入，浏览器、新原生与实机继续UNTESTED。</p>
+<p class="links small"><a href="{review_href}">原Sol F01复验</a><a href="{task_href}">R02整改任务卡</a><a href="{final_href}">旧正式独立终审</a><a href="{original_href}">C20-R01历史成果</a></p></section>'''
+    elif cycle_id == "C20_R01":
+        review_href = relative_href(output_dir, cfg["direction_review"])
+        task_href = relative_href(output_dir, cfg["rectification_task"])
+        final_href = relative_href(output_dir, cfg["delivery_review"])
+        original_href = relative_href(output_dir, cfg["original_cycle_report"])
+        third_party = f'''<section class="panel"><h2>原Sol F01整改与停止点</h2>
+<p><span class="badge unknown">原Sol REQUEST_CHANGES（F01）</span> <span class="badge infer">展示整改完成，待原Sol定向复验</span></p>
+<p>本版只在25条答案的展开层补齐完整父引用顺序、原始条件、子记录，以及具体合并／排除分支的pattern、record、raw、来源指针和理由。16卡18行18效果25答案及既有数值、条件、证据等级不变；15行21项行级拆分机制继续默认披露。</p>
+<p class="small warning">原审查349项中348项通过，唯一阻断为展示F01；25条答案的独立重导和真实消费者检查已通过。本版不修改正式pages／rules／effect_ledger，不运行正式生成或resume。N01为非阻断且不纳入本轮。浏览器、新原生执行与实机继续UNTESTED，静态HTML解析不冒充视觉验收。</p>
+<p class="links small"><a href="{review_href}">原Sol REQUEST_CHANGES</a><a href="{task_href}">F01整改任务卡</a><a href="{final_href}">旧正式独立终审</a><a href="{original_href}">原C20冻结成果</a></p></section>'''
+    elif cycle_id == "C20":
+        review_href = relative_href(output_dir, cfg["delivery_review"])
+        task_href = relative_href(output_dir, cfg["delivery_task"])
+        candidate_href = relative_href(output_dir, cfg["candidate_review"])
+        third_party = f'''<section class="panel"><h2>正式独立审查与停止点</h2>
+<p><span class="badge pass">正式独立终审 PASS_WITH_EXPLICIT_SCOPE_LIMITS</span> <span class="badge infer">阻断 0（27/27 通过）</span></p>
+<p>16卡18行、18个伤害效果净增、25条答案新增（P1 9卡10答案／P2 7卡15答案），效果与答案分列不合并。账本有答案效果 21505→21523（+18）、未解 48160→48142（−18）、backlog −18；四档 完整+3／部分+0／未解析−3／拆分待核查+0；Y.G. 有答案 +10、非Y.G. +8；整行推断与拆分新增均 0，0 新规则键。正式全库生成仅一次（重算 111.16 秒），账本自检、固定检查、最后差异、回归与 24 卡 48 文件隔离复跑全部通过。</p>
+<p class="small warning">范围限制（保留、不改写）：句面到记录的关联全部为推断，未做运行时验证；未做实机验证与新原生执行，不写最终扣血／保证命中／运行时装载。数值证据为"确认"只指原值与既有规则体。HP整数百分比、Chain、控制器使用阶段、森林次数上限、职业法珠／废料计数及界面缓存时点仍是运行时未证事项。20332自身受伤与另一类效果另论；其它记录、denju、回复、增益、异常、周期攻击及句外强化不并入。增强档按原表精度保留，不按玩家文案四舍五入。9张既有卡的页面指纹变化只重算该信息性字段，不计本批语义收益；成立的是本批目标卡与指纹漂移卡并集之外逐字节不变。第三方方向审查未做。</p>
+<p class="links small"><a href="{review_href}">正式独立终审</a><a href="{candidate_href}">候选独立审查</a><a href="{task_href}">C20交付任务卡</a></p></section>'''
+    elif cycle_id == "C21_R01":
+        review_href = relative_href(output_dir, cfg["direction_review"])
+        task_href = relative_href(output_dir, cfg["rectification_task"])
+        final_href = relative_href(output_dir, cfg["delivery_review"])
+        original_href = relative_href(output_dir, cfg["original_cycle_report"])
+        third_party = f'''<section class="panel"><h2>原第三方F01／F02整改与停止点</h2>
+<p><span class="badge unknown">原第三方 REQUEST_CHANGES（F01／F02）</span> <span class="badge infer">展示整改完成，待原第三方定向复验</span></p>
+<p>本版只整改默认条件表达与展开证据：F01共70条／51卡（40条使用次数、6条地形、24条法珠相关），F02共19条／15卡，合计89条／66卡。使用次数、地形、法珠与Chain均按本答案selected分支重导；法珠原文事实与扣费前后／选档未知分开，内部Chain计数转换为玩家档位。</p>
+<p class="small warning">900条机器答案、raw、来源、父集合、账本和正式pages不变；原C21成果、manifest与原第三方裁决保留。新增89条condition_ledger及逐条展开raw证据，0值特殊无Chain路径和完整选档未验证继续披露。浏览器、新原生与实机UNTESTED；主持不自行关闭F01／F02。</p>
+<p class="links small"><a href="condition_ledger.json">89条条件台账</a><a href="condition_ledger.csv">条件台账CSV</a><a href="{review_href}">原第三方REQUEST_CHANGES</a><a href="{task_href}">R01整改任务卡</a><a href="{final_href}">原正式独立终审</a><a href="{original_href}">原C21冻结成果</a></p></section>'''
+    elif cycle_id == "C21":
+        review_href = relative_href(output_dir, cfg["delivery_review"])
+        task_href = relative_href(output_dir, cfg["delivery_task"])
+        third_party = f'''<section class="panel"><h2>正式独立审查与停止点</h2>
+<p><span class="badge pass">正式独立终审 PASS_WITH_EXPLICIT_SCOPE_LIMITS</span> <span class="badge infer">阻断 0（23/23；900项独立重导）</span></p>
+<p>518卡900行、900个伤害效果净增、900条答案新增：P1 766，P2 134；Y.G. 11／非Y.G. 889；严格直接899项＋CID30304首句条件镜像1项。has_answer +900／unresolved −900／backlog −900；完整+56／部分+1／未解析−57；A+502／C−502／整行推断+0／S4+0。900答案不等于900行或518卡全部解释完成，其它同句未解效果4项继续就地披露。</p>
+<p>全库正式生成仅一次（jobs4），verify_full 17/17、账本9/9、A7 29/29、final_diff 36/36、validate_formal 26/26；固定cohort隔离复跑525卡1050文件逐字节一致，不称任意分组复现。默认层只显示可读的局部贡献和必要条件；公式、raw、表名、字段、指针、完整父集合与条件镜像证据在展开层。</p>
+<p class="small warning">关联均为推断、runtime_verified=False；局部伤害输入不等于最终扣血、保证命中或运行时装载，未做新原生或实机。交付包部分历史检查名／说明残留C20“16卡／18行”字样，实际集合断言与独立终审均为518卡900行；原始回执不追溯改写，收口勘误承接。第三方方向审查PENDING；浏览器UNTESTED，不启动C22、清理、Git或发布。</p>
+<p class="links small"><a href="{review_href}">正式独立终审</a><a href="{task_href}">C21交付任务卡</a></p></section>'''
     return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(cfg['title'])}</title><style>{CSS}</style></head>
 <body><header><h1>{html.escape(cfg['title'])}</h1><p>数据库样式｜本周期新增解析成果（由正式页面与账本生成）</p>
 <p>campaign <code>{cfg['campaign']}</code></p><p>snapshot <code>{cfg['snapshot']}</code>　rules {html.escape(cfg['rules'])}</p></header>
 <main><section class="panel"><h2>周期末总览</h2><div class="grid">{cards}</div>
 <p class="small">计数口径：有答案／未解为效果级；完整／部分／未解析／拆分为描述行级；Y.G. 为 109 张优先卡子集，均非全游戏分母。绝对出数、绑定修正、披露-only、split 状态整理分列，不合并成一个收益数。</p>
 <p class="links"><a href="remaining.html">查看预计剩余工程量 →</a></p></section>
+{split_panel}
 {''.join(batches)}
 {third_party}
 <section class="panel"><h2>边界与外部对照</h2><p>外部数据库／截图仅作对照，不覆盖游戏原值；CACHE 与 APK 分源，不跨层取值。静态规则、类型外推、结构关联和实机验证分档记录；镜像绑定不升级为记录级执行确认，未解机制继续保持未知。</p></section>
@@ -1032,10 +1583,140 @@ def new_answer_pairs(cfg: dict):
     return pairs
 
 
+def disclosure_summary(cfg: dict, batch_results: list):
+    """统计默认层披露的同句未解内容：效果级未解项与行级拆分标志。"""
+    rows = [row for result in batch_results for row in result["rows"]]
+    flags = [flag for row in rows for flag in (row.get("row_split_flags") or [])]
+    return {
+        "effect_level_unresolved_effects": sum(len(row.get("unresolved_effects") or []) for row in rows),
+        "rows_with_effect_level_unresolved": sum(1 for row in rows if row.get("unresolved_effects")),
+        "row_split_flag_rows": sum(1 for row in rows if row.get("row_split_flags")),
+        "row_split_flags": len(flags),
+        "split_flag_codes": sorted({str(flag.get("code")) for flag in flags}),
+        "default_visible": True,
+        "formal_answers_changed": False,
+        "formal_pages_or_ledger_regenerated": False,
+    }
+
+
+def write_c21_answer_ledger(output_dir: Path, batch_results: list, condition_display: str | None = None):
+    """Write one auditable ledger entry per C21 answer from the real before/after diff."""
+    entries = []
+    for result in batch_results:
+        for row in result["rows"]:
+            for answer in row["answers"]:
+                binding = c21_binding(answer)
+                source = answer.get("source") or {}
+                entries.append({
+                    "batch": result["stats"]["id"],
+                    "cid": row["cid"], "row_id": row["row_id"], "effect_id": binding.get("effect_id"),
+                    "model": binding.get("model"), "scope": binding.get("scope"),
+                    "value": answer.get("value"), "player_text": answer.get("player_text"),
+                    "display_player_text": (c21_r01_default_player_text(answer, str(answer.get("player_text") or ""))
+                                             if condition_display == "C21_R01" else
+                                             c21_default_player_text(answer, str(answer.get("player_text") or ""))),
+                    "quantity_kind": answer.get("quantity_kind"), "unit": answer.get("unit"),
+                    "raw_value": answer.get("raw_value"), "effective_float32": answer.get("effective_float32"),
+                    "normalized_value": answer.get("normalized_value"), "target": answer.get("target"),
+                    "condition_label": answer.get("condition_label"), "conditions": answer.get("conditions"),
+                    "display_conditions": (c21_r01_condition_projection(
+                        answer, list((answer.get("player_scope") or {}).get("conditions") or []))["conditions"]
+                        if condition_display == "C21_R01" else c21_default_conditions(
+                            answer, list((answer.get("player_scope") or {}).get("conditions") or []))),
+                    "numeric_evidence": answer.get("numeric_evidence"),
+                    "association_evidence": answer.get("association_evidence"),
+                    "answer_status": answer.get("answer_status"), "evidence_scope": answer.get("evidence_scope"),
+                    "binding": binding.get("binding"), "runtime_verified": binding.get("runtime_verified"),
+                    "rule_key": answer.get("rule_key"), "field_path": answer.get("field_path"),
+                    "table": answer.get("table"), "record_id": answer.get("record_id"),
+                    "layer": answer.get("layer"), "source": source,
+                    "current_parent": binding.get("current_parent"), "selected": binding.get("selected"),
+                    "complete_parent_set": binding.get("complete_parent_set"),
+                    "fragment_span": binding.get("fragment_span"), "denju": binding.get("denju"),
+                    "mirror": binding.get("mirror"), "effect_binding": answer.get("effect_binding"),
+                })
+    if len(entries) != 900 or len({entry["effect_id"] for entry in entries}) != 900:
+        raise ValueError(f"C21答案台账应为900个不同效果，实际{len(entries)}")
+    (output_dir / "answer_ledger.json").write_text(
+        json.dumps(entries, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    columns = ["batch", "cid", "row_id", "effect_id", "model", "layer", "table", "record_id",
+               "rule_key", "field_path", "raw_value", "effective_float32", "normalized_value", "unit",
+               "target", "condition_label", "numeric_evidence", "association_evidence", "answer_status",
+               "evidence_scope", "binding", "runtime_verified", "json_pointer", "raw_record_sha256",
+               "current_parent", "selected", "complete_parent_set", "fragment_span", "mirror"]
+    with (output_dir / "answer_ledger.csv").open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
+        writer.writeheader()
+        for entry in entries:
+            row = {key: entry.get(key) for key in columns}
+            row["json_pointer"] = (entry.get("source") or {}).get("json_pointer")
+            row["raw_record_sha256"] = (entry.get("source") or {}).get("raw_record_sha256")
+            for key in ("current_parent", "selected", "complete_parent_set", "fragment_span", "mirror"):
+                row[key] = compact_json(row.get(key))
+            writer.writerow(row)
+    return entries
+
+
+def c21_r01_condition_entries(batch_results: list):
+    entries = []
+    for result in batch_results:
+        for row in result["rows"]:
+            for answer in row["answers"]:
+                projection = c21_r01_condition_projection(
+                    answer, list((answer.get("player_scope") or {}).get("conditions") or []))
+                kinds = projection["kinds"]
+                if not kinds:
+                    continue
+                selected = c21_binding(answer).get("selected") or {}
+                entries.append({
+                    "finding": "F02" if kinds == ["chain"] else "F01",
+                    "cid": row["cid"], "row_id": row["row_id"], "effect_id": c21_binding(answer).get("effect_id"),
+                    "record_id": answer.get("record_id"), "pattern_id": selected.get("pattern_id"),
+                    "layer": answer.get("layer"), "kinds": kinds,
+                    "raw_chain_range": projection["chain"], "raw_conditions": projection["raw"],
+                    "context_text": projection["raw"].get("sinfo"),
+                    "display_necessary_conditions": projection["necessary"],
+                    "display_conditions": projection["conditions"],
+                    "mana_known": projection["mana_known"], "mana_unknown": projection["mana_unknown"],
+                    "selected": selected, "source": answer.get("source") or {},
+                    "formal_answer_unchanged": True,
+                    "runtime_verified": False,
+                })
+    if (len(entries) != 89 or len({entry["cid"] for entry in entries}) != 66
+            or sum("limit" in entry["kinds"] for entry in entries) != 40
+            or sum("terrain" in entry["kinds"] for entry in entries) != 6
+            or sum("mana" in entry["kinds"] for entry in entries) != 24
+            or sum("chain" in entry["kinds"] for entry in entries) != 19):
+        raise ValueError("C21_R01条件台账未精确覆盖89条／66卡及40/6/24/19分组")
+    return entries
+
+
+def write_c21_r01_condition_ledger(output_dir: Path, batch_results: list):
+    entries = c21_r01_condition_entries(batch_results)
+    (output_dir / "condition_ledger.json").write_text(
+        json.dumps(entries, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    columns = ["finding", "cid", "row_id", "effect_id", "record_id", "pattern_id", "layer",
+               "kinds", "raw_chain_range", "raw_conditions", "context_text",
+               "display_necessary_conditions", "display_conditions", "mana_known", "mana_unknown",
+               "formal_answer_unchanged", "runtime_verified"]
+    with (output_dir / "condition_ledger.csv").open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
+        writer.writeheader()
+        for entry in entries:
+            row = {key: entry.get(key) for key in columns}
+            for key in ("kinds", "raw_chain_range", "raw_conditions", "display_necessary_conditions",
+                        "display_conditions", "mana_known", "mana_unknown"):
+                row[key] = compact_json(row.get(key))
+            writer.writerow(row)
+    return entries
+
+
 def generation_record(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path,
                       batch_results: list, remaining: list, unique_pairs: set, before_pairs: set):
     outputs = {}
-    for name in ("index.html", "remaining.html", "report_data.json", "README.md", "verification.json", "browser_verification.json"):
+    for name in ("index.html", "remaining.html", "report_data.json", "README.md", "verification.json",
+                 "browser_verification.json", "answer_ledger.json", "answer_ledger.csv",
+                 "condition_ledger.json", "condition_ledger.csv"):
         path = output_dir / name
         if path.is_file():
             outputs[name] = {"bytes": path.stat().st_size, "sha256": file_sha(path)}
@@ -1062,20 +1743,63 @@ def generation_record(cycle_id: str, cfg: dict, metrics: dict, output_dir: Path,
         "new_rule_value_pairs": sorted(unique_pairs),
         "before_rule_value_pair_count": len(before_pairs),
         "status": "PASS",
-        "third_party_verdict": ("REQUEST_CHANGES（R01；原裁决未改）" if cycle_id == "C19_R01"
-                                else "PENDING（待用户安排第三方方向审查）" if cycle_id in ("C13", "C14", "C15", "C16", "C17", "C18", "C19")
+        "third_party_verdict": ("REQUEST_CHANGES（F01／F02；原裁决未改）" if cycle_id == "C21_R01"
+                                else "REQUEST_CHANGES（F01父标记语义；原Sol裁决未改）" if cycle_id == "C20_R02"
+                                else "REQUEST_CHANGES（F01；原Sol裁决未改）" if cycle_id == "C20_R01"
+                                else "REQUEST_CHANGES（R01；原裁决未改）" if cycle_id == "C19_R01"
+                                else "PASS_WITH_EXPLICIT_SCOPE_LIMITS（F1 manifest/handoff 已补齐，待原第三方定向复核）" if cycle_id == "C20"
+                                else "PENDING（待用户安排第三方方向审查）" if cycle_id in ("C13", "C14", "C15", "C16", "C17", "C18", "C19", "C21")
                                 else "REQUEST_CHANGES（R01/R02；原裁决未改）"),
-        "rectification_status": ("R01整改完成，待原第三方定向复核" if cycle_id == "C19_R01"
-                                 else "正式交付与例行独立审查完成，待用户安排第三方方向审查" if cycle_id in ("C13", "C14", "C15", "C16", "C17", "C18", "C19")
+        "rectification_status": ("F01／F02展示整改完成，待原第三方定向复验" if cycle_id == "C21_R01"
+                                 else "F01父标记整改完成，待原Sol再次定向复验" if cycle_id == "C20_R02"
+                                 else "F01展示整改完成，待原Sol定向复验" if cycle_id == "C20_R01"
+                                 else "R01整改完成，待原第三方定向复核" if cycle_id == "C19_R01"
+                                 else "第三方方向复核已完成；F1 manifest/handoff 已补齐，待原第三方定向复核" if cycle_id == "C20"
+                                 else "正式交付与例行独立审查完成，待用户安排第三方方向审查" if cycle_id in ("C13", "C14", "C15", "C16", "C17", "C18", "C19", "C21")
                                  else "整改完成，待原第三方定向复查"),
     }
-    if cfg.get("disclose_row_unresolved"):
+    if cfg.get("rectification_display") == "R01":
         record["inputs"]["direction_review"] = cfg["direction_review"]
         record["inputs"]["original_cycle_report"] = cfg["original_cycle_report"]
         record["display_rectification"] = {
             "finding": "R01",
             "affected_rows": 35,
             "affected_effects": 45,
+            "formal_answers_changed": False,
+            "formal_pages_or_ledger_regenerated": False,
+            "status": "IMPLEMENTED_PENDING_ORIGINAL_THIRD_PARTY_RECHECK",
+        }
+    if cfg.get("rectification_display") == "F01":
+        record["inputs"]["direction_review"] = cfg["direction_review"]
+        record["inputs"]["original_cycle_report"] = cfg["original_cycle_report"]
+        record["display_rectification"] = {
+            "finding": "F01",
+            "affected_answers": (7 if cfg.get("rectification_stage") == "PARENT_MARKER" else 25),
+            "rectification_stage": cfg.get("rectification_stage") or "EXPANDED_DISCLOSURE",
+            "complete_parent_sets": 25,
+            "merged_disclosures": sum(len((answer.get("binding") or {}).get(key, {}).get("merged_disclosures") or [])
+                                      for result in batch_results for row in result["rows"] for answer in row["answers"]
+                                      for key in ("c20_p1_yg_direct_damage_binding", "c20_p2_nonyg_direct_damage_binding")),
+            "excluded_branch_values": sum(len((answer.get("binding") or {}).get(key, {}).get("excluded_branch_values") or [])
+                                          for result in batch_results for row in result["rows"] for answer in row["answers"]
+                                          for key in ("c20_p1_yg_direct_damage_binding", "c20_p2_nonyg_direct_damage_binding")),
+            "formal_answers_changed": False,
+            "formal_pages_or_ledger_regenerated": False,
+            "status": "IMPLEMENTED_PENDING_ORIGINAL_SOL_RECHECK",
+        }
+    if cfg.get("disclose_row_split_flags"):
+        record["display_disclosure"] = disclosure_summary(cfg, batch_results)
+        if cfg.get("delivery_review"):
+            record["inputs"]["delivery_review"] = cfg["delivery_review"]
+        if cfg.get("candidate_review"):
+            record["inputs"]["candidate_review"] = cfg["candidate_review"]
+    if cfg.get("rectification_c21_conditions"):
+        record["inputs"]["direction_review"] = cfg["direction_review"]
+        record["inputs"]["original_cycle_report"] = cfg["original_cycle_report"]
+        record["display_rectification"] = {
+            "findings": ["F01", "F02"], "affected_answers": 89, "affected_cards": 66,
+            "f01_answers": 70, "f02_answers": 19,
+            "condition_ledger": "condition_ledger.json",
             "formal_answers_changed": False,
             "formal_pages_or_ledger_regenerated": False,
             "status": "IMPLEMENTED_PENDING_ORIGINAL_THIRD_PARTY_RECHECK",
@@ -1091,19 +1815,62 @@ def main():
     if not args.output.is_absolute():
         args.output = (ROOT / args.output).resolve()
     cfg = CYCLES[args.cycle]
-    if args.cycle in ("C17", "C18", "C19", "C19_R01"):
+    if args.cycle in ("C17", "C18", "C19", "C19_R01", "C20", "C20_R01", "C20_R02", "C21", "C21_R01"):
         final_review = load_json(ROOT / cfg["delivery_review"].replace("REPORT.md", "verdict.json"))
-        if (final_review.get("verdict") != "PASS_WITH_EXPLICIT_SCOPE_LIMITS"
-                or final_review.get("blocking") != 0):
+        blocking = final_review.get("blocking")
+        if isinstance(blocking, list):
+            blocking_count = len(blocking)
+        else:
+            blocking_count = final_review.get("blocking_count", blocking if blocking is not None else -1)
+        if final_review.get("verdict") != "PASS_WITH_EXPLICIT_SCOPE_LIMITS" or blocking_count != 0:
             raise SystemExit(f"{args.cycle} 正式独立终审未无阻断通过；不生成成果页")
     metrics = metrics_summary(cfg)
     if metrics["snapshot"] != cfg["snapshot"]:
         raise SystemExit(f"账本 snapshot {metrics['snapshot']} 与周期声明 {cfg['snapshot']} 不一致；请先更新生成器配置")
     args.output.mkdir(parents=True, exist_ok=True)
+    if args.cycle in ("C20_R01", "C20_R02"):
+        placeholders = {
+            "browser_verification.json": {
+                "status": "UNTESTED", "browser": "UNTESTED",
+                "reason": "本轮未启动浏览器做桌面／窄屏实际渲染；只有静态HTML解析和链接存在性检查。",
+                "static_verification": "verification_detailed.json（PENDING）",
+                "runtime_verified": False,
+                "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+            },
+            "verification_detailed.json": {"cycle": args.cycle, "finding": "F01", "status": "PENDING"},
+            "expanded_display_audit.json": {"cycle": args.cycle, "finding": "F01", "status": "PENDING"},
+        }
+        if args.cycle == "C20_R02":
+            placeholders["answer_ledger.json"] = {"cycle": args.cycle, "finding": "F01", "status": "PENDING"}
+        for name, value in placeholders.items():
+            path = args.output / name
+            if not path.exists():
+                path.write_text(json.dumps(value, ensure_ascii=False, indent=1, allow_nan=False) + "\n", encoding="utf-8")
+        if args.cycle == "C20_R02" and not (args.output / "answer_ledger.csv").exists():
+            (args.output / "answer_ledger.csv").write_text("status\nPENDING\n", encoding="utf-8")
+    if cfg.get("rectification_c21_conditions"):
+        placeholders = {
+            "browser_verification.json": {
+                "status": "UNTESTED", "browser": "UNTESTED",
+                "reason": "本轮未启动浏览器做桌面／窄屏实际渲染；只有静态HTML解析和链接存在性检查。",
+                "static_verification": "verification_detailed.json（PENDING）",
+                "runtime_verified": False,
+                "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+            },
+            "verification_detailed.json": {"cycle": args.cycle, "findings": ["F01", "F02"], "status": "PENDING"},
+        }
+        for name, value in placeholders.items():
+            path = args.output / name
+            if not path.exists():
+                path.write_text(json.dumps(value, ensure_ascii=False, indent=1, allow_nan=False) + "\n", encoding="utf-8")
     (args.output / "index.html").write_text(render_index(args.cycle, cfg, metrics, args.output), encoding="utf-8")
     (args.output / "remaining.html").write_text(render_remaining(args.cycle, cfg, metrics), encoding="utf-8")
     groups, split_count = remaining_groups(cfg)
     batch_results = [new_answer_rows(cfg, batch) for batch in cfg["batches"] if batch.get("binding")]
+    if args.cycle in ("C21", "C21_R01"):
+        write_c21_answer_ledger(args.output, batch_results, cfg.get("condition_display"))
+    if cfg.get("rectification_c21_conditions"):
+        write_c21_r01_condition_ledger(args.output, batch_results)
     before_tag = "20261030T203110" if args.cycle == "C11" else "20261031T015918" if args.cycle in ("C12", "C13") else None
     before_pairs = all_answer_pairs(before_tag) if args.cycle in ("C11", "C12", "C13") else set()
     unique_pairs = new_answer_pairs(cfg) - before_pairs if args.cycle in ("C11", "C12", "C13") else set()
@@ -1112,7 +1879,24 @@ def main():
             "remaining_by_type": groups, "split_check_rows": split_count,
             "new_rule_value_pairs": sorted(unique_pairs),
             "before_rule_value_pair_count": len(before_pairs)}
-    if cfg.get("disclose_row_unresolved"):
+    if cfg.get("rectification_c21_conditions"):
+        condition_entries = c21_r01_condition_entries(batch_results)
+        data["display_rectification"] = {
+            "findings": ["F01", "F02"],
+            "original_direction_review": cfg["direction_review"],
+            "original_cycle_report": cfg["original_cycle_report"],
+            "status": "IMPLEMENTED_PENDING_ORIGINAL_THIRD_PARTY_RECHECK",
+            "affected_answers": 89, "affected_cards": 66,
+            "f01_answers": 70, "f01_cards": 51,
+            "f01_direct_answers": 46, "f01_direct_cards": 34,
+            "limit_answers": 40, "terrain_answers": 6, "mana_answers": 24,
+            "f02_answers": 19, "f02_cards": 15,
+            "condition_ledger": "condition_ledger.json",
+            "formal_answers_changed": False,
+            "formal_pages_or_ledger_regenerated": False,
+            "original_third_party_recheck": "PENDING",
+        }
+    if cfg.get("rectification_display") == "R01":
         unresolved_rows = [item for result in batch_results for item in result["rows"]
                            if item.get("unresolved_effects")]
         data["display_rectification"] = {
@@ -1127,6 +1911,29 @@ def main():
             "r02_timing_wording": "617.3秒仅为run_formal.py总运行时间；正式生成为133.24秒，不是整个C19周期。",
             "r03_source_wording": "12个同号记录存在原始表示差异，其中11个实质值差、1个仅float32表示差（CID20713／42071301）；只取CACHE。",
         }
+    if cfg.get("rectification_display") == "F01":
+        data["display_rectification"] = {
+            "finding": "F01",
+            "original_direction_review": cfg["direction_review"],
+            "original_cycle_report": cfg["original_cycle_report"],
+            "status": "IMPLEMENTED_PENDING_ORIGINAL_SOL_RECHECK",
+            "affected_answers": (7 if cfg.get("rectification_stage") == "PARENT_MARKER" else 25),
+            "rectification_stage": cfg.get("rectification_stage") or "EXPANDED_DISCLOSURE",
+            "complete_parent_sets": 25,
+            "merged_disclosures": sum(len((answer.get("binding") or {}).get(key, {}).get("merged_disclosures") or [])
+                                      for result in batch_results for row in result["rows"] for answer in row["answers"]
+                                      for key in ("c20_p1_yg_direct_damage_binding", "c20_p2_nonyg_direct_damage_binding")),
+            "excluded_branch_values": sum(len((answer.get("binding") or {}).get(key, {}).get("excluded_branch_values") or [])
+                                          for result in batch_results for row in result["rows"] for answer in row["answers"]
+                                          for key in ("c20_p1_yg_direct_damage_binding", "c20_p2_nonyg_direct_damage_binding")),
+            "formal_answers_changed": False,
+            "formal_pages_or_ledger_regenerated": False,
+            "n01_in_scope": False,
+        }
+    disclosure = None
+    if cfg.get("disclose_row_split_flags"):
+        disclosure = disclosure_summary(cfg, batch_results)
+        data["display_disclosure"] = disclosure
     (args.output / "report_data.json").write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     checks = {
         "snapshot_matches": metrics["snapshot"] == cfg["snapshot"],
@@ -1136,15 +1943,94 @@ def main():
         "backlog_matches_metrics": sum(g["all"] for g in groups) + split_count == metrics["backlog"],
         "unique_pairs_expected": len(unique_pairs) == (8 if args.cycle == "C11" else 2 if args.cycle == "C13" else 0) if args.cycle in ("C11", "C12", "C13") else True,
     }
-    if cfg.get("disclose_row_unresolved"):
+    if cfg.get("rectification_c21_conditions"):
+        condition_entries = c21_r01_condition_entries(batch_results)
+        checks["c21_r01_condition_inventory_89_66"] = (
+            len(condition_entries) == 89 and len({entry["cid"] for entry in condition_entries}) == 66)
+        checks["c21_r01_f01_inventory_70_51"] = (
+            sum(entry["finding"] == "F01" for entry in condition_entries) == 70
+            and len({entry["cid"] for entry in condition_entries if entry["finding"] == "F01"}) == 51)
+        checks["c21_r01_f02_inventory_19_15"] = (
+            sum(entry["finding"] == "F02" for entry in condition_entries) == 19
+            and len({entry["cid"] for entry in condition_entries if entry["finding"] == "F02"}) == 15)
+        checks["c21_r01_condition_kinds_40_6_24_19"] = (
+            sum("limit" in entry["kinds"] for entry in condition_entries) == 40
+            and sum("terrain" in entry["kinds"] for entry in condition_entries) == 6
+            and sum("mana" in entry["kinds"] for entry in condition_entries) == 24
+            and sum("chain" in entry["kinds"] for entry in condition_entries) == 19)
+    if cfg.get("rectification_display") == "R01":
         checks["row_unresolved_mapping_35_45"] = (
             data["display_rectification"]["affected_rows"] == 35
             and data["display_rectification"]["affected_effects"] == 45
         )
+    if cfg.get("rectification_display") == "F01":
+        f01_answers = [answer for result in batch_results for row in result["rows"] for answer in row["answers"]]
+        f01_bindings = [next(value for value in (answer.get("binding") or {}).values()
+                             if isinstance(value, dict) and "complete_parent_set" in value)
+                        for answer in f01_answers]
+        checks["f01_complete_parent_sets_25"] = (
+            len(f01_answers) == len(f01_bindings) == 25
+            and all(binding["complete_parent_set"] for binding in f01_bindings))
+        checks["f01_branch_counts_match"] = (
+            sum(len(binding.get("merged_disclosures") or []) for binding in f01_bindings) == 6
+            and sum(len(binding.get("excluded_branch_values") or []) for binding in f01_bindings) == 2)
+        if cfg.get("rectification_stage") == "PARENT_MARKER":
+            def parent_identity(parent):
+                return parent.get("reference_field"), parent.get("pattern_id")
+            differences = 0
+            identities_ok = True
+            for binding in f01_bindings:
+                parents = [parent_identity(parent) for parent in binding["complete_parent_set"]]
+                source = parent_identity(binding["current_parent"])
+                selected = parent_identity(binding["selected"])
+                differences += source != selected
+                identities_ok &= parents.count(source) == 1 and parents.count(selected) == 1
+            checks["parent_marker_identities_25_and_7_differences"] = differences == 7 and identities_ok
+    if cfg.get("expected_totals"):
+        exp = cfg["expected_totals"]
+        by_batch = {result["stats"]["id"]: result for result in batch_results}
+        totals = {
+            "rows": sum(result["stats"]["rows"] for result in batch_results),
+            "cards": len({item["cid"] for result in batch_results for item in result["rows"]}),
+            "answers": sum(result["stats"]["answers"] for result in batch_results),
+            "effects": sum(result["stats"]["effect_net"] for result in batch_results),
+            "yg_answers": sum(result["stats"]["yg_answers"] for result in batch_results),
+            "non_yg_answers": sum(result["stats"]["non_yg_answers"] for result in batch_results),
+            "yg_effects": sum(result["stats"]["yg_effect_net"] for result in batch_results),
+            "non_yg_effects": sum(result["stats"]["non_yg_effect_net"] for result in batch_results),
+        }
+        totals_check_key = ("c20_expected_totals_match" if args.cycle.startswith("C20")
+                            else f"{args.cycle.lower()}_expected_totals_match")
+        checks[totals_check_key] = all(
+            totals[key] == exp[key] for key in ("rows", "cards", "answers", "effects",
+                                                "yg_answers", "non_yg_answers",
+                                                "yg_effects", "non_yg_effects"))
+        stat_key_map = {"rows": "rows", "answers": "answers", "effects": "effect_net"}
+        for batch_key in ("p1", "p2"):
+            batch_id = f"{cfg.get('expected_batch_prefix', args.cycle)}-{batch_key.upper()}"
+            stats = by_batch.get(batch_id, {}).get("stats")
+            expected = exp.get(batch_key) or {}
+            checks[f"expected_{batch_key}_match"] = bool(stats) and all(
+                stats[stat_key_map[key]] == value
+                for key, value in expected.items() if key in stat_key_map)
+            checks[f"expected_{batch_key}_cards_match"] = bool(stats) and stats["cards"] == expected.get("cards")
+        if exp["effects"] != exp["answers"]:
+            checks["effects_and_answers_counted_separately"] = (
+                totals["effects"] != totals["answers"]
+                and any(len(item["answers"]) > 1 for result in batch_results for item in result["rows"]))
+        else:
+            checks["effects_and_answers_counted_separately"] = (
+                totals["effects"] == exp["effects"] and totals["answers"] == exp["answers"]
+                and all(len(item["answers"]) == 1 for result in batch_results for item in result["rows"]))
     verification = {"status": "PASS" if all(checks.values()) else "FAIL", "checks": checks,
                     "metrics": metrics, "batch_results": batch_results,
                     "new_rule_value_pairs": sorted(unique_pairs),
                     "before_rule_value_pair_count": len(before_pairs)}
+    if disclosure is not None:
+        verification["display_disclosure"] = disclosure
+    if cfg.get("expected_totals"):
+        verification["expected_totals"] = cfg["expected_totals"]
+        verification["observed_totals"] = totals
     (args.output / "verification.json").write_text(json.dumps(verification, ensure_ascii=False, indent=2), encoding="utf-8")
     report_url = relative_href(args.output, "output/character_skills/review/direction_c11_c12_20261031_thirdparty/REPORT.md")
     rectification_url = relative_href(args.output, "output/character_skills/review/direction_c11_c12_20261031_thirdparty/RECTIFICATION.md")
@@ -1207,6 +2093,49 @@ def main():
                         f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})")
         generation_note = "C19 使用当前正式页面与账本及首建前像。未再次运行正式全库生成；正式生成仅一次且未resume，P3未启动。"
         limits_note = "133卡133行407答案／407效果净增，Y.G.52／非Y.G.355；完整+95、部分+34、未解析−129，A/C/整行推断/S4均0。数值规则体确认不等于句→载体字段归属确认，关联保持推断。缺param5不补零，额外param6与句外条件强化不并入；130行仍有45个其他effect未解，4行既有split_flags未新增。绝对变化并集139卡（交集7250／30107／30220），其余2,097卡逐字节不变；终审F1文档哈希已同步、F2不写成142。候选N01–N05保留；12个APK同名不同值只取CACHE，type8既有quantity_kind回退。C17/C18历史成果不变，第三方方向审查尚未执行；主持侧浏览器实际覆盖与未测项见回执，第三方浏览器与实机未测。"
+    elif args.cycle == "C20_R02":
+        status_text = "F01父标记整改完成，待原Sol再次定向复验"
+        verdict_text = "原Sol REQUEST_CHANGES（F01 OPEN）保留；本版未改写原裁决"
+        review_links = (f"- [原Sol F01复验]({relative_href(args.output, cfg['direction_review'])})\n"
+                        f"- [R02整改任务卡]({relative_href(args.output, cfg['rectification_task'])})\n"
+                        f"- [旧正式独立终审]({relative_href(args.output, cfg['delivery_review'])})\n"
+                        f"- [C20-R01历史成果]({relative_href(args.output, cfg['original_cycle_report'])})")
+        generation_note = "C20-R02只修正展开层父标记：current_parent标为当前描述来源父，selected对应父标为本答案分支父；两者相同时同时标注。未修改机器答案、binding、正式pages／ledger／rules，不运行正式生成或resume；C20-R01及原Sol复验保留。"
+        limits_note = "本版统一处理25答案，7条来源父与分支父不同的反例逐项闭合，其余18条同父双标记。16卡18行18个伤害效果净增、25条答案及全部父集合、6项合并、2项排除不变；15行21项行级拆分继续默认披露。N01不纳入，浏览器、新原生与实机UNTESTED。停在待原Sol再次定向复验，不启动C21、清理、Git或发布。"
+    elif args.cycle == "C20_R01":
+        status_text = "F01展示整改完成，待原Sol定向复验"
+        verdict_text = "原Sol REQUEST_CHANGES（F01）保留；本版未改写原裁决"
+        review_links = (f"- [原Sol复审REQUEST_CHANGES]({relative_href(args.output, cfg['direction_review'])})\n"
+                        f"- [F01整改任务卡]({relative_href(args.output, cfg['rectification_task'])})\n"
+                        f"- [旧正式独立终审]({relative_href(args.output, cfg['delivery_review'])})\n"
+                        f"- [原C20冻结成果]({relative_href(args.output, cfg['original_cycle_report'])})")
+        generation_note = "C20-R01只使用同版本正式页面与账本重建成果展示，新增C20_R01配置及展开层父集合／分支披露。未运行正式全库生成、run_formal、corrective-rebuild、resume或隔离卡页生成，未修改正式pages／ledger／rules；原C20目录和原Sol裁决保留。"
+        limits_note = "本版仅在25条答案的展开层补齐完整父引用顺序、原始条件、子记录与具体合并／排除分支。16卡18行18个伤害效果净增、25条答案新增及既有数值、条件、证据等级不变；15行21项行级拆分机制继续默认披露。N01非阻断且不纳入。关联推断、runtime_verified=False、未实机、未做新原生执行；浏览器UNTESTED，静态HTML解析不冒充视觉验收。停在待原Sol定向复验，不启动C21、清理、Git或发布。"
+    elif args.cycle == "C20":
+        status_text = "第三方方向复核已完成；F1 manifest/handoff 已补齐，待原第三方定向复核"
+        verdict_text = "正式独立终审 PASS_WITH_EXPLICIT_SCOPE_LIMITS、阻断 0（27/27）"
+        review_links = (f"- [C20交付任务卡]({relative_href(args.output, cfg['delivery_task'])})\n"
+                        f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})\n"
+                        f"- [候选独立审查]({relative_href(args.output, cfg['candidate_review'])})")
+        generation_note = "C20 只用当前正式页面（campaign 754f04b6f552）、当前账本与交付包纠正性重建前像生成展示。未运行 run_formal、resume、第二次全库生成、隔离卡页生成或任何正式写入；未修改 pages／ledger／rules／交付包。"
+        limits_note = "16卡18行、18个伤害效果净增、25条答案新增（P1 9卡10答案／P2 7卡15答案），效果与答案分列，不按同数口径汇报。默认层显示对象、局部量与必要条件；公式、原值、表名、字段、指针与排除项在展开层。同句未解：本批目标行没有其它效果级未解项（0 项），未解内容以行级拆分标志（未被覆盖的子句，如「弾き飛ばす」；词表外机制词，如「ダウン」「暗闇」「転倒」）在每行默认列出，展开可见子句位置与账本口径。关联全部为推断、未做运行时验证，未实机、未做新原生执行；不写最终扣血、保证命中或运行时装载。整行推断与拆分新增均 0；A +9／C −9（整行状态随效果出数移动，不是新增解释证据）；0 新规则键。9张既有卡的页面指纹变化只重算该信息性字段，不计本批收益；不宣称范围外卡逐字节不变。C19 及其 R01 成果与第三方裁决不变；第三方方向复核已完成，F1 manifest/handoff 已补齐，浏览器渲染与实机未测，待原第三方定向复核。"
+    elif args.cycle == "C21_R01":
+        status_text = "F01／F02展示整改完成，待原第三方定向复验"
+        verdict_text = "原第三方REQUEST_CHANGES保留；本版未改写原裁决，F01／F02尚未关闭"
+        review_links = (f"- [原第三方REQUEST_CHANGES]({relative_href(args.output, cfg['direction_review'])})\n"
+                        f"- [R01整改任务卡]({relative_href(args.output, cfg['rectification_task'])})\n"
+                        f"- [原正式独立终审]({relative_href(args.output, cfg['delivery_review'])})\n"
+                        f"- [原C21冻结成果]({relative_href(args.output, cfg['original_cycle_report'])})")
+        generation_note = "C21-R01只用当前正式页面、当前账本和pre_rebuild前像重建展示，新增89条条件台账与selected分支展开证据。未运行正式生成、resume、隔离卡页生成或账本生成；正式pages／rules／ledger／机器答案、原C21成果与原第三方审查均未修改。"
+        limits_note = "518卡900行、900个伤害效果净增、900条答案新增不变。整改覆盖F01 70条／51卡（46条直接漏项＋24条法珠相关）与F02 19条／15卡，合计89条／66卡。40条limit=1显示本分支已使用次数小于1次；6条地形按原文显示；24条法珠逐项区分原文事实与扣费前后／计数对象／选档未知；19条Chain按玩家档位显示，0值特殊路径与完整选档未验证留展开层。900条答案、raw、来源、父集合、账本不变，其它811条不借入条件。浏览器UNTESTED，静态解析不冒充视觉验收；待原第三方定向复验，不启动C22、清理、Git或发布。"
+    elif args.cycle == "C21":
+        status_text = "正式交付与正式独立终审完成，待第三方方向审查"
+        verdict_text = "正式独立终审 PASS_WITH_EXPLICIT_SCOPE_LIMITS、阻断0（23/23；900项独立重导）"
+        review_links = (f"- [C21交付任务卡]({relative_href(args.output, cfg['delivery_task'])})\n"
+                        f"- [正式独立终审]({relative_href(args.output, cfg['delivery_review'])})\n"
+                        f"- [审查入口路径修复]({relative_href(args.output, 'output/character_skills/review/c21_delivery_final_20261111_deepseek/REPAIR.md')})")
+        generation_note = "C21只使用当前正式页面、当前账本和pre_rebuild前像生成展示及900答案台账。未运行run_formal、resume、第二次全库生成、隔离卡页生成或账本生成；正式pages／ledger／rules／交付包未修改。"
+        limits_note = "518卡900行、900个伤害效果净增、900条答案新增（P1 766／P2 134；Y.G.11／非Y.G.889），严格直接899项＋CID30304首句条件镜像1项。900答案不等于900行或518卡全部解释完成；完整+56／部分+1／未解析−57，其它同句未解效果4项继续就地披露。默认层只显示可读的局部贡献和必要条件；完整日文、公式、raw、表名、字段、指针、父集合与镜像差异放展开层。关联推断、runtime_verified=False；未做新原生或实机，不写最终扣血、保证命中或运行时装载。固定cohort隔离525卡1050文件不称任意分组复现。交付包部分历史检查名／说明残留C20“16卡／18行”字样，实际集合断言与独立终审均为518卡900行；原始回执保留，由收口勘误承接。第三方方向审查PENDING，浏览器UNTESTED；不启动C22、清理、Git或发布。"
     else:
         status_text = "整改完成，待原第三方定向复查"
         verdict_text = "第三方原裁决 REQUEST_CHANGES（R01/R02）未改"
@@ -1215,6 +2144,26 @@ def main():
                         f"- [本轮整改任务卡]({task_url})")
         generation_note = "C11 使用 C12 run 中保存的 C11 前像与 C11 账本；C12 使用当前正式页面与账本。未运行正式全库生成或第二次全库生成，未修改正式 pages、rules 或正式账本。第三方统计仅作交叉核对，不是生产唯一输入。"
         limits_note = "数值关联保持推断；S3/S7、hint、放置条件、Boss 模式 pattern 选取、M→sub1 引擎装载、1059 人数比例与五人上限保持未知。历史待办不构成下一批授权，backlog 不是互斥的角色完成率。"
+    if (args.output / "browser_verification.json").is_file():
+        if args.cycle in ("C20", "C20_R01", "C20_R02", "C21", "C21_R01"):
+            browser_line = "- `browser_verification.json`：UNTESTED（未启动浏览器做桌面／窄屏实际渲染）；静态 HTML 解析与链接存在性检查见 `verification_detailed.json`。"
+        else:
+            browser_line = "- `browser_verification.json`：真实浏览器桌面／窄屏阅读、答案展开和来源链接检查。"
+    else:
+        browser_line = "- 未生成 `browser_verification.json`：本轮未做真实浏览器渲染检查；静态 HTML 解析与链接存在性检查见 `verification_detailed.json`。"
+    detailed_line = ("- `verification_detailed.json`：默认／展开分层、同句未解披露、链接与只读性的逐项对账。"
+                     if (args.output / "verification_detailed.json").is_file() else "")
+    expanded_audit_line = ("- `expanded_display_audit.json`：25条答案逐条展开文本、完整父集合及合并／排除字段对账。"
+                           if (args.output / "expanded_display_audit.json").is_file() else "")
+    ledger_answer_count = sum(len(item["answers"]) for result in batch_results for item in result["rows"])
+    answer_ledger_line = (f"- `answer_ledger.json`／`answer_ledger.csv`：{ledger_answer_count}条答案的来源父、分支父及逐条验证台账。"
+                          if (args.output / "answer_ledger.json").is_file()
+                          and (args.output / "answer_ledger.csv").is_file() else "")
+    condition_ledger_line = ("\n- `condition_ledger.json`／`condition_ledger.csv`：89条F01／F02答案的selected原始条件、玩家可读条件及法珠已知／未知台账。"
+                             if (args.output / "condition_ledger.json").is_file()
+                             and (args.output / "condition_ledger.csv").is_file() else "")
+    manifest_line = ("- `final_manifest.json`：交付文件与 SHA-256 清单（不含自身和 handoff_verification.json）。\n"
+                     "- `handoff_verification.json`：单向 final_manifest 哈希回执。")
     readme = f"""# {args.cycle} 周期成果与剩余工程量
 
 - 状态：**{status_text}**；{verdict_text}。
@@ -1228,8 +2177,12 @@ def main():
 - `remaining.html`：按本周期末账本的未解效果、拆分待核查、示例与估算边界。
 - `report_data.json`：版本、完整批次结果、全部新增答案和剩余量机器数据。
 - `verification.json`：机器对账结果，含首次组合与剩余量计数校验。
-- `browser_verification.json`：真实浏览器桌面／窄屏阅读、答案展开和来源链接检查。
+{browser_line}
+{detailed_line}
+{expanded_audit_line}
+{answer_ledger_line}{condition_ledger_line}
 - `run_record.json`：生成器、真实输入、命令和输出清单。
+{manifest_line}
 
 ## 生成
 

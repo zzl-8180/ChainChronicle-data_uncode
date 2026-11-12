@@ -1,12 +1,12 @@
 import sys,json
-from pathlib import Path
+from versioned_outputs import fresh_output
 sys.path.insert(0,'scripts')
 from metadata_targets import Metadata
 from il2cpp_sample_code import Native
 from capstone import *
 m=Metadata('work/protection/metadata_aei_decoded.bin');n=Native(m);d=Cs(CS_ARCH_ARM64,CS_MODE_ARM)
 ids=[5177,5179,34548,5351,5174,7084,7083,5188,5398,4540,4542,4544,34609,5396,5359,5360,34626,34627,34618,34619,34620,34621,34622,34623,34549,34550,34611,9114,9115,5350,5416,7077,7078]+n.method_by_rva[0x1299c74]
-p=Path('output/boss_chain');p.mkdir(exist_ok=True)
+p=fresh_output('projects/skill-research/evidence/boss_chain','trace')
 for ix in ids:
  a=n.method(ix); s=int(a['native_rva'],16);e=min(x for x in n.pointers if x>s); ins=list(d.disasm(n.raw[s:e],s)); assert sum(i.size for i in ins)==e-s
  lines=[]

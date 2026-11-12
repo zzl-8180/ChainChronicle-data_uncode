@@ -85,6 +85,10 @@ import re
 import struct
 import unicodedata
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
 
 MODULE_VERSION = 'c12_p3_skilltext_mirror_20261031'
 #: 候选标记：本模块**未**接入共享接线，正式生成前不得当作已交付规则。
@@ -285,7 +289,7 @@ def tables(data):
     root = Path(getattr(data, 'root', Path('.'))).resolve()
     key = str(root)
     if key not in _TABLES:
-        base = root / CACHE_DIR
+        base = read_path(root / CACHE_DIR, root=root)
         need = [base / 'bossinfo.data5.json.raw', base / 'skilllist.data5.json.raw',
                 base / 'charainfo.data5.json.raw']
         missing = [str(p) for p in need if not p.exists()]

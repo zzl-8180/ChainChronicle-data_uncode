@@ -85,6 +85,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
+
 MODULE_VERSION = 'c13_p1_supporterskill_type8_20261031'
 #: 候选标记：本模块**未**接入共享接线，正式生成前不得当作已交付规则。
 CANDIDATE_ONLY = True
@@ -163,11 +166,11 @@ LIMITS_TEXT = ('不写玩家解锁、最终面板、最终伤害／最终HP、�
 # ---------------------------------------------------------------- 基础工具
 
 def read_json(path):
-    return json.loads(Path(path).read_text(encoding='utf-8'))
+    return json.loads(read_path(Path(path)).read_text(encoding='utf-8'))
 
 
 def sha256_file(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    return hashlib.sha256(read_path(Path(path)).read_bytes()).hexdigest()
 
 
 def num_text(value):
@@ -269,7 +272,7 @@ def tables(root=None):
     root = Path(root).resolve() if root is not None else ROOT
     key = str(root)
     if key not in _TABLES:
-        base = root / CACHE_DIR
+        base = read_path(root / CACHE_DIR, root=root)
         supporter = read_json(base / SUPPORTER_FILE)[SUPPORTER_TABLE]
         cache = read_json(base / SKILLLIST_FILE)[TABLE]
         apk = read_json(root / APK_SKILLLIST)[TABLE]
@@ -1432,12 +1435,12 @@ def build_candidate(root=None, write=True):
         'inputs': {
             'supporter': {
                 'path': '%s/%s' % (CACHE_DIR, SUPPORTER_FILE),
-                'sha256': sha256_file(root / CACHE_DIR / SUPPORTER_FILE),
+                'sha256': sha256_file(read_path(root / CACHE_DIR / SUPPORTER_FILE, root=root)),
                 'records': len(tab['supporter']),
             },
             'skilllist_cache': {
                 'path': '%s/%s' % (CACHE_DIR, SKILLLIST_FILE),
-                'sha256': sha256_file(root / CACHE_DIR / SKILLLIST_FILE),
+                'sha256': sha256_file(read_path(root / CACHE_DIR / SKILLLIST_FILE, root=root)),
                 'records': tab['cache_count'],
             },
             'skilllist_apk': {

@@ -3,6 +3,7 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from metadata_targets import Metadata
@@ -11,7 +12,7 @@ import boss_type105_probe as f
 from unicorn import UC_HOOK_CODE
 from unicorn.arm64_const import *
 
-OUT=Path('output/boss_chain/type13_basis');OUT.mkdir(parents=True,exist_ok=True)
+OUT=write_path(Path('output/boss_chain/type13_basis'));OUT.mkdir(parents=True,exist_ok=True)
 m=Metadata('work/protection/metadata_aei_decoded.bin');n=Native(m);d=Cs(CS_ARCH_ARM64,CS_MODE_ARM)
 ranges={'player_card_atk':(0x10fa624,0x10fa688),'player_atk_scale':(0x10faf5c,0x10fb02c),
         'support_guard':(0x1776790,0x17767d0),'integer_truncation':(0x14376ec,0x143772c),

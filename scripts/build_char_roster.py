@@ -11,7 +11,7 @@
 合并规则（沿用项目逐 ID 条件回退约定）：cid 在缓存 charainfo 中存在时取缓存记录，否则取 APK 记录；
 不做逐字段合并。玩家实际解锁/装载状态不在本工具范围。
 
-输出（可重建展示目录）：output/char_roster/
+输出（每次新建版本）：projects/skill-research/data/char_roster_runs/
   data/playable_characters.{csv,json}  可玩角色（is_enemy!=1 且 rarity>=1）
   data/other_characters.{csv,json}     NPC/敌人等其他角色
   data/summary.json                    统计与缺失清单
@@ -24,6 +24,7 @@
 运行（项目根目录）：.venv\\Scripts\\python.exe -B scripts/build_char_roster.py
 仅标准库。
 """
+import argparse
 import csv
 import base64
 import hashlib
@@ -34,14 +35,17 @@ import shutil
 import sys
 import time
 from collections import Counter
+from pathlib import Path
+
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-APK_CHAR = os.path.join(ROOT, 'output', 'base_master', '_mdCharacter.json')
-CACHE_CHAR = os.path.join(ROOT, 'output', 'cache_full_20261015_v3', 'decoded', 'charainfo.data5.json.raw')
-CACHE_WORLD = os.path.join(ROOT, 'output', 'cache_full_20261015_v3', 'decoded', 'worldinfo.data5.json.raw')
-ICON_SRC_ROOT = os.path.join(ROOT, 'output', 'full_unpack', 'objects', 'Card_Icon')
-OUT_DIR = os.path.join(ROOT, 'output', 'char_roster')
+APK_CHAR = str(read_path(Path(ROOT) / 'output' / 'base_master' / '_mdCharacter.json', root=Path(ROOT)))
+CACHE_CHAR = str(read_path(Path(ROOT) / 'output' / 'cache_full_20261015_v3' / 'decoded' / 'charainfo.data5.json.raw', root=Path(ROOT)))
+CACHE_WORLD = str(read_path(Path(ROOT) / 'output' / 'cache_full_20261015_v3' / 'decoded' / 'worldinfo.data5.json.raw', root=Path(ROOT)))
+ICON_SRC_ROOT = str(read_path(Path(ROOT) / 'output' / 'full_unpack' / 'objects' / 'Card_Icon', root=Path(ROOT)))
 
 # 职业编号→名称：依据 spmotname 动作名相关分布推断（jobtype2↔magi、3↔heal、1↔snip/shoo、0/4↔近战系），
 # 与 Chain Chronicle 五职业一致；主表内未找到官方职业名表，状态为“推断”。
@@ -78,7 +82,7 @@ def icon_source(cid):
     return p if os.path.exists(p) else None
 
 
-def main():
+def main(out_dir):
     t0 = time.time()
     apk_records = load_json(APK_CHAR)['charainfo']
     cache_records = load_json(CACHE_CHAR)['charainfo']
@@ -137,7 +141,7 @@ def main():
             rel = f"icons/playable/{job_dir}/{row['rarity']}星/{cid:05d}_{nm}.png"
         else:
             rel = f"icons/other/{cid:05d}_{nm}.png"
-        dst = os.path.join(OUT_DIR, *rel.split('/'))
+        dst = os.path.join(out_dir, *rel.split('/'))
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copy2(src, dst)
         if os.path.getsize(dst) != os.path.getsize(src):
@@ -147,7 +151,7 @@ def main():
         copied += 1
 
     # ---- 数据文件 ----
-    data_dir = os.path.join(OUT_DIR, 'data')
+    data_dir = os.path.join(out_dir, 'data')
     os.makedirs(data_dir, exist_ok=True)
 
     csv_field_map = {
@@ -217,7 +221,7 @@ def main():
         json.dump(summary, f, ensure_ascii=False, indent=1)
 
     # ---- HTML 画廊 ----
-    write_html(playable, other, summary)
+    write_html(out_dir, playable, other, summary)
 
     # ---- manifest ----
     manifest = {
@@ -235,7 +239,7 @@ def main():
         },
         'merge_rule': '逐 ID 条件回退：cid 命中缓存 charainfo 取缓存，否则取 APK；不逐字段合并',
     }
-    with open(os.path.join(OUT_DIR, 'manifest.json'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(out_dir, 'manifest.json'), 'w', encoding='utf-8') as f:
         json.dump(manifest, f, ensure_ascii=False, indent=1)
 
     # ---- 核对 ----
@@ -249,11 +253,11 @@ def main():
           f'{len(merged_cids)} unique')
     on_disk = 0
     for row in playable + other:
-        if row['icon_status'] == 'ok' and os.path.exists(os.path.join(OUT_DIR, *row['icon_path'].split('/'))):
+        if row['icon_status'] == 'ok' and os.path.exists(os.path.join(out_dir, *row['icon_path'].split('/'))):
             on_disk += 1
     check('icons_on_disk', on_disk == copied, f'{on_disk}/{copied}')
     check('icon_size_match', not size_mismatch, f'mismatch={size_mismatch[:10]}')
-    with open(os.path.join(OUT_DIR, 'index.html'), encoding='utf-8') as f:
+    with open(os.path.join(out_dir, 'index.html'), encoding='utf-8') as f:
         html_text = f.read()
     newest_icon_ok = sum(1 for r in newest_block if r['icon_status'] == 'ok')
     embedded = html_text.count('data:image/png;base64,')
@@ -273,7 +277,7 @@ def main():
     with open(os.path.join(data_dir, 'verification.json'), 'w', encoding='utf-8') as f:
         json.dump(verification, f, ensure_ascii=False, indent=1)
 
-    write_readme(summary, verification)
+    write_readme(out_dir, summary, verification)
 
     print(json.dumps({'playable': len(playable), 'other': len(other),
                       'icons_copied': copied, 'missing_playable': missing_playable,
@@ -285,13 +289,13 @@ def esc(s):
     return html.escape('' if s is None else str(s), quote=True)
 
 
-def data_uri(rel_path):
+def data_uri(out_dir, rel_path):
     """把 output/char_roster 下的相对路径 PNG 读成 data URI（单文件 HTML 内嵌用）。"""
-    with open(os.path.join(OUT_DIR, *rel_path.split('/')), 'rb') as f:
+    with open(os.path.join(out_dir, *rel_path.split('/')), 'rb') as f:
         return 'data:image/png;base64,' + base64.b64encode(f.read()).decode('ascii')
 
 
-def write_html(playable, other, summary):
+def write_html(out_dir, playable, other, summary):
     parts = ['''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <title>锁链战记 全角色名册</title>
@@ -329,7 +333,7 @@ tr.orow img{width:48px;height:48px;vertical-align:middle}
         s = f'{row["cid"]} {row["name"] or ""} {row["title"] or ""}'
         h = f'<div class="card" data-s="{esc(s)}">'
         if row['icon_status'] == 'ok':
-            h += f'<img loading="lazy" src="{data_uri(row["icon_path"])}" alt="{esc(row["name"])}">'
+            h += f'<img loading="lazy" src="{data_uri(out_dir, row["icon_path"])}" alt="{esc(row["name"])}">'
         else:
             h += '<div class="noicon">图标未取得</div>'
         h += (f'<div class="nm">{esc(row["name"])}</div>'
@@ -385,7 +389,7 @@ tr.orow img{width:48px;height:48px;vertical-align:middle}
                  '<th>is_enemy</th><th>来源</th></tr>')
     for row in sorted(other, key=lambda x: x['cid']):
         s = f'{row["cid"]} {row["name"] or ""} {row["title"] or ""}'
-        img = f'<img loading="lazy" src="{data_uri(row["icon_path"])}" alt="">' if row['icon_status'] == 'ok' else ''
+        img = f'<img loading="lazy" src="{data_uri(out_dir, row["icon_path"])}" alt="">' if row['icon_status'] == 'ok' else ''
         parts.append(f'<tr class="orow" data-s="{esc(s)}"><td>{img}</td><td>{row["cid"]}</td>'
                      f'<td>{esc(row["name"])}</td><td>{esc(row["title"])}</td>'
                      f'<td>{esc(row["rarity"])}</td><td>{esc(row["is_enemy"])}</td>'
@@ -400,11 +404,11 @@ q.addEventListener('input',()=>{
  }
 });
 </script></body></html>''')
-    with open(os.path.join(OUT_DIR, 'index.html'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(out_dir, 'index.html'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(parts))
 
 
-def write_readme(summary, verification):
+def write_readme(out_dir, summary, verification):
     lines = f"""# 全角色名册（char_roster）
 
 生成：{summary['generated_at']}　重建：`.venv\\Scripts\\python.exe -B scripts/build_char_roster.py`（项目根目录，仅标准库）
@@ -461,12 +465,15 @@ def write_readme(summary, verification):
 
 ## 边界
 
-- 输入为既有本地解包产物；本工具只读输入、只写 `output/char_roster/`。
+- 输入为既有本地解包产物；本工具只读输入，只写本次的新版本目录。
 - 不声明全游戏覆盖（私有目录/服务端范围未知）；未下载头像不重复采集。
 """
-    with open(os.path.join(OUT_DIR, 'README.md'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(out_dir, 'README.md'), 'w', encoding='utf-8') as f:
         f.write(lines)
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--output', type=Path, help='A new run directory')
+    args = parser.parse_args()
+    sys.exit(main(fresh_output('projects/skill-research/data/char_roster_runs', 'roster', args.output)))

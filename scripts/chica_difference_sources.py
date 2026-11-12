@@ -2,12 +2,13 @@
 import hashlib
 import json
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from sample_trace import locate_record
 
-OUT = Path('output/card_comparison_cid30236/difference_sources')
-SOURCE = Path('output/cache_full_20261015_v3/records.jsonl')
-OLDER = Path('output/decoded/skilllist.data5.json.raw')
-EXPORT = Path('output/export/snapshot_223183400c1c62013338/build_261ac189c316abba/manifest.json')
+OUT = write_path(Path('output/card_comparison_cid30236/difference_sources'))
+SOURCE = read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
+OLDER = read_path(Path('output/decoded/skilllist.data5.json.raw'))
+EXPORT = read_path(Path('output/export/snapshot_223183400c1c62013338/build_261ac189c316abba/manifest.json'))
 
 
 def main():
@@ -18,7 +19,7 @@ def main():
     export = json.loads(EXPORT.read_text(encoding='utf-8'))
     binding = next(r for r in export['sources'] if r['input_file'] == OLDER.as_posix())
     assert binding['sha256'] == hashlib.sha256(raw).hexdigest()
-    apk_path = Path('output/base_master/_mdSkill.json')
+    apk_path = read_path(Path('output/base_master/_mdSkill.json'))
     apk = json.loads(apk_path.read_bytes())['skilllist']
     cases = []
     specs = [('class_critical', 65000001, ['param5'], ['other_class_param5'], '20%', '40个百分点'),
@@ -48,7 +49,7 @@ def main():
     trigger = next(r for r in records if r['table'] == 'skilllist' and r['raw'].get('skillid') == 43023603)
     old_trigger = next(r for r in old if r.get('skillid') == 43023603)
     assert all(old_trigger.get(f) == trigger['raw'].get(f) for f in ('ability', 'param0', 'param1', 'param5', 'str0'))
-    assert not Path('output/decoded/bossinfo.data5.json.raw').exists()
+    assert not read_path(Path('output/decoded/bossinfo.data5.json.raw')).exists()
     proof = dict(kind='TARGETED_LOCAL_SOURCE_COMPARISON_NOT_RUNTIME_TEST',
                  script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                  source_sha256=hashlib.sha256(SOURCE.read_bytes()).hexdigest(),

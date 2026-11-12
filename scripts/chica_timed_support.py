@@ -1,6 +1,7 @@
 """Wave / enemy-debuff mapping to TimePowerUpData and Support2 local factors."""
 import hashlib,json,struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from metadata_targets import Metadata
 from il2cpp_sample_code import Native
@@ -8,7 +9,7 @@ from chica_ordinary_rules import LocalGuest
 from phase_d_chain_probe import BASE,fbits,fvalue
 from unicorn.arm64_const import UC_ARM64_REG_S0,UC_ARM64_REG_S8
 
-OUT=Path('output/card_comparison_cid30236/timed_support')
+OUT=write_path(Path('output/card_comparison_cid30236/timed_support'))
 
 
 class TimedGuest(LocalGuest):
@@ -28,7 +29,7 @@ class TimedGuest(LocalGuest):
 
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
-    source=Path('output/cache_full_20261015_v3/records.jsonl')
+    source=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
     records=[json.loads(s) for s in source.read_text(encoding='utf-8').splitlines()]
     selected=[r for r in records if r['table']=='skilllist' and r['raw'].get('skillid') in (43023608,43023609,43023616,43023611)]
     rows={r['raw']['skillid']:r['raw'] for r in selected};assert len(rows)==4

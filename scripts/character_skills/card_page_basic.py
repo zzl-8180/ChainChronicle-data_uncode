@@ -57,7 +57,7 @@ def apply_basic_display(data,basic):
             f['display_value']=match[1] if valid else '未知／外部/网站维护'
             f['mapping_evidence']='确认（同源home原值＋homelist＋既有IsTargetHome证据）' if valid else '未知（缺字典或字典不一致）'
             f['mapping_source']=dict(source_key='CACHE/homelist.data5.json.raw',json_pointer=f'/homelist/{match[0]}' if match else None,
-                                     original_file=(data.decoded/'homelist.data5.json.raw').relative_to(data.root).as_posix())
+                                     original_file='output/cache_full_20261015_v3/decoded/homelist.data5.json.raw')
             f['mapping_review_evidence']=dict(path='output/character_skills/skilllist_types/filter_dictionary.json',json_pointer='/home',native_evidence=data.home_filter.get('native_evidence'),
                                              known_boundary=data.home_filter.get('known_boundary'),new_native_run=False)
             f['formatting_basis']='home按homelist.home_id/name查表；已有IsTargetHome读取home/battle_home的证据，不使用worldinfo地理ID拼接'

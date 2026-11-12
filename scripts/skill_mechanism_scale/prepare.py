@@ -3,9 +3,13 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
+from versioned_outputs import experiment_output
 
 ROOT = Path(__file__).resolve().parents[2]
-BASE = ROOT/'output/skill_mechanism_scale/20261104'
+BASE = experiment_output('skill_mechanism_scale')
 PACKET = BASE/'input'
 SEED = 'mechanism-scale-20261104-v1'
 
@@ -36,7 +40,7 @@ def main():
     assert len(targets)==31 and len({x['cid'] for x in targets})==31
     manifest={'started_at':started,'files':{},'selection_seed':SEED}
     def freeze(rel):
-        src=ROOT/rel
+        src=ROOT/rel if rel.startswith('scripts/') else read_path(ROOT/rel,root=ROOT)
         before=src.stat()
         b=src.read_bytes()
         after=src.stat()
@@ -52,16 +56,16 @@ def main():
     for name in ['charainfo','skilllist','bossinfo']:
         freeze(f'output/cache_full_20261015_v3/decoded/{name}.data5.json.raw')
     for folder in ['output/ordinary_effects/ability1095','output/character_skills/boss_heal_types','output/boss_heal']:
-        for path in (ROOT/folder).iterdir():
+        for path in read_path(ROOT/folder,root=ROOT).iterdir():
             if path.is_file() and path.suffix in ['.md','.json','.txt']:
                 assert path.stat().st_size<4*1024**2
-                freeze(path.relative_to(ROOT).as_posix())
+                freeze(folder+'/'+path.name)
     for name in ['card_page_inference_b11_sa1095.py','card_page_inference_b12_1095ext.py','skilllist_types.py','boss_heal_types.py','rules.py']:
         freeze('scripts/character_skills/'+name)
     # Prior common knowledge is supplied equally, not rediscovered in just one arm.
     freeze('output/skill_mechanism_trial/20261104/review/REPORT.md')
     rows={x['row_id']:x for x in targets}
-    ledger=ROOT/'output/character_skills/effect_ledger/ledger.jsonl'
+    ledger=read_path(ROOT/'output/character_skills/effect_ledger/ledger.jsonl',root=ROOT)
     before=ledger.stat(); digest=hashlib.sha256()
     for x in targets: x['baseline_effects']=[]
     with ledger.open('rb') as f:
@@ -81,7 +85,7 @@ def main():
         assert t['baseline_description']['input_snapshot']['snapshot_id']==manifest['snapshot']
         assert t['baseline_effects'] and all(x['status']=='unresolved' for x in t['baseline_effects'])
         t['baseline_answers']=[]
-    for rel,info in manifest['files'].items(): assert sha((ROOT/rel).read_bytes())==info['sha256'],rel
+    for rel,info in manifest['files'].items(): assert sha((ROOT/rel if rel.startswith('scripts/') else read_path(ROOT/rel,root=ROOT)).read_bytes())==info['sha256'],rel
     save(PACKET/'targets.json',targets)
     manifest['files']['targets.json']={'sha256':sha((PACKET/'targets.json').read_bytes()),'bytes':(PACKET/'targets.json').stat().st_size}
     manifest['finished_at']=now()

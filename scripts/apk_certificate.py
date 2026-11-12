@@ -7,6 +7,7 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 
 def lp32(data, offset=0):
@@ -72,16 +73,16 @@ def main():
     parser.add_argument("--hex", action="store_true",
                         help="include certificate hex in report and stdout (for --cert-hex usage)")
     args = parser.parse_args()
-    source = args.apk
+    source = read_path(args.apk)
     raw = source.read_bytes()
     rows, layout = certificates(raw)
-    output = Path("output/apk/certificates")
+    output = write_path(Path("output/apk/certificates"))
     output.mkdir(parents=True, exist_ok=True)
     report = []
     for row in rows:
         destination = output/f"signer_{row['signer_index']}_certificate_{row['certificate_index']}.der"
         destination.write_bytes(row["bytes"])
-        entry = {k:v for k,v in row.items() if k != "bytes"} | {"size": len(row["bytes"]), "local": str(destination)}
+        entry = {k:v for k,v in row.items() if k != "bytes"} | {"size": len(row["bytes"]), "local": path_reference(destination)}
         if args.hex:
             entry["hex"] = row["bytes"].hex()
         report.append(entry)

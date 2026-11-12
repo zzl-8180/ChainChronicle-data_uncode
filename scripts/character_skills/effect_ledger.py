@@ -61,6 +61,8 @@ import unicodedata
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
 from card_page_inference_b9_debuff import ATTRS3, _sentence_attrs  # noqa: F401  复用批 9 边界规则实现
 import card_page_inference_b6_bossbuff as B6  # 复用批 6 属性词表与形状谓词
 
@@ -2917,7 +2919,7 @@ def _b18_row_spec(row: dict):
     return cid, spec
 
 
-B18_APK_SKILL_PATH = Path('output/base_master/_mdSkill.json')
+B18_APK_SKILL_PATH = read_path(Path('output/base_master/_mdSkill.json'))
 _B18_APK_SKILL_INDEX: dict[int, dict] | None = None
 B18_SOURCE_IDENTITY_FIELDS = (
     'record_key', 'source_key', 'layer', 'original_file', 'json_pointer',

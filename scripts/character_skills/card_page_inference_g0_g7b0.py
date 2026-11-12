@@ -701,7 +701,7 @@ def _consume(row, res, report, family):
 # ---------------------------------------------------------------------------
 def probe(data, cid, row_id=None):
     """按页面找本批注册表行，输出原始载体与门控结果（不写页面）。"""
-    page = json.loads((Path('output/character_skills/pages') / str(cid) / 'card.json')
+    page = json.loads((R.read_path(Path('output/character_skills/pages')) / str(cid) / 'card.json')
                       .read_text(encoding='utf-8'))
     out = dict(cid=cid, rows=[])
     for group in page.get('groups') or []:
@@ -773,12 +773,12 @@ def domain_gate_assertions():
 
     class Data:
         def __init__(self):
-            self.decoded = Path('output/cache_full_20261015_v3/decoded')
+            self.decoded = R.read_path(Path('output/cache_full_20261015_v3/decoded'))
             self.cache_skill = {r['skillid']: (i, r) for i, r in enumerate(
                 json.loads((self.decoded / 'skilllist.data5.json.raw')
                            .read_text(encoding='utf-8'))['skilllist'])}
             self.apk_skill = {r['skillid']: (i, r) for i, r in enumerate(
-                json.loads(Path('output/base_master/_mdSkill.json')
+                json.loads(R.read_path(Path('output/base_master/_mdSkill.json'))
                            .read_text(encoding='utf-8'))['skilllist'])}
 
     data = Data()
@@ -834,12 +834,12 @@ def _main(argv=None):
 
     class Data:
         def __init__(self):
-            self.decoded = Path('output/cache_full_20261015_v3/decoded')
+            self.decoded = R.read_path(Path('output/cache_full_20261015_v3/decoded'))
             self.cache_skill = {r['skillid']: (i, r) for i, r in enumerate(
                 json.loads((self.decoded / 'skilllist.data5.json.raw')
                            .read_text(encoding='utf-8'))['skilllist'])}
             self.apk_skill = {r['skillid']: (i, r) for i, r in enumerate(
-                json.loads(Path('output/base_master/_mdSkill.json')
+                json.loads(R.read_path(Path('output/base_master/_mdSkill.json'))
                            .read_text(encoding='utf-8'))['skilllist'])}
 
     data = Data()

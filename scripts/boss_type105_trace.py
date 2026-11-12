@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from metadata_targets import Metadata
@@ -11,7 +12,7 @@ from il2cpp_sample_code import Native
 parser = argparse.ArgumentParser()
 parser.add_argument('--effect-type', type=int, choices=(105, 112), default=105)
 effect_type = parser.parse_args().effect_type
-OUT = Path(f'output/boss_chain/type{effect_type}')
+OUT = write_path(Path(f'output/boss_chain/type{effect_type}'))
 OUT.mkdir(parents=True, exist_ok=True)
 m = Metadata('work/protection/metadata_aei_decoded.bin')
 n = Native(m)

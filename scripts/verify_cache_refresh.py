@@ -1,13 +1,20 @@
-"""Validate refreshed cache against retained base, without overwriting either."""
+"""Validate refreshed cache against retained base and write reports in a fresh directory."""
+import argparse
 import json,hashlib,tarfile,csv
 from pathlib import Path
+from project_layout_paths import read_path, path_reference
+from versioned_outputs import fresh_output
 from collections import Counter
-P=Path('output/phone_refresh_20261015');D=Path('output/cache_refresh_20261015');OLD=Path('output/cache_full_20261015_v3');BASE='raw/phone_20261015_full_02';NEW='raw/phone_20261015_refresh_02';WORK=Path('work/phone_20261015_refresh_02')
-def load(p):return json.loads(Path(p).read_text(encoding='utf-8'))
-def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
-def save(p,v):Path(p).write_text(json.dumps(v,ensure_ascii=False,indent=2),encoding='utf-8')
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output',type=Path,help='Fresh directory for the verification reports')
+args=parser.parse_args()
+D=fresh_output('projects/unpack/reports/validation','cache-refresh',args.output)
+P=read_path(Path('output/phone_refresh_20261015'));D_SOURCE=read_path(Path('output/cache_refresh_20261015'));OLD=read_path(Path('output/cache_full_20261015_v3'));BASE='raw/phone_20261015_full_02';NEW='raw/phone_20261015_refresh_02';WORK=read_path(Path('work/phone_20261015_refresh_02'))
+def load(p):return json.loads(read_path(Path(p)).read_text(encoding='utf-8'))
+def sha(p):return hashlib.sha256(read_path(Path(p)).read_bytes()).hexdigest()
+def save(p,v):p.write_text(json.dumps(v,ensure_ascii=False,indent=2),encoding='utf-8')
 plan=load(P/'plan.json');prefix=plan['base'];selected={r['relative']:r for r in plan['files']};checks=[];payloads={}
-with tarfile.open(NEW+'/external_cache.tar') as arc:
+with tarfile.open(read_path(Path(NEW)/'external_cache.tar')) as arc:
  for m in arc:
   if not m.isfile():continue
   assert m.name in selected
@@ -16,22 +23,22 @@ with tarfile.open(NEW+'/external_cache.tar') as arc:
   payloads[m.name]=digest
 assert set(payloads)==set(selected)
 checks.append({'name':'242_archive_members_equal_work_copy','pass':True,'files':len(payloads)})
-a=load(OLD/'decode_report.json');b=load(D/'decode_report.json');byname={r['filename']:r for r in a['files']};data5=[]
+a=load(OLD/'decode_report.json');b=load(D_SOURCE/'decode_report.json');byname={r['filename']:r for r in a['files']};data5=[]
 for r in b['files']:
  old=byname[r['filename']]
  assert r['status']=='DECODED' and r['source_sha256']==old['source_sha256'] and r['json_raw_sha256']==old['json_raw_sha256']
  assert sha(r['source'])==r['source_sha256'] and sha(r['json_file'])==r['json_raw_sha256']
- assert Path(r['json_file']).read_bytes()==Path(old['json_file']).read_bytes()
+ assert read_path(Path(r['json_file'])).read_bytes()==read_path(Path(old['json_file'])).read_bytes()
  data5.append({'filename':r['filename'],'ciphertext_sha256':r['source_sha256'],'json_sha256':r['json_raw_sha256'],'status':'BYTE_IDENTICAL_TO_V3','tables':r['tables']})
 assert len(data5)==77;save(D/'data5_comparison.json',data5)
 checks.append({'name':'77_ciphertexts_and_full_json_identical','pass':True})
-oldrecords=[json.loads(l) for l in (OLD/'records.jsonl').open(encoding='utf-8')];newrecords=[json.loads(l) for l in (D/'records.jsonl').open(encoding='utf-8')]
+oldrecords=[json.loads(l) for l in (OLD/'records.jsonl').open(encoding='utf-8')];newrecords=[json.loads(l) for l in (D_SOURCE/'records.jsonl').open(encoding='utf-8')]
 assert len(oldrecords)==len(newrecords)==39047
 for a,b in zip(oldrecords,newrecords):
  for key in ('record_key','source_key','layer','table','table_path','source_sha256','location','raw','analysis_named_table'):assert a[key]==b[key],(key,a['record_key'])
 checks.append({'name':'39047_records_values_types_order_locations_unchanged','pass':True})
 oldmembers={}
-with tarfile.open(BASE+'/external_cache.tar') as arc:
+with tarfile.open(read_path(Path(BASE)/'external_cache.tar')) as arc:
  for m in arc:
   if m.isfile():oldmembers[m.name]=(m.size,int(m.mtime))
 stat=load(P/'stat.json');inventory=[json.loads(l) for l in (P/'inventory.jsonl').open(encoding='utf-8')]
@@ -40,7 +47,7 @@ rows=[]
 for r in stat:
  name=r['path'][len(prefix):]
  if name not in selected:assert oldmembers[name]==(r['size'],r['mtime'])
- rows.append({'path':name,'bytes':r['size'],'phone_mtime':r['mtime'],'archive':NEW+'/external_cache.tar' if name in selected else BASE+'/external_cache.tar','archive_member':name,'work_file':str(WORK/name) if name in selected else str(Path('work/phone_20261015_full_02')/name),'basis':'FRESHLY_COLLECTED_LOCAL_HASH' if name in selected else 'PRIOR_ACQUISITION_SAME_PATH_SIZE_MTIME','sha256_this_refresh':payloads.get(name),'limit':'not atomic; unchanged media not rehashed on phone'})
+ rows.append({'path':name,'bytes':r['size'],'phone_mtime':r['mtime'],'archive':Path(path_reference(read_path(Path(NEW)/'external_cache.tar'))).as_posix() if name in selected else Path(path_reference(read_path(Path(BASE)/'external_cache.tar'))).as_posix(),'archive_member':name,'work_file':path_reference(WORK/name) if name in selected else path_reference(read_path(Path('work/phone_20261015_full_02'))/name),'basis':'FRESHLY_COLLECTED_LOCAL_HASH' if name in selected else 'PRIOR_ACQUISITION_SAME_PATH_SIZE_MTIME','sha256_this_refresh':payloads.get(name),'limit':'not atomic; unchanged media not rehashed on phone'})
 assert len(rows)==68993
 with (D/'composite_inventory.jsonl').open('w',encoding='utf-8') as f:
  for r in rows:f.write(json.dumps(r,ensure_ascii=False)+'\n')

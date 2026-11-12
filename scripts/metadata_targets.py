@@ -7,13 +7,14 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 SECTIONS = "stringLiteral stringLiteralData string events properties methods parameterDefaultValues fieldDefaultValues fieldAndParameterDefaultValueData fieldMarshaledSizes parameters fields genericParameters genericParameterConstraints genericContainers nestedTypes interfaces vtableMethods interfaceOffsets typeDefinitions images assemblies fieldRefs referencedAssemblies attributeData attributeDataRange unresolvedVirtualCallParameterTypes unresolvedVirtualCallParameterRanges windowsRuntimeTypeNames windowsRuntimeStrings exportedTypeDefinitions".split()
 
 
 class Metadata:
     def __init__(self, path):
-        self.raw = path if isinstance(path, bytes) else Path(path).read_bytes()
+        self.raw = path if isinstance(path, bytes) else read_path(path).read_bytes()
         if len(self.raw)<256:
             raise ValueError('Truncated metadata header')
         if struct.unpack_from('<II', self.raw) != (0xfab11baf, 31):
@@ -106,7 +107,7 @@ def main():
               'counts':{'types':len(m.types),'methods':len(m.methods),'fields':len(m.fields),'images':len(m.images)},
               'sections':m.sections,'methods':methods,'target_types':target_types,
               'schema_source':'https://raw.githubusercontent.com/Perfare/Il2CppDumper/master/Il2CppDumper/Il2Cpp/MetadataClass.cs'}
-    Path('output/il2cpp/metadata_targets.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+    write_path('output/il2cpp/metadata_targets.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({'validation':report['validation'],'counts':report['counts'],'methods':methods,
                       'target_types':[(t['index'],t['name'],len(t['fields'])) for t in target_types]},ensure_ascii=False,indent=2))
 

@@ -8,6 +8,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path, PurePosixPath
+from project_layout_paths import read_path, write_path, path_reference
 
 
 def save_json(path, value):
@@ -21,12 +22,15 @@ def main():
     parser.add_argument("--adb", type=Path, default=Path("tools/platform-tools/adb.exe"))
     parser.add_argument("--serial")
     parser.add_argument("--package", default="com.sega.chainchronicle")
-    parser.add_argument("--output", type=Path, default=Path("output/phone"))
+    parser.add_argument("--output", type=Path, default=write_path(Path("output/phone")))
     parser.add_argument("--remote", action="append", default=[])
     parser.add_argument("--plan", type=Path, help="JSON with explicit paths selected from the probe inventory")
     parser.add_argument("--method", choices=["pull", "exec-out"], default="pull")
     parser.add_argument("--snapshot", default=datetime.now(timezone(timedelta(hours=8))).strftime("phone_%Y%m%d_%H%M%S"))
     args = parser.parse_args()
+    args.adb = read_path(args.adb)
+    args.output=write_path(args.output)
+    if args.plan is not None:args.plan=read_path(args.plan)
     if args.plan:
         args.remote.extend(json.loads(args.plan.read_text(encoding="utf-8"))["paths"])
     if not re.fullmatch(r"[A-Za-z0-9_.]+", args.package):
@@ -122,7 +126,7 @@ def main():
         parser.error("pull requires one or more explicit --remote paths after reviewing the inventory")
     if not re.fullmatch(r"[A-Za-z0-9_-]+", args.snapshot):
         parser.error("Invalid snapshot id")
-    dest_root = Path("raw") / args.snapshot
+    dest_root = write_path(Path("raw") / args.snapshot)
     if dest_root.exists():
         raise FileExistsError("Snapshot already exists; choose a new id, never overwrite a collected snapshot")
     rows = []
@@ -151,7 +155,7 @@ def main():
                 pull["stderr"] += f"; size mismatch expected {expected_size}, received {dest.stat().st_size}"
         else:
             pull = run(["-s", serial, "pull", remote, str(dest.resolve())], timeout=3600)
-        row = {"remote": remote, "local": dest.as_posix(), "exit_code": pull["exit_code"],
+        row = {"remote": remote, "local": Path(path_reference(dest)).as_posix(), "exit_code": pull["exit_code"],
                "status": "COPIED" if pull["exit_code"] == 0 else "COPY_FAILED",
                "stderr": pull["stderr"], "method": args.method}
         files = [dest] if dest.is_file() else list(dest.rglob("*")) if dest.is_dir() else []

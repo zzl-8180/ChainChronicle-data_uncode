@@ -10,6 +10,8 @@ import json
 import math
 import struct
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from unicorn.arm64_const import UC_ARM64_REG_S0,UC_ARM64_REG_S8,UC_ARM64_REG_TPIDR_EL0
@@ -18,8 +20,7 @@ from il2cpp_sample_code import Native
 from chica_timed_support import TimedGuest
 from phase_d_chain_probe import BASE,fbits,fvalue
 
-OUT=Path('output/ordinary_effects/ability3000')
-SOURCE=Path('output/cache_full_20261015_v3/records.jsonl')
+SOURCE=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 FIELDS=('param1','param2','param6','param8')
 WEAPON_MASK=0x7fc00000
 
@@ -120,7 +121,7 @@ def main():
         bounds_constructor=(0x172dd30,0x172ddb0),normal_sum=(0x172e8c0,0x172e98c),
         skill_sum=(0x172e98c,0x172ea5c),critical_damage_sum=(0x172ecb4,0x172ed7c),
         delta_support3=(0x176cd10,0x176cd28),countdown=(0x172e55c,0x172e578),weapon_mask_init=(0x15777bc,0x15777e4))
-    OUT.mkdir(parents=True,exist_ok=True)
+    OUT=fresh_output('projects/skill-research/evidence/ordinary_effects/ability3000','native-checks')
     for name,(begin,end) in ranges.items():
         lines=[]
         for ins in d.disasm(n.raw[begin:end],begin):

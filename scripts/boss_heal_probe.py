@@ -1,10 +1,12 @@
 """Run exact GetOverHealRate and bounded HP cap fragment with explicit models."""
 import json,struct,hashlib
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 from unicorn import Uc,UC_ARCH_ARM64,UC_MODE_ARM,UC_HOOK_CODE
 from unicorn.arm64_const import *
 BASE,HEAP,STACK,STOP=0x50000000,0x10000000,0x20000000,0x30000000
-raw=Path('work/protection/il2cpp_loader_seed1.bin').read_bytes();e=json.loads(Path('output/boss_heal/constants.json').read_text(encoding='utf-8'))
+raw=read_path(Path('work/protection/il2cpp_loader_seed1.bin')).read_bytes();e=json.loads(read_path(Path('output/boss_heal/constants.json')).read_text(encoding='utf-8'))
 u=Uc(UC_ARCH_ARM64,UC_MODE_ARM);u.mem_map(BASE,(len(raw)+4095)&~4095);u.mem_write(BASE,raw)
 for a in (HEAP,STACK,STOP):u.mem_map(a,0x10000)
 def q(a,v):u.mem_write(a,struct.pack('<Q',v))
@@ -43,5 +45,6 @@ for flag,maximum,current,amount,expected in [(1<<42,1000,1500,200,1600),(1<<43,1
  ints.update({hpmax:maximum,hp:current});writes.clear();xr(0,current);xr(19,chara);xr(20,flag);xr(24,amount);xr(25,current);xr(27,cell)
  run(0x15413bc,BASE+0x15414cc);assert ints[hp]==expected,(flag,maximum,current,amount,ints[hp],expected,writes)
  checks.append({'case':'native_hp_cap_fragment','flag':flag,'hp_max':maximum,'hp_before':current,'heal_argument':amount,'hp_after':ints[hp],'setter_calls':len(writes),'expected':expected,'pass':True})
-result={'status':'PASS','evidence':'CONTROLLED_NATIVE_FRAGMENT','native_sha256':hashlib.sha256(raw).hexdigest(),'constants_sha256':hashlib.sha256(Path('output/boss_heal/constants.json').read_bytes()).hexdigest(),'checks':checks,'models':['Static arrays copied from recovered metadata, class marked initialized','ParamS int getter/setter modeled','0x143732c modeled as addition only for small positive test inputs'],'limits':['Heal entry eligibility, reverse/cut, visuals, later CalcHeal not executed','No real device or actual player state','Not a final healing prediction']}
-Path('output/boss_heal/checks.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8');print('PASS',len(checks))
+result={'status':'PASS','evidence':'CONTROLLED_NATIVE_FRAGMENT','native_sha256':hashlib.sha256(raw).hexdigest(),'constants_sha256':hashlib.sha256(read_path(Path('output/boss_heal/constants.json')).read_bytes()).hexdigest(),'checks':checks,'models':['Static arrays copied from recovered metadata, class marked initialized','ParamS int getter/setter modeled','0x143732c modeled as addition only for small positive test inputs'],'limits':['Heal entry eligibility, reverse/cut, visuals, later CalcHeal not executed','No real device or actual player state','Not a final healing prediction']}
+out=fresh_output('projects/skill-research/evidence/boss_heal','native-checks')
+(out/'checks.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8');print('PASS',len(checks))

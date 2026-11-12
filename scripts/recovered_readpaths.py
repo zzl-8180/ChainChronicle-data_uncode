@@ -6,15 +6,16 @@ from pathlib import Path
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 
 from decode_data5 import IMAGE_SHA
+from project_layout_paths import read_path, write_path
 
 
 def main():
     image = Path("work/protection/nutils_loader_seed1.bin").read_bytes()
     assert hashlib.sha256(image).hexdigest() == IMAGE_SHA
     original = Path("work/apk/lib/arm64-v8a/libChronicleNUtils.so").read_bytes()
-    source = json.loads(Path("output/native/readpaths.json").read_text())
+    source = json.loads(read_path(Path("projects/unpack/research/native/20261111/readpaths.json")).read_text())
     md = Cs(CS_ARCH_ARM64,CS_MODE_ARM)
-    output = Path("output/native/recovered_readpaths")
+    output = write_path(Path("projects/unpack/research/native/20261111/recovered_readpaths"))
     output.mkdir(parents=True,exist_ok=True)
     rows = []
     for function in source["functions"]:

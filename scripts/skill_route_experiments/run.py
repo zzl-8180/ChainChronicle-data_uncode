@@ -15,6 +15,10 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
+from versioned_outputs import experiment_output
 import random
 import statistics
 import sys
@@ -22,7 +26,7 @@ import time
 from types import SimpleNamespace
 
 PROJECT = Path(__file__).resolve().parents[2]
-OUT = PROJECT / 'output/skill_route_experiments/20261103'
+OUT = experiment_output('skill_route_experiments')
 FROZEN = OUT / 'inputs'
 EXCLUDED = {7250, 30105, 30301, 30329, 30334, 30236, 30239}
 RAW = 'output/cache_full_20261015_v3/decoded/'
@@ -80,7 +84,7 @@ def prepare():
     manifest = {'excluded_cids': sorted(EXCLUDED), 'sources': {}, 'selection_seed': 20261103}
 
     def freeze(rel, target=None):
-        p = PROJECT / rel
+        p = PROJECT / rel if rel.startswith('scripts/') else read_path(PROJECT / rel, root=PROJECT)
         before = p.stat()
         blob = p.read_bytes()
         after = p.stat()
@@ -98,7 +102,7 @@ def prepare():
     freeze('scripts/character_skills/card_page_inference_g1_structure.py', 'g1_structure.py')
     for name in ['bossinfo', 'charainfo', 'denju']:
         freeze(RAW + name + '.data5.json.raw')
-    ledger = PROJECT / 'output/character_skills/effect_ledger/ledger.jsonl'
+    ledger = read_path(PROJECT / 'output/character_skills/effect_ledger/ledger.jsonl',root=PROJECT)
     before = ledger.stat()
     digest = hashlib.sha256()
     rows, effects, row_ids = [], [], set()
@@ -119,7 +123,7 @@ def prepare():
     anchors = {r['input_snapshot']['snapshot_id'] for r in rows}
     if anchors != {metrics['snapshot']['snapshot_id']}:
         raise AssertionError('Mixed ledger snapshot')
-    manifest['ledger'] = {'source': str(ledger.relative_to(PROJECT)), 'sha256': digest.hexdigest(),
+    manifest['ledger'] = {'source': 'output/character_skills/effect_ledger/ledger.jsonl', 'sha256': digest.hexdigest(),
                           'bytes': after.st_size, 'snapshot_ids': sorted(anchors)}
     write_json(FROZEN / 'yg_ledger.json', {'descriptions': rows, 'effects': effects})
     pool = sorted({r['cid'] for r in rows} - EXCLUDED)
@@ -131,7 +135,8 @@ def prepare():
     manifest['snapshot'] = metrics['snapshot']['snapshot_id']
     drift = []
     for rel, entry in manifest['sources'].items():
-        if sha((PROJECT / rel).read_bytes()) != entry['sha256']:
+        source = PROJECT / rel if rel.startswith('scripts/') else read_path(PROJECT / rel, root=PROJECT)
+        if sha(source.read_bytes()) != entry['sha256']:
             drift.append(rel)
     if drift:
         write_json(OUT / 'freeze_failure.json', {'changed_sources': drift})
@@ -477,5 +482,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=['prepare', 'run'])
     args = parser.parse_args()
+    if args.command == 'prepare':
+        OUT.mkdir(parents=True)
     guard(args.command == 'run')
     (prepare if args.command == 'prepare' else run)()

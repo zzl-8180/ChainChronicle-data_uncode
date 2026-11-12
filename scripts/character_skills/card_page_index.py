@@ -113,13 +113,19 @@ EXPECTED_CAMPAIGN = {
     # 2026-11-04 C15（P1 denju 非首段伤害直接链 5 卡 6 行 6 答案）：A +1、C −1；
     # 其余 6 项不变。数值取自本轮 campaign_report.summary 实测；校验逻辑未改
     #（漂移仍显式失败）。
+    # 2026-11-08 C20（P1 Y.G.直接伤害9卡10答案＋P2非Y.G.条件伤害7卡15答案，共16卡18效果25答案）：A +9、C -9、整行推断 +0；
+    # 其余项不变。数值取自本轮 campaign_report.summary 实测；校验逻辑未改
+    #（漂移仍显式失败）。
+    # 2026-11-08 C21（P1 Y.G.直接伤害9卡10答案＋P2非Y.G.条件伤害7卡15答案，共518卡900效果900答案）：A +502、C -502、整行推断 +0；
+    # 其余项不变。数值取自本轮 campaign_report.summary 实测；校验逻辑未改
+    #（漂移仍显式失败）。
     "N_all": 41665,
-    "A": 18523,
+    "A": 19034,
     "whole_row_confirmed": 266,
     "scope_record": 18,
     "scope_by_type_extrapolated": 248,
     "original_A": 13859,
-    "C": 23142,
+    "C": 22631,
     "whole_row_inferred": 6370,
 }
 # 缺图 cid 清单（README §16.2 / 迁移任务卡 §2；59103 三类皆缺，故单列集合不含它）

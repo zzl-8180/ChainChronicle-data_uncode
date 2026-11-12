@@ -76,6 +76,10 @@ import re
 import struct
 import unicodedata
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
 
 MODULE_VERSION = "c7_p2_denju_binding_20261030"
 SCOPE = "C7_P2_DENJU_SAME_RECORD_20261030"
@@ -206,7 +210,7 @@ def tables(data):
     root = Path(getattr(data, "root", Path("."))).resolve()
     key = str(root)
     if key not in _TABLES:
-        base = root / "output/cache_full_20261015_v3/decoded"
+        base = read_path(root / "output/cache_full_20261015_v3/decoded", root=root)
         boss = _read(base / "bossinfo.data5.json.raw")["bossinfo"]
         patterns, skills = {}, {}
         for i, rec in enumerate(boss.get("bosspattern") or []):

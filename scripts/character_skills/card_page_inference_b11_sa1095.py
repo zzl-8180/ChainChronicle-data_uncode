@@ -161,7 +161,7 @@ def _resolve_field_evidence(param):
 def _field_evidence(param):
     if param not in _EVIDENCE_CACHE:
         files = _resolve_field_evidence(param)
-        missing = [p for p in files if not Path(p).is_file()]
+        missing = [p for p in files if not R.read_path(Path(p)).is_file()]
         if missing:
             raise FileNotFoundError(f'批 11 证据文件缺失（INFR-01）：{missing}')
         _EVIDENCE_CACHE[param] = files

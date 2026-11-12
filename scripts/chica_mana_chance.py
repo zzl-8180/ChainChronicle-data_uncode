@@ -1,6 +1,7 @@
 """Ability28 source-specific ManaHunter probability thresholds and terrain bonus."""
 import hashlib,json
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from metadata_targets import Metadata
 from il2cpp_sample_code import Native
@@ -8,7 +9,7 @@ from chica_timed_support import TimedGuest
 from phase_d_chain_probe import BASE,STACK,fbits,fvalue
 from unicorn.arm64_const import UC_ARM64_REG_S0,UC_ARM64_REG_S1,UC_ARM64_REG_S8,UC_ARM64_REG_S9,UC_ARM64_REG_X29
 
-OUT=Path('output/card_comparison_cid30236/mana_chance')
+OUT=write_path(Path('output/card_comparison_cid30236/mana_chance'))
 
 
 class ManaGuest(TimedGuest):
@@ -21,7 +22,7 @@ class ManaGuest(TimedGuest):
 
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
-    source=Path('output/cache_full_20261015_v3/records.jsonl')
+    source=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
     row=next(r for r in map(json.loads,source.open(encoding='utf-8')) if r['table']=='skilllist' and r['raw'].get('skillid')==43023602)
     assert row['raw']['ability']==28
     m=Metadata('work/protection/metadata_aei_decoded.bin');n=Native(m);d=Cs(CS_ARCH_ARM64,CS_MODE_ARM)

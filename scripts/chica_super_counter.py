@@ -1,12 +1,13 @@
 """Shared K/SSympathy count10 native constant and readiness flag."""
 import hashlib,json
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from metadata_targets import Metadata
 from il2cpp_sample_code import Native
 from phase_d_chain_probe import Guest,BASE
 
-OUT=Path('output/card_comparison_cid30236/super_counter')
+OUT=write_path(Path('output/card_comparison_cid30236/super_counter'))
 
 
 class CounterGuest(Guest):
@@ -17,7 +18,7 @@ class CounterGuest(Guest):
 
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
-    source=Path('output/cache_full_20261015_v3/records.jsonl')
+    source=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
     records=[json.loads(s) for s in source.open(encoding='utf-8')]
     selected=[r for r in records if (r['table']=='charainfo' and r['raw'].get('cid')==30236) or (r['table']=='bosspattern' and r['raw'].get('patternid')==43023602)]
     assert len(selected)==2 and next(r for r in selected if r['table']=='charainfo')['raw']['pattern2']==43023602

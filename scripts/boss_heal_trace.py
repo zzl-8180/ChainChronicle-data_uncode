@@ -1,11 +1,11 @@
 """Bounded static evidence for heal cap and timer callers, using existing recovered code."""
 import json,hashlib
-from pathlib import Path
+from versioned_outputs import fresh_output
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from metadata_targets import Metadata
 from il2cpp_sample_code import Native
 m=Metadata('work/protection/metadata_aei_decoded.bin');n=Native(m);md=Cs(CS_ARCH_ARM64,CS_MODE_ARM)
-out=Path('output/boss_heal');out.mkdir(exist_ok=True)
+out=fresh_output('projects/skill-research/evidence/boss_heal','trace')
 ids=[7355,7358,3622,6370,7079,6979,7087,34609,7078];methods=[]
 for ix in ids:
  r=n.method(ix);start=int(r['native_rva'],16);end=min(p for p in n.pointers if p>start);ins=list(md.disasm(n.raw[start:end],start));assert sum(i.size for i in ins)==end-start

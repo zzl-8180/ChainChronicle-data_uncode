@@ -58,8 +58,12 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path as layout_read_path
 from card_page_cohorts import sha as file_sha
-from card_page_dependencies import data_paths
+from card_page_dependencies import (
+    dependency_declaration, dependency_signature as compute_dependency_signature,
+    evaluate_campaign_records, effective_data_root, valid_sha256, COHORTS, SIGNATURE_FIELDS)
 from card_page_policy import metrics as policy_metrics
 from card_page_index import entry_pages_consistency, metric_values_from_summary
 
@@ -123,6 +127,14 @@ class Check:
                     noted=self.noted)
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def data_path(path: Path):
+    path = Path(path)
+    return layout_read_path(path, root=PROJECT_ROOT)
+
+
 def load_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
@@ -155,11 +167,11 @@ class Docs:
 
     def _map_prefix(self, sk: str):
         if sk.startswith("CACHE/"):
-            p = self.root / "output/cache_full_20261015_v3/decoded" / sk[len("CACHE/"):]
+            p = data_path(self.root / "output/cache_full_20261015_v3/decoded" / sk[len("CACHE/"):])
             if p.is_file():
                 return p
         elif sk.startswith("APK/"):
-            p = self.root / "output/base_master" / sk[len("APK/"):]
+            p = data_path(self.root / "output/base_master" / sk[len("APK/"):])
             if p.is_file():
                 return p
         return None
@@ -172,7 +184,7 @@ class Docs:
         of = src.get("original_file")
         norm = str(of).replace("\\", "/") if of else None
         if norm and (norm.endswith(".json") or norm.endswith(".json.raw")):
-            p = self.root / norm
+            p = data_path(self.root / norm)
             if p.is_file():
                 return p
         sk = src.get("source_key") or ""
@@ -185,7 +197,7 @@ class Docs:
             if p:
                 return p
         if norm:
-            return self.root / norm
+            return data_path(self.root / norm)
         return None
 
     def doc(self, path: Path):
@@ -197,7 +209,7 @@ class Docs:
     def registry_index(self, rel: str, containers, idkey: str):
         key = (rel, containers, idkey)
         if key not in self.indexes:
-            node = self.doc(self.root / rel)
+            node = self.doc(data_path(self.root / rel))
             for c in containers:
                 node = node[c]
             idx = {}
@@ -542,6 +554,126 @@ def aggregate(stats):
     return cov
 
 
+def load_object(path: Path):
+    def unique_fields(pairs):
+        obj = {}
+        for key, value in pairs:
+            if key in obj:
+                raise ValueError(f"重复 JSON 字段 {key!r}")
+            obj[key] = value
+        return obj
+
+    try:
+        value = json.loads(path.read_text(encoding="utf-8-sig"), object_pairs_hook=unique_fields)
+    except (OSError, ValueError) as error:
+        raise ValueError(f"{path}：{error}") from error
+    if not isinstance(value, dict):
+        raise ValueError(f"{path}：需要 JSON 对象")
+    return value
+
+
+def _require_signatures(record, label, fields=SIGNATURE_FIELDS):
+    invalid = [field for field in fields if not valid_sha256(record.get(field))]
+    if invalid:
+        raise ValueError(f"{label}：签名字段缺失或格式无效 {invalid}")
+
+
+def _bound_report(pages, key, name, *, cohort=None):
+    if not isinstance(key, str):
+        raise ValueError(f"{cohort or 'campaign'}：report 路径缺失或格式无效")
+    rel = Path(key)
+    parts = rel.parts
+    if (rel.is_absolute() or rel.drive or rel.as_posix() != key or len(parts) != 5
+            or parts[0] != "_batch" or parts[1] not in COHORTS
+            or parts[2] != "runs" or parts[3] == ".." or parts[4] != name
+            or (cohort is not None and parts[1] != cohort)):
+        raise ValueError(f"{cohort or 'campaign'}：report 不属于批准的 run 路径 {key!r}")
+    candidate = pages / rel
+    if candidate.resolve() != candidate:
+        raise ValueError(f"{cohort or 'campaign'}：report 路径跳转 {key!r}")
+    return candidate
+
+
+def load_campaign_inputs(pages, manifest_path, *, historical_report=None):
+    """Bind the current latest pointers, or one explicitly chosen historical campaign."""
+    pages = pages.resolve()
+    ptr = (load_object(pages / "_batch/campaign_latest.json") if historical_report is None
+           else {"report": historical_report})
+    campaign_path = _bound_report(pages, ptr.get("report"), "campaign_report.json")
+    campaign = load_object(campaign_path)
+    _require_signatures(campaign, campaign_path, ("signature",))
+    snapshots = campaign.get("cohort_snapshots")
+    if not isinstance(snapshots, list) or len(snapshots) != len(COHORTS):
+        raise ValueError(f"{campaign_path}：缺少完整的四组快照")
+    paths = {}
+    for snapshot in snapshots:
+        if not isinstance(snapshot, dict):
+            raise ValueError(f"{campaign_path}：cohort 快照必须是对象")
+        ch = snapshot.get("cohort")
+        if ch not in COHORTS or ch in paths:
+            raise ValueError(f"{campaign_path}：cohort 缺失、重复或无效 {ch!r}")
+        if snapshot.get("status") != "MATCHING_SIGNATURE_SNAPSHOT":
+            raise ValueError(f"{ch}：campaign 快照状态不匹配 {snapshot.get('status')!r}")
+        path = _bound_report(pages, snapshot.get("report"), "cohort_report.json", cohort=ch)
+        if historical_report is None:
+            latest = load_object(pages / "_batch" / ch / "latest.json")
+            current = _bound_report(pages, latest.get("report"), "cohort_report.json", cohort=ch)
+            if current != path:
+                raise ValueError(f"{ch}：campaign 快照与 latest 指向不同 run：{path} ≠ {current}")
+        paths[ch] = path
+
+    manifest_bytes = manifest_path.read_bytes()
+    manifest = json.loads(manifest_bytes.decode("utf-8-sig"))
+    if not isinstance(manifest, dict) or not isinstance(manifest.get("cohorts"), dict):
+        raise ValueError(f"{manifest_path}：manifest 缺少 cohorts 对象")
+    groups = manifest["cohorts"]
+    if set(groups) != set(COHORTS) or not all(isinstance(group, list) for group in groups.values()):
+        raise ValueError(f"{manifest_path}：manifest 必须声明四个组及各自成员")
+    manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
+    cohort_reports = {}
+    signature_records = {}
+    for ch in COHORTS:
+        path = paths[ch]
+        report = load_object(path)
+        plan = report.get("plan")
+        if not isinstance(plan, dict):
+            raise ValueError(f"{ch}：cohort_report.plan 缺失或不是对象 {path}")
+        for field, expected in (
+            ("cohort", ch),
+            ("run_id", path.parent.name),
+            ("run_directory", path.parent.relative_to(pages).as_posix()),
+        ):
+            value = plan.get(field)
+            if not isinstance(value, str) or value != expected:
+                raise ValueError(
+                    f"{ch}：cohort_report.plan.{field} 应为 {expected!r}，实得 {value!r} ({path})")
+        _require_signatures(report, path)
+        if report["signature"] != campaign["signature"]:
+            raise ValueError(f"{ch}：cohort_report.signature 与 campaign 不一致")
+        if report["manifest_sha256"] != manifest_sha256:
+            raise ValueError(f"{ch}：实际 manifest 字节哈希不匹配 {manifest_path}")
+        signatures_path = path.parent / "signatures.json"
+        if signatures_path.resolve() != signatures_path:
+            raise ValueError(f"{ch}：signatures.json 路径跳转 {signatures_path}")
+        record = load_object(signatures_path)
+        _require_signatures(record, signatures_path)
+        differences = [field for field in SIGNATURE_FIELDS if record[field] != report[field]]
+        if differences:
+            raise ValueError(f"{ch}：同 run 的 signatures.json 与 cohort_report 字段不一致 {differences}")
+        cohort_reports[ch] = report
+        signature_records[ch] = record
+    for field in SIGNATURE_FIELDS:
+        if len({report[field] for report in cohort_reports.values()}) != 1:
+            raise ValueError(f"四 cohort 的 {field} 不一致")
+    return ptr, campaign, paths, cohort_reports, signature_records, manifest
+
+
+def _input_location(root, path):
+    return (path if path.is_absolute() else data_path(root / path)).resolve()
+
+
+
+
 def main():
     global MAX_DETAILS
     ap = argparse.ArgumentParser(description=__doc__)
@@ -554,29 +686,21 @@ def main():
     ap.add_argument("--max-details", type=int, default=MAX_DETAILS)
     args = ap.parse_args()
     root = args.root.resolve()
-    pages = (root / args.pages) if not args.pages.is_absolute() else args.pages
     MAX_DETAILS = max(1, args.max_details)
-
     started = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    # --- 当前 campaign 指针与报告 ---
-    ptr_rel = load_json(pages / "_batch/campaign_latest.json")
-    campaign = load_json(pages / ptr_rel["report"])
+    try:
+        data_root = effective_data_root(root)
+        pages = _input_location(root, args.pages)
+        ledger_dir = _input_location(root, args.ledger)
+        manifest_path = _input_location(root, Path("output/character_skills/r2_preparation/cohorts/manifest.json"))
+        ptr_rel, campaign, cohort_paths, cohort_reports, signature_records, manifest = load_campaign_inputs(
+            pages, manifest_path)
+    except (OSError, ValueError) as error:
+        raise SystemExit(f"[FAIL] 验收输入：{error}") from None
     signature = campaign["signature"]
     run_id = Path(ptr_rel["report"]).parent.name
-    cohort_ptrs = {}
-    cohort_reports = {}
-    for ch in ("ge60", "40to59", "20to39", "remaining"):
-        cp = load_json(pages / "_batch" / ch / "latest.json")
-        cohort_ptrs[ch] = cp
-        cohort_reports[ch] = load_json(pages / cp["report"])
-    # campaign_report 本身不含 dependency_signature/manifest_sha256（见 card_page_batch.campaign）；
-    # receipt 与其所在 cohort 报告（即四个 run 的共同签名组成）比对。
-    dep_sigs = {r.get("dependency_signature") for r in cohort_reports.values()}
-    man_shas = {r.get("manifest_sha256") for r in cohort_reports.values()}
-    if len(dep_sigs) != 1 or len(man_shas) != 1:
-        raise SystemExit(f"[FAIL] 四 cohort 的 dependency_signature/manifest_sha256 不唯一：{dep_sigs} / {man_shas}")
-    dependency_signature, manifest_sha256 = dep_sigs.pop(), man_shas.pop()
-    manifest = load_json(root / "output/character_skills/r2_preparation/cohorts/manifest.json")
+    dependency_signature = cohort_reports["remaining"]["dependency_signature"]
+    manifest_sha256 = cohort_reports["remaining"]["manifest_sha256"]
     members = {int(cid): ch for ch, cids in manifest["cohorts"].items() for cid in cids}
     disk_cids = sorted(int(p.name) for p in pages.iterdir() if p.name.isdigit() and p.is_dir())
 
@@ -595,13 +719,14 @@ def main():
             missing.append(cid)
             continue
         try:
-            rec = load_json(rj)
+            rec = load_object(rj)
+            _require_signatures(rec, rj)
         except ValueError as e:
             c1.add(False, f"{cid}: receipt.json 不可解析：{e}")
             continue
         ch = members.get(cid)
         crep = cohort_reports.get(ch, {})
-        crun = (Path(cohort_ptrs[ch]["report"]).parent.name if ch else None)
+        crun = cohort_paths[ch].parent.name if ch else None
         if rec.get("status") != "SUCCESS":
             c1.add(False, f"{cid}: status={rec.get('status')!r} ≠ SUCCESS")
         if (folder / "reuse_blocked.json").is_file():
@@ -611,6 +736,8 @@ def main():
             c1.add(False, f"{cid}: receipt.signature {str(rec.get('signature'))[:12]}… ≠ campaign {signature[:12]}…")
         if rec.get("dependency_signature") != dependency_signature:
             c1.add(False, f"{cid}: dependency_signature 与 cohort 报告不一致")
+        if ch and rec["source_signature"] != crep["source_signature"]:
+            c1.add(False, f"{cid}: source_signature 与所属 {ch} cohort 报告不一致")
         if rec.get("manifest_sha256") != manifest_sha256:
             c1.add(False, f"{cid}: manifest_sha256 与 cohort 报告不一致")
         if ch and rec.get("run_id") != crun:
@@ -618,8 +745,8 @@ def main():
         if rec.get("status") == "SUCCESS":
             c1.add(True)
         files = rec.get("files") or {}
-        if set(files) != {"card.json", "index.html"}:
-            c2.add(False, f"{cid}: receipt.files 键集 {sorted(files)} ≠ [card.json, index.html]")
+        if not isinstance(files, dict) or set(files) != {"card.json", "index.html"}:
+            c2.add(False, f"{cid}: receipt.files 必须只包含 card.json 和 index.html")
         else:
             for name, digest in files.items():
                 p = folder / name
@@ -638,40 +765,30 @@ def main():
     checks.append(c1.done())
     checks.append(c2.done())
 
-    # ---- 3 33 项声明数据依赖（含已审type_rules及native_checks） ----
+    # ---- 3 33 项声明数据依赖：统一逻辑签名 + 两种历史回执 + 四组一致性 ----
     c3 = Check("dependencies_31", "33 项声明数据依赖存在、哈希未变、dependency_signature 可复算")
-    deps = data_paths(root)
-    declared = [dict(path=p.relative_to(root).as_posix(), sha256=file_sha(p) if p.is_file() else "MISSING") for p in deps]
-    dep_sig_now = hashlib.sha256(json.dumps(declared, sort_keys=True).encode()).hexdigest()
-    run_sigs = load_json((pages / Path(ptr_rel["report"]).parent / "signatures.json"))
-    c3.counters["declared_count"] = len(deps)
+    declared = dependency_declaration(root)
+    dep_sig_now = compute_dependency_signature(declared)
+    campaign_validation = evaluate_campaign_records(
+        root, signature_records, expected_campaign_signature=signature)
+    c3.counters["declared_count"] = len(declared)
     for d in declared:
         if d["sha256"] == "MISSING":
             c3.add(False, f"依赖缺失：{d['path']}")
         else:
             c3.add(True)
-    if len(deps) != 33:
-        c3.add(False, f"声明依赖数 {len(deps)} ≠ 33")
+    if len(declared) != 33:
+        c3.add(False, f"声明依赖数 {len(declared)} ≠ 33")
     else:
         c3.add(True)
-    if dep_sig_now != run_sigs.get("dependency_signature"):
-        changed = []
-        rec_now = {d["path"]: d["sha256"] for d in declared}
-        for d in run_sigs.get("data_dependencies", []):
-            if rec_now.get(d["path"]) != d["sha256"]:
-                changed.append(d["path"])
-        c3.add(False, f"dependency_signature 复算不一致；变化文件：{changed[:10]}")
-    else:
-        c3.add(True)
-    if run_sigs.get("dependency_signature") != signature:
-        # 生成签名口径（card_page_batch.run）：generation=sha256(manifest_sha+source_signature)；
-        # signature=sha256(generation+dependency_signature)。复算核对 campaign 签名组成。
-        generation = hashlib.sha256((run_sigs.get("manifest_sha256", "") + run_sigs.get("source_signature", "")).encode()).hexdigest()
-        expected_sig = hashlib.sha256((generation + run_sigs.get("dependency_signature", "")).encode()).hexdigest()
-        if expected_sig != signature:
-            c3.add(False, "signatures.json 的 manifest/source/dependency 组合复算 ≠ campaign 签名")
-        else:
+    for ch, result in campaign_validation["record_results"].items():
+        if result["ok"]:
             c3.add(True)
+        for error in result["errors"]:
+            c3.add(False, f"{ch}: {json.dumps(error, ensure_ascii=False, sort_keys=True)}")
+    for error in campaign_validation["errors"]:
+        if error["code"].startswith("GROUP_"):
+            c3.add(False, json.dumps(error, ensure_ascii=False, sort_keys=True))
     checks.append(c3.done())
 
     # ---- 共用容器 ----
@@ -875,7 +992,6 @@ def main():
     #      不删既有 10 项、不扩大豁免、不降低证据规则。对账对象＝--ledger 目录下的
     #      ledger.jsonl/backlog.json，须先按当前 pages 重建；本节独立重读两侧数据，
     #      不复用 effect_ledger 生成路径的中间状态。） ----
-    ledger_dir = (root / args.ledger) if not args.ledger.is_absolute() else args.ledger
     ledger_path = ledger_dir / "ledger.jsonl"
     backlog_path = ledger_dir / "backlog.json"
     c11 = Check("ledger_row_coverage", "每行账本入口存在（pages 行集合 ↔ ledger 描述入口，双向）")
@@ -1116,13 +1232,13 @@ def main():
         _BOSS_DOC = {}
         for _lay, _p in (("APK", "output/base_master/_mdBossInfo.json"),
                          ("CACHE", "output/cache_full_20261015_v3/decoded/bossinfo.data5.json.raw")):
-            _doc = load_json(root / _p)
+            _doc = load_json(data_path(root / _p))
             _bb = _doc["bossinfo"] if "bossinfo" in _doc else _doc
             _BOSS_DOC[_lay] = ({r["patternid"]: r for r in _bb["bosspattern"]},
                                {r["skillid"]: r for r in _bb["bossskill"]})
-        _CHA_DOC = {"APK": load_json(root / "output/base_master/_mdCharacter.json")["charainfo"],
-                    "CACHE": load_json(root / "output/cache_full_20261015_v3/decoded/charainfo.data5.json.raw")["charainfo"]}
-        _DEN_DOC = {"CACHE": load_json(root / "output/cache_full_20261015_v3/decoded/denju.data5.json.raw")["denju"]}
+        _CHA_DOC = {"APK": load_json(data_path(root / "output/base_master/_mdCharacter.json"))["charainfo"],
+                    "CACHE": load_json(data_path(root / "output/cache_full_20261015_v3/decoded/charainfo.data5.json.raw"))["charainfo"]}
+        _DEN_DOC = {"CACHE": load_json(data_path(root / "output/cache_full_20261015_v3/decoded/denju.data5.json.raw"))["denju"]}
         for rid, row in pages_rows.items():
             expected_labels = row.get("hp_branch_conditions_expected") or []
             if not expected_labels:
@@ -1248,12 +1364,21 @@ def main():
     result = dict(tool="scripts/character_skills/card_page_verify_full.py",
                   generated_at=started,
                   root=str(root),
+                  inputs=dict(data_root=str(data_root), pages=str(pages), ledger=str(ledger_dir),
+                              manifest=str(manifest_path)),
                   scope="output/character_skills/pages 当前交付面（2236 卡 + 入口两页）；_batch 只读指针/报告",
                   campaign=dict(pointer=ptr_rel["report"], run_id=run_id, signature=signature,
                                 cohort_snapshots=[dict(cohort=s["cohort"], status=s["status"],
                                                        report=s["report"]) for s in campaign["cohort_snapshots"]]),
-                  declared_dependencies=dict(count=len(deps), dependency_signature_now=dep_sig_now,
-                                             dependency_signature_recorded=run_sigs.get("dependency_signature")),
+                  declared_dependencies=dict(
+                      count=len(declared), dependency_signature_now=dep_sig_now,
+                      dependency_signature_recorded=signature_records["remaining"].get("dependency_signature"),
+                      path_formats=campaign_validation["path_formats"],
+                      cohorts={ch: dict(ok=result["ok"], path_format=result["path_format"],
+                                        recomputed_dependency_signature=result["recomputed_dependency_signature"],
+                                        recomputed_campaign_signature=result["recomputed_campaign_signature"],
+                                        errors=result["errors"])
+                               for ch, result in campaign_validation["record_results"].items()}),
                   checks=checks,
                   verdict=verdict,
                   notes=[

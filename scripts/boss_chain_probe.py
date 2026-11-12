@@ -1,10 +1,12 @@
 """Bounded native regeneration and support-argument experiments; no game runtime."""
 import json,struct,hashlib
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 from unicorn import Uc,UC_ARCH_ARM64,UC_MODE_ARM,UC_HOOK_CODE
 from unicorn.arm64_const import *
 BASE,HEAP,STACK,STOP=0x50000000,0x10000000,0x20000000,0x30000000
-raw=Path('work/protection/il2cpp_loader_seed1.bin').read_bytes()
+raw=read_path(Path('work/protection/il2cpp_loader_seed1.bin')).read_bytes()
 def bits(x):return struct.unpack('<I',struct.pack('<f',x))[0]
 def val(x):return struct.unpack('<f',struct.pack('<I',x))[0]
 u=Uc(UC_ARCH_ARM64,UC_MODE_ARM);u.mem_map(BASE,(len(raw)+4095)&~4095);u.mem_write(BASE,raw)
@@ -52,5 +54,6 @@ for p1,p2,p6,chain in ((.6,.3,.3,1),(.7,.35,.35,1.2)):
  assert all(abs(a-b)<1e-6 for a,b in zip(support[-1],expected))
  checks.append({'name':f'support_argument_block_chain_{chain}','pass':True,'s0_to_s6':support[-1], 'missing_fields':'param4/5 explicitly zero scenario inputs; not source defaults'})
 result={'evidence_kind':'CONTROLLED_NATIVE_FRAGMENT','native_sha256':hashlib.sha256(raw).hexdigest(),'checks':checks,'limits':['Heal is intercepted; no actual HP or flag behavior tested','Support starts at mode1 branch, stops at SetSupport call; engine selection and full execution are not emulated','Delta units are supplied inputs; no wall-clock seconds claim','No actual player state or final multiplier']}
-Path('output/boss_chain/native_checks.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+out=fresh_output('projects/skill-research/evidence/boss_chain','native-checks')
+(out/'native_checks.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
 print(json.dumps({'passed':len(checks)}))

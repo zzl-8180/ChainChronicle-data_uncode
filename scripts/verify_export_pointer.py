@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 
 def digest(path):
@@ -31,15 +32,15 @@ def main():
     parser.add_argument('--other-build',type=Path,required=True,help='Existing different build; used only as pointer value')
     args=parser.parse_args()
     project=Path.cwd().resolve()
-    target=args.output_root.resolve()
+    target=write_path(args.output_root).resolve()
     if target.exists() or target==project or target in project.parents:
         raise ValueError('Test output must be a new independent subdirectory, never the project or an ancestor')
-    official=(project/'output/export').resolve()
+    official=read_path(Path('output/export')).resolve()
     if target==official or target.is_relative_to(official) or official.is_relative_to(target):
         raise ValueError('Pointer tests must not write within or above formal exports')
-    other=args.other_build.resolve()
+    other=read_path(args.other_build).resolve()
     other_manifest=load(other/'manifest.json')
-    foreign={'snapshot_id':other_manifest['snapshot_id'],'build_id':other_manifest['build_id'],'directory':other.as_posix()}
+    foreign={'snapshot_id':other_manifest['snapshot_id'],'build_id':other_manifest['build_id'],'directory':Path(path_reference(other)).as_posix()}
     official_pointer=(official/'latest.json').read_bytes()
     target.mkdir(parents=True)
     export_root=target/'export'
@@ -47,7 +48,7 @@ def main():
     cases=[]
 
     def run(root,label,success=True):
-        result=subprocess.run([sys.executable,'-B','scripts/export_master.py','--output-root',str(root)],cwd=project,capture_output=True,text=True,encoding='utf-8')
+        result=subprocess.run([sys.executable,'-B',str(Path(__file__).resolve().parent / 'export_master.py'),'--output-root',str(root)],cwd=project,capture_output=True,text=True,encoding='utf-8')
         (target/(label+'.stdout.txt')).write_text(result.stdout,encoding='utf-8')
         (target/(label+'.stderr.txt')).write_text(result.stderr,encoding='utf-8')
         assert (result.returncode==0)==success,(label,result.returncode,result.stderr)
@@ -56,7 +57,7 @@ def main():
     result=run(export_root,'01_first_export')
     assert result['status'] in ('EXPORTED','EXPORTED_WITH_PRESERVED_ANOMALIES')
     selected=load(pointer)
-    directory=Path(selected['directory']).resolve()
+    directory=read_path(Path(selected['directory'])).resolve()
     assert directory.is_relative_to(export_root.resolve())
     manifest=load(directory/'manifest.json')
     assert selected['snapshot_id']==manifest['snapshot_id'] and selected['build_id']==manifest['build_id']
@@ -100,7 +101,7 @@ def main():
             'test_output_root':str(target),'selected_build':str(directory),'other_build_read_only':str(other),
             'formal_pointer_unchanged_during_tests':True,'valid_test_payload_unchanged':True,
             'corrupted_copy_retained':str(corrupt_build),'test_script_sha256':digest(Path(__file__)),
-            'exporter_sha256':digest(project/'scripts/export_master.py')}
+            'exporter_sha256':digest(Path(__file__).resolve().parent / 'export_master.py')}
     save(target/'pointer_checks.json',report)
     print(json.dumps({'status':'PASS','cases':len(cases),'report':str(target/'pointer_checks.json'),'build':str(directory)},ensure_ascii=False))
 

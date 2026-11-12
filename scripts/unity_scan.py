@@ -6,6 +6,8 @@ import re
 import sys
 from collections import Counter
 from pathlib import Path
+from versioned_outputs import fresh_output
+from project_layout_paths import read_path, path_reference
 
 import UnityPy
 
@@ -13,9 +15,10 @@ import UnityPy
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
-    parser.add_argument("--output", type=Path, default=Path("output/unity"))
+    parser.add_argument("--output", type=Path, help="Fresh Unity scan directory")
     args = parser.parse_args()
-    args.output.mkdir(parents=True, exist_ok=True)
+    args.source=read_path(args.source)
+    args.output=fresh_output('projects/assets/data/unity', 'scan', args.output)
     text_dir = args.output / "textassets"
     text_dir.mkdir(exist_ok=True)
     try:
@@ -23,7 +26,7 @@ def main():
         if not env.assets:
             raise ValueError("No serialized Unity asset files were loaded")
     except Exception as exc:
-        error = {"source": str(args.source), "status": "LOAD_FAILED",
+        error = {"source": path_reference(args.source), "status": "LOAD_FAILED",
                  "error": f"{type(exc).__name__}: {exc}"}
         (args.output / "load_error.json").write_text(json.dumps(error, indent=2), encoding="utf-8")
         print(json.dumps(error))
@@ -40,7 +43,7 @@ def main():
                 name = re.sub(r"[^\w.-]", "_", data.m_Name)
                 dest = text_dir / f"{Path(obj.assets_file.name).name}_{obj.path_id}_{name}.bin"
                 dest.write_bytes(raw)
-                row.update(text_path=dest.as_posix(), text_size=len(raw),
+                row.update(text_path=Path(path_reference(dest)).as_posix(), text_size=len(raw),
                            text_sha256=hashlib.sha256(raw).hexdigest())
                 try:
                     parsed = json.loads(raw)
@@ -67,7 +70,7 @@ def main():
         with (args.output / f"{name}.jsonl").open("w", encoding="utf-8") as out:
             for item in data:
                 out.write(json.dumps(item, ensure_ascii=False) + "\n")
-    summary = {"source": str(args.source), "sha256": hashlib.sha256(args.source.read_bytes()).hexdigest(),
+    summary = {"source": path_reference(args.source), "sha256": hashlib.sha256(args.source.read_bytes()).hexdigest(),
                "unitypy": UnityPy.__version__, "objects": len(rows),
                "types": dict(Counter(r["type"] for r in rows)),
                "textassets": len(texts), "monoscripts": len(scripts), "errors": len(errors),

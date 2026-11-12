@@ -9,6 +9,7 @@ import io
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from elftools.elf.elffile import ELFFile
@@ -49,8 +50,8 @@ def main():
         args.callback_region = True
     heap_size = 0x4000000 if args.library_name == "libil2cpp.so" else 0x1000000
     e, raw, preparatory = prepare_experiment(args.seed, heap_size=heap_size)
-    Path("work/protection").mkdir(parents=True, exist_ok=True)
-    Path("output/protection").mkdir(parents=True, exist_ok=True)
+    write_path(Path("work/protection")).mkdir(parents=True, exist_ok=True)
+    write_path(Path("output/protection")).mkdir(parents=True, exist_ok=True)
     lz4_model = None
     if args.accelerate_lz4:
         from guest_lz4 import install
@@ -122,14 +123,14 @@ def main():
                            "rva": hex(target-BASE), "bytes": target_size, "key_source_candidate": "0x13f63c",
                            "decoded_prefix_bytes": sum(i.size for i in ins),
                            "sha256": hashlib.sha256(candidate).hexdigest()}
-        Path(f"work/protection/callback_region_seed{args.seed}.bin").write_bytes(candidate)
-        Path(f"output/protection/callback_region_seed{args.seed}.txt").write_text("\n".join(f"{hex(i.address)}: {i.mnemonic} {i.op_str}" for i in ins), encoding="utf-8")
+        write_path(Path(f"work/protection/callback_region_seed{args.seed}.bin")).write_bytes(candidate)
+        write_path(Path(f"output/protection/callback_region_seed{args.seed}.txt")).write_text("\n".join(f"{hex(i.address)}: {i.mnemonic} {i.op_str}" for i in ins), encoding="utf-8")
         e.uc.mem_write(context, saved_desc)
         e.uc.mem_write(context+0xc0, saved_key_pointer)
     steps.append(attempt(e, 0x91a2c))
     loader_probe = None
     if args.loader_probe:
-        source = Path("work/apk/lib/arm64-v8a")/args.library_name
+        source = read_path(Path("work/apk/lib/arm64-v8a"))/args.library_name
         library = source.read_bytes()
         elf = ELFFile(io.BytesIO(library))
         library_base = 0x50000000
@@ -171,11 +172,11 @@ def main():
             loader_chunks.append(loader_step)
         library_after = bytes(e.uc.mem_read(library_base, mapped_size))
         library_label = "nutils" if args.library_name == "libChronicleNUtils.so" else "il2cpp"
-        Path(f"work/protection/{library_label}_loader_seed{args.seed}.bin").write_bytes(library_after)
+        write_path(Path(f"work/protection/{library_label}_loader_seed{args.seed}.bin")).write_bytes(library_after)
         function_prefixes = {hex(rva): {"changed_bytes": sum(a != b for a,b in zip(library_before[rva:rva+64], library_after[rva:rva+64])),
                                        "decoded_prefix_bytes": sum(i.size for i in md.disasm(library_after[rva:rva+64], rva))}
                              for rva in (0x22f1c,0x26cfc,0x207d0,0x2097c)}
-        loader_probe = {"source": str(source), "sha256": hashlib.sha256(library).hexdigest(),
+        loader_probe = {"source": path_reference(source), "sha256": hashlib.sha256(library).hexdigest(),
                         "guest_base": hex(library_base), "init_rva": hex(init), "guest_input_descriptor": hex(descriptor_rva), "step": loader_step,
                         "controlled_proc_maps": maps,
                         "instruction_limit": 100000000, "changed_bytes": sum(a != b for a,b in zip(library_before,library_after)),
@@ -192,10 +193,10 @@ def main():
         # Isolate the following transformation from platform symbol discovery.
         # No resolver return value is supplied. Unknown indirect calls stop.
         steps.append(attempt(e, 0x130950))
-    output = Path("output/protection/signal_region")
+    output = write_path(Path("output/protection/signal_region"))
     output.mkdir(parents=True, exist_ok=True)
-    Path(f"work/protection/signal_region_seed{args.seed}.bin").write_bytes(code)
-    Path(f"work/protection/compatible_signal_seed{args.seed}.bin").write_bytes(bytes(e.uc.mem_read(BASE, 0x200000)))
+    write_path(Path(f"work/protection/signal_region_seed{args.seed}.bin")).write_bytes(code)
+    write_path(Path(f"work/protection/compatible_signal_seed{args.seed}.bin")).write_bytes(bytes(e.uc.mem_read(BASE, 0x200000)))
     (output/f"code_seed{args.seed}.txt").write_text("\n".join(f"{hex(i.address)}: {i.mnemonic} {i.op_str}" for i in native), encoding="utf-8")
     result = {"source_sha256": hashlib.sha256(raw).hexdigest(), "seed": args.seed,
               "preparatory": preparatory, "steps": steps,

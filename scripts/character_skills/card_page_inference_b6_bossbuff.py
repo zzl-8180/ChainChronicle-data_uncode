@@ -175,7 +175,7 @@ def _field_evidence(field):
     if not files or any(not p.startswith(expected_dir) for p in files):
         raise ValueError(f'批 6 证据解析异常（INFR-01）：bossskill|13|/{field} 的 rules.json '
                          f'evidence 未解析为 {expected_dir} 下的文件，实际 {files!r}')
-    missing = [p for p in files if not Path(p).is_file()]
+    missing = [p for p in files if not C.read_path(Path(p)).is_file()]
     if missing:
         raise FileNotFoundError(f'批 6 证据文件缺失（INFR-01）：{missing}')
     _EVIDENCE_CACHE[field] = (expected_dir, files)
@@ -720,7 +720,7 @@ def _registered_rule(field):
     已在 card_page_dependencies.data_paths 声明清单内）。"""
     global _REGISTERED_RULES
     if _REGISTERED_RULES is None:
-        p = Path('output/character_skills/profiles/rules.json')
+        p = C.read_path(Path('output/character_skills/profiles/rules.json'))
         _REGISTERED_RULES = json.loads(p.read_text(encoding='utf-8')) if p.is_file() else {}
     return _REGISTERED_RULES.get(f'bossskill|13|/{field}') or {}
 

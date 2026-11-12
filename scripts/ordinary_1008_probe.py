@@ -7,6 +7,8 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from unicorn.arm64_const import UC_ARM64_REG_PC,UC_ARM64_REG_X29
@@ -15,8 +17,7 @@ from il2cpp_sample_code import Native
 from ordinary_7_probe import StageGuest,indices
 from phase_d_chain_probe import BASE,STACK,fbits,fvalue
 
-OUT=Path('output/ordinary_effects/ability1008')
-SOURCE=Path('output/cache_full_20261015_v3/records.jsonl')
+SOURCE=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 
 
 class PartyStageGuest(StageGuest):
@@ -83,7 +84,7 @@ def main():
     selected=[r for r in records if r['table']=='skilllist' and r['raw'].get('ability')==1008]
     bgs=[r for r in records if r['table']=='battle_bg'];backgrounds={r['raw']['id']:r['raw'] for r in bgs}
     assert len(selected)==37 and all(all(f in r['raw'] for f in ('param0','param1','param3')) for r in selected)
-    prior=Path('output/ordinary_effects/ability7/trace.json');old=json.loads(prior.read_text(encoding='utf-8'))
+    prior=read_path(Path('output/ordinary_effects/ability7/trace.json'));old=json.loads(prior.read_text(encoding='utf-8'))
     m=Metadata('work/protection/metadata_aei_decoded.bin');n=Native(m);d=Cs(CS_ARCH_ARM64,CS_MODE_ARM)
     assert old['native_sha256']==hashlib.sha256(n.raw).hexdigest() and old['background_source_records']==bgs
     enum=next(f for f in n.fields(718) if f['name']=='TargetStageAll');assert n.default(enum['index'])['value']==1008
@@ -128,7 +129,7 @@ def main():
         attack_candidate_loop=(0x1593934,0x159398c),attack_inactive_route=(0x1593a54,0x1593a90),attack_type_terrain_multiply=(0x1594258,0x1594368),
         defence_receiver=(0x1599d24,0x1599d40),defence_candidate_loop=(0x159a004,0x159a070),defence_inactive_route=(0x159a128,0x159a168),
         defence_type_terrain_multiply=(0x159a974,0x159aa84),type_filter=(0x10ff968,0x10ffb30),type_cached_index=(0x1576c14,0x1576c28),backup_generic_separate_type_and_home=(0x15926b4,0x1592798))
-    OUT.mkdir(parents=True,exist_ok=True)
+    OUT=fresh_output('projects/skill-research/evidence/ordinary_effects/ability1008','native-checks')
     for name,(a,b) in ranges.items():
         lines=[]
         for ins in d.disasm(n.raw[a:b],a):

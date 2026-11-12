@@ -1,0 +1,8 @@
+# Exact-byte identities checked by runtime locators and frozen receipts.
+/operations/config/project-layout/20261109.json -text whitespace=cr-at-eol
+/operations/config/project-layout/history-review-20261109.json -text whitespace=cr-at-eol
+/scripts/character_skills/c21_direct_damage_targets.json -text whitespace=cr-at-eol
+/scripts/skill_reader_preview/review_final5_random.py -text whitespace=cr-at-eol
+/scripts/skill_reader_preview/review_final5_sparse.py -text whitespace=cr-at-eol
+/docs/project-layout/20261108-packaging-full-retirement-v1/full-disposition.jsonl -text whitespace=cr-at-eol
+/docs/project-layout/20261108-packaging-runtime-ready-v1/runtime/locations.json -text whitespace=cr-at-eol

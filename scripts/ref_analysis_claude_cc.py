@@ -1,25 +1,26 @@
-"""整体分析：claude_cc_site_pages（他人下游项目）核对脚本（只读对方目录，结果写 output/reference_analysis/）。
+"""整体分析：claude_cc_site_pages（他人下游项目）核对脚本（只读对方目录，结果写 projects/reference-analysis/reports/ 的新版本目录）。
 
 产出：
-- output/reference_analysis/claude_cc_site_pages/param_table_crosscheck.csv  全部 1610 行逐条核对
-- output/reference_analysis/claude_cc_site_pages/crosscheck_summary.json     分组统计与重点清单
-- output/reference_analysis/claude_cc_site_pages/version_sample_check.json   版本/数据抽样比对
-- output/reference_analysis/claude_cc_site_pages/inventory_stats.json        产物盘点统计
+- <新版本目录>/param_table_crosscheck.csv  全部 1610 行逐条核对
+- <新版本目录>/crosscheck_summary.json     分组统计与重点清单
+- <新版本目录>/version_sample_check.json   版本/数据抽样比对
+- <新版本目录>/inventory_stats.json        产物盘点统计
 
 运行：.venv\\Scripts\\python.exe -B scripts/ref_analysis_claude_cc.py
 """
 import csv
+import hashlib
 import json
-import zipfile
 from collections import Counter
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 ROOT = Path(__file__).resolve().parent.parent
-THEIRS = ROOT / "其他人的参考" / "claude_cc_site_pages"
-OURS_CACHE = ROOT / "output" / "cache_full_20261015_v3" / "decoded"
-OURS_APK = ROOT / "output" / "base_master"
-OUT = ROOT / "output" / "reference_analysis" / "claude_cc_site_pages"
-OUT.mkdir(parents=True, exist_ok=True)
+THEIRS = read_path(ROOT / "其他人的参考" / "claude_cc_site_pages", root=ROOT)
+OURS_CACHE = read_path(ROOT / "output" / "cache_full_20261015_v3" / "decoded", root=ROOT)
+OURS_APK = read_path(ROOT / "output" / "base_master", root=ROOT)
+OUT = None
 
 # ---------------------------------------------------------------------------
 # 本项目已确认规则（证据：output/ordinary_effects/*/README.md、output/boss_chain、
@@ -161,6 +162,31 @@ def load_our_cache(name, key, idf="cid"):
     return {r[idf]: r for r in json.loads((OURS_CACHE / f"{name}.data5.json.raw").read_bytes().decode("utf-8"))[key]}
 
 
+def _analysis_data_member_names():
+    path = ROOT / "docs" / "project-layout" / "20261108-packaging-retirement-v1" / "analysis-data-central-directory.json"
+    try:
+        raw = path.read_bytes()
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(f"缺少交付包中央目录冻结清单: {path}") from exc
+    try:
+        snapshot = json.loads(raw)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"交付包中央目录冻结清单不是有效 JSON: {path}") from exc
+    if not isinstance(snapshot, dict):
+        raise ValueError(f"交付包中央目录冻结清单来源或成员结构错误: {path}")
+    entries = snapshot.get("entries")
+    if (snapshot.get("source") != "output/share_bundle/CC_analysis_data_20261016.zip"
+            or snapshot.get("source_bytes") != 28435262
+            or not isinstance(entries, list) or len(entries) != 596
+            or any(not isinstance(entry, dict) or type(entry.get("ordinal")) is not int
+                   or entry["ordinal"] != i or not isinstance(entry.get("name"), str)
+                   or not entry["name"] for i, entry in enumerate(entries))):
+        raise ValueError(f"交付包中央目录冻结清单来源或成员结构错误: {path}")
+    if hashlib.sha256(raw).hexdigest() != "57c77bdba0266f084d12e1e5c9555ff73b27c2269ef2108ae5b168778bd06724":
+        raise ValueError(f"交付包中央目录冻结清单 SHA-256 不符: {path}")
+    return [entry["name"] for entry in entries]
+
+
 def version_sample_check():
     res = {"样本": [], "计数对比": {}}
     # 1) 缓存卡 cid30236（チーカ）charainfo 字段比对
@@ -221,8 +247,7 @@ def version_sample_check():
         "对方声明": "缓存 409 / 安装包 1824 / 共 2233",
     }
     # 5) 交付包内含 master_data/decoded 路径核实（对方输入目录名虽不同，内容路径应一致）
-    with zipfile.ZipFile(ROOT / "output" / "share_bundle" / "CC_analysis_data_20261016.zip") as z:
-        names = z.namelist()
+    names = _analysis_data_member_names()
     res["交付包抽样"] = {
         "总条目": len(names),
         "含decoded路径": sorted({n.split("/")[0] + "/" + n.split("/")[1] for n in names if "/" in n})[:10],
@@ -256,6 +281,7 @@ def inventory_stats():
 
 if __name__ == "__main__":
     import io, sys
+    OUT = fresh_output("projects/reference-analysis/reports", "claude-site")
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
     print(json.dumps(crosscheck(), ensure_ascii=False, indent=2)[:3000])
     print("---- version sample ----")

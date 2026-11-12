@@ -66,6 +66,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from project_layout_paths import read_path
 
 _HERE = Path(__file__).resolve().parent
 if str(_HERE) not in sys.path:            # 允许从任意工作目录直接导入

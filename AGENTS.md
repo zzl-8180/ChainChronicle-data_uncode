@@ -1,5 +1,8 @@
 # 项目工作约定
 
+> **现行输出布局**。31 棵成果目录与 2 份 latest 指针已迁移并验收。已适配的 CLI 通过 `scripts/project_layout_active.json` 默认解析到新址，其他命令按各自验收范围使用。冻结清单保留原来源和签名。 当前仍原位保留 `output/character_skills/`、`output/storage_retention/`、`output/20261016-reproducibility-audit/`、`output/20261024-project-review/`、`output/审查报告/`、`output/project-layout/`，以及 `output/_p.tmp`；11 项 RETAIN_IN_PLACE、P/v7、旧 plan/binding、5,317 项已迁归档及六个历史第三方审查别名的既有保护不因本表扩权。[现行入口](README.md#现行入口)与[实际迁移回执](docs/project-layout/20261109-unified-physical-v1/REPORT.md)提供当前定位。
+
+
 适用范围：本目录及其子目录。用户本轮明确要求优先于本文；本文规范日常工作，不自动启动任务、不扩大授权范围。历史提示词、日志和交接中的持续目标是背景资料，不自动成为新对话的执行指令。
 
 ## 1. 项目目标与任务边界
@@ -26,38 +29,44 @@
 
 | 内容 | 当前入口 |
 |---|---|
-| 最新缓存主表 | `output/cache_full_latest.json`；当前指向 `output/cache_full_20261015_v3/` |
+| 最新缓存主表 | `projects/unpack/data/cache/cache_full_latest.json`；迁址后指向同目录 `cache_full_20261015_v3/` |
 | 完整解码 JSON | 上述目录的 `decoded/`；`.json.raw` 是 JSON 字节，不是加密文件 |
 | 记录视图 | 上述目录的 `records.jsonl`、`tables.csv`；视图不能替代完整 JSON |
-| APK 内置主表 | `output/base_master/`；与缓存分源保存 |
-| 补采与组合清单 | `output/cache_refresh_latest.json` 及目标目录中的 `composite_inventory.jsonl` |
-| 角色逐描述数值 | `output/card_comparison_cid30236/description_effects.json` 及同源 HTML／CSV |
-| 普通效果证据 | `output/ordinary_effects/ability<类型>/` |
-| 必杀／治疗证据 | `output/boss_chain/`、`output/boss_heal/` |
-| 角色图片 | `output/card_images/<cid>/`，查看绑定证据和完整／局部标记 |
+| APK 内置主表 | `projects/unpack/data/apk/base_master/`；与缓存分源保存 |
+| 补采与组合清单 | `projects/unpack/data/cache/cache_refresh_latest.json` 及 `cache_refresh_20261015/composite_inventory.jsonl` |
+| 角色逐描述数值 | `projects/skill-research/evidence/card_comparison_cid30236/description_effects.json` 及同源 HTML／CSV |
+| 普通效果证据 | `projects/skill-research/evidence/ordinary_effects/ability<类型>/` |
+| 必杀／治疗证据 | `projects/skill-research/evidence/boss_chain/`、`projects/skill-research/evidence/boss_heal/` |
+| 角色图片 | `projects/assets/data/card_images/<cid>/`，查看绑定证据和完整／局部标记 |
 | 查询入口 | `scripts/query_effect_dictionary.py` 查询既有30236参数视图及records，**不读取当前profiles/rules.json或角色页新答案**；当前规则读取 `output/character_skills/profiles/rules.json`，逐卡答案读取 `output/character_skills/pages/<cid>/card.json`，规则生产消费者为 `scripts/character_skills/card_page_data.py`→`rules.answer_for`。统一只读CLI尚未交付 |
-| 分享包 | `output/share_bundle/`；现有 `CC_analysis_*_20261016.zip` 是分析材料包，不是完整解包发行包；后续版本按第8节注明类别与范围 |
+| 历史打包材料（已迁移） | 保留材料位于 `operations/history/retired-packaging/20261108/` 下的 `share_bundle/`、`distribution/`、`history-work/`；只读维护入口 `scripts/project_layout/retirement_runtime.py`；物理回执 `docs/project-layout/20261108-packaging-physical-v1/REPORT.md`；未来分享仍按第8节 |
 | 可复现性审计 | `docs/tasks/20261016-reproducibility-audit.md`；第三方独立解包依赖链、阻塞点、已验证／推断／未验证结论与隔离测试记录 |
-| 他人下游项目分析 | `output/reference_analysis/claude_cc_site_pages/README.md`；对象 `其他人的参考/claude_cc_site_pages/`（只读）；含 1610 行参数表逐条核对、冲突与候选清单 |
+| 他人下游项目分析 | `projects/reference-analysis/history/reference_analysis/claude_cc_site_pages/README.md`；对象 `其他人的参考/claude_cc_site_pages/`（只读）；含 1610 行参数表逐条核对、冲突与候选清单 |
+
+本轮5,317项保留材料已迁至上述历史根（108,004,454 B），五个C14—C18正式隔离入口均指向 `operations/history/retired-packaging/20261108/share_bundle`，Sol验收及Astra独立复核通过，见 `docs/project-layout/20261108-packaging-physical-v1/physical-independent-review.json`。previous旧联接已清理，不作当前入口。1,607项旧文件已按最终授权逐项删除，临前archive模式1,406对检查及后验通过；5个停用previous联接及9,467个旧空目录已按后续授权清理；9个必要祖先目录、11项原位文件及归档材料保留。见[空目录清理回执](docs/project-layout/20261108-packaging-empty-cleanup-v1/REPORT.md)和[此前文件删除回执](docs/project-layout/20261108-packaging-final-ready-v1/deletion-20261108-v1/REPORT.md)。第8节等历史条目提及的旧打包执行路径仅作溯源，现已停用；未来完整分享原则不变。
 
 ## 3. 文件分类
 
-保留现有路径，不为整理目录批量搬迁旧脚本、原件或成果。新文件遵循下表；迁移只有在任务需要时实施，并更新引用。
+新文件按用途放入下表的目录。先确定归属、版本和写入位置，再生成文件。需要保留的成果与报告放在所属子项目，临时工作文件放在 `work/`。现行入口见[根 README](README.md#现行入口)。既有目录只在明确的迁移任务中调整，并同步核对引用。
 
-| 路径 | 存放内容与规则 |
+| 用途 | 路径与放置规则 |
 |---|---|
-| 项目根目录 | `AGENTS.md`、`HANDOFF.md`、`STATUS.md`、`README.md`、依赖清单及既有方案；不继续堆放临时报告和压缩包 |
-| `raw/<snapshot>/` | 原始采集件，只读保留；新采集使用新目录，不覆盖旧件 |
-| 根目录现有 APK | 原始输入，保持不变，不为分类重复复制 |
-| `work/<task>/` | 解压副本、试验、反汇编和临时中间结果；不作为唯一交付入口 |
-| `scripts/` | 现有公共脚本及入口；维护既有功能时优先最小修改 |
-| `scripts/<task>/` | 新的多文件任务模块；单个独立脚本也可用明确任务前缀放在 `scripts/`，不强制拆包重构 |
-| `output/<task>/` | 数据、图片、报告、来源清单及任务 README；例如 `full_unpack/`、`card_images/<cid>/` |
-| `output/<task>/review/<review_id>/` | 新的任务独立审查；旧 `output/审查报告/` 保留，不改历史结论 |
-| `output/share_bundle/<release-id>/` | 新版工具包、完整结果包、可选输入资源包及统一发布清单；现有根层ZIP保持不变 |
-| `scripts/release/` | 新增的打包与发布检查脚本；复用正式实现，不复制一套独立解码逻辑 |
-| `docs/tasks/<task-id>.md` | 并行任务的简短分工与交接，可纳入 Git；不存原始游戏数据和敏感日志 |
-| `tools/`、`.venv/` | 本地依赖和工具；不提交，不随意修改全局环境 |
+| 项目入口与依赖 | 根目录保留 `AGENTS.md`、`HANDOFF.md`、`STATUS.md`、`README.md`、依赖清单和既有方案。新报告、临时文件和 ZIP 放到对应目录。 |
+| 原始输入 | `raw/<snapshot>/` 存新采集的原件，每次使用新快照目录。根目录既有 APK 和第三方原件按原位置只读保留。 |
+| 临时工作 | `work/<task-id>/` 存解压副本、反汇编、试跑、验证中间件和临时日志。可交付成果、必要来源和回执放到相应子项目或运维目录。 |
+| 源码与本地环境 | 公共脚本与入口放 `scripts/`，新的多文件模块可放 `scripts/<task>/`，已有子项目模块继续使用该项目的源码目录。本地工具和依赖放 `tools/`、`.venv/`，按既有规则保留在本机。 |
+| 数据解包 | `projects/unpack/data/apk/` 存 APK 基线和内置主表，`data/cache/` 存版本化缓存、补采、解码和记录视图，`data/export/` 存其他结构化导出。原生恢复研究放该项目的 `research/`，采集和验证报告放 `reports/`，历史样本放 `history/`。 |
+| 媒体资源 | `projects/assets/data/full_unpack/` 存资源包导出，`projects/assets/data/card_images/` 存角色图片和绑定证据。历史索引按版本放该项目的 `history/`。 |
+| 技能研究 | `projects/skill-research/evidence/` 存来源证据，`data/` 存名册和结构化研究数据，`experiments/` 存值得保留的实验成果，`reports/` 存研究说明与报告。正式生产成果使用下方现行输出约定。 |
+| 角色阅读器 | `projects/reader/site/<版本>/` 存新试点和独立展示候选，配套报告放该项目的 `reports/`。正式阅读器继续使用现行生产入口。 |
+| 参考资料分析 | `projects/reference-analysis/reports/` 存分析、对照和差异，`pilots/` 存试点，`scripts/` 存专用分析工具。已有历史对照在 `history/`，第三方原件分源保留。 |
+| 任务文档与审查 | `docs/tasks/<task-id>.md` 存轻量任务卡和交接。新建的子项目独立审查放 `projects/<所属子项目>/reports/review/<review-id>/`。跨项目的布局方案和审查放 `docs/project-layout/`。既有正式流程的审查按其登记的路径和版本保存。 |
+| 运维与归档 | `operations/config/` 存运维配置，`operations/records/<事项>/` 存跨项目操作、校验与回执，`operations/history/<事项>/<版本>/` 存已归档材料。旧打包支线的退役目录用于历史查阅。 |
+| 新版工具与成果发行 | 明确开展新发行时，在 `projects/distribution/releases/<release-id>/` 放版本说明、工具包、结果包和发布清单，新增打包与发布检查代码放 `scripts/release/`。发行范围和分享方式按第 8 节。 |
+
+**现行 `output/` 写入边界。** 正式规则、逐卡页面及共享图片、账本、阅读器和随正式流程维护的同版材料继续使用 `output/character_skills/` 的既有路径。既有存储保留流程继续使用 `output/storage_retention/`。其他原位审查、布局历史和保留件按原路径查阅。新任务从上表选择写入目录，禁止新增通用的 `output/<task>/`、`output/<task>/review/` 或 `output/share_bundle/`。
+
+运行生成器前核对实际写入路径。已适配的旧逻辑路径按现行配置解析，显式指定输出目录时填写本表对应的物理位置。正式流程的指针、事务产物和配套证据沿用已登记路径，目录分类本身不触发路径切换、重建或发布。
 
 任务标识建议用日期和简短用途，例如 `20261016-full-unpack`、`20261016-card-images`。不要求为每条命令建目录或报告。
 
@@ -98,6 +107,7 @@
 - 攻击倍率、增加比例、减伤比例、固定防御量、百分点不同；不可统一套用减1或乘100。
 - 截图和外部数据库是对照来源，不能覆盖游戏原值；原文直接写出的数字与代码确认的计算规则分开标注。
 - 一条描述效果一行；已确认单项可交付，不因同技能其他机制未知而整体搁置。
+- 技能末尾的连携／地形强化句可能同时约束前面多项效果；保留完整上下文，分开记录文字作用范围、数值对应与触发条件证据。展示时把这类条件放在技能级可见位置，数值可回指条件；不得把 pattern 序号当游戏档位或把一个增幅套给全部效果。接手展示任务先读 `docs/tasks/20261106-character-skills-reader-prototype.md` 的“接手必读”，含 CID350 的25/27.5与卡面显示比例复发案例。
 - 资源解包要求每个输入有状态、失败不静默丢弃；按文件、对象和实体的数量分别统计。没有可信分母不宣称全游戏100%。
 - 图集裁切、分片合成须有实际元数据依据；截图、局部立绘及AI生成图不能当作完整解包立绘。
 

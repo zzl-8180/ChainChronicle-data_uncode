@@ -2,8 +2,9 @@
 import html
 import json
 from pathlib import Path
+from project_layout_paths import read_path
 
-PROOF=Path('output/ordinary_effects/ability1095')
+PROOF=read_path(Path('output/ordinary_effects/ability1095'))
 
 
 def context_1008(record,trace):
@@ -22,7 +23,7 @@ def context_1008(record,trace):
 
 
 def extend_1008(records,rules,views):
-    proof=Path('output/ordinary_effects/ability1008');trace=json.loads((proof/'trace.json').read_text(encoding='utf-8'));checks=json.loads((proof/'native_checks.json').read_text(encoding='utf-8'))
+    proof=read_path(Path('output/ordinary_effects/ability1008'));trace=json.loads((proof/'trace.json').read_text(encoding='utf-8'));checks=json.loads((proof/'native_checks.json').read_text(encoding='utf-8'))
     selected=[r for r in records if r['layer']=='CACHE' and r['table']=='skilllist' and r['raw'].get('ability')==1008]
     assert selected==trace['source_records'] and trace['native_sha256']==checks['native_sha256']
     assert len(checks['checks'])==trace['native_check_count'] and all(c['passed'] for c in checks['checks'])
@@ -84,7 +85,7 @@ def context_7(record,trace):
 
 
 def extend_7(records,rules,views):
-    proof=Path('output/ordinary_effects/ability7');trace=json.loads((proof/'trace.json').read_text(encoding='utf-8'));checks=json.loads((proof/'native_checks.json').read_text(encoding='utf-8'))
+    proof=read_path(Path('output/ordinary_effects/ability7'));trace=json.loads((proof/'trace.json').read_text(encoding='utf-8'));checks=json.loads((proof/'native_checks.json').read_text(encoding='utf-8'))
     selected=[r for r in records if r['layer']=='CACHE' and r['table']=='skilllist' and r['raw'].get('ability')==7]
     assert selected==trace['source_records'] and trace['native_sha256']==checks['native_sha256']
     assert len(checks['checks'])==1390 and all(c['passed'] for c in checks['checks'])
@@ -151,7 +152,7 @@ def context_99(record):
 
 
 def extend_99(records,rules,views):
-    proof=Path('output/ordinary_effects/ability99')
+    proof=read_path(Path('output/ordinary_effects/ability99'))
     trace=json.loads((proof/'trace.json').read_text(encoding='utf-8'));checks=json.loads((proof/'native_checks.json').read_text(encoding='utf-8'))
     selected=[r for r in records if r['layer']=='CACHE' and r['table']=='skilllist' and r['raw'].get('ability')==99]
     assert selected==trace['source_records'] and trace['native_sha256']==checks['native_sha256']
@@ -217,7 +218,7 @@ def context_3000(record):
 
 
 def extend_3000(records,rules,views):
-    proof=Path('output/ordinary_effects/ability3000')
+    proof=read_path(Path('output/ordinary_effects/ability3000'))
     trace=json.loads((proof/'trace.json').read_text(encoding='utf-8'));checks=json.loads((proof/'native_checks.json').read_text(encoding='utf-8'))
     selected=[r for r in records if r['layer']=='CACHE' and r['table']=='skilllist' and r['raw'].get('ability')==3000]
     assert selected==trace['source_records'] and trace['native_sha256']==checks['native_sha256']
@@ -256,7 +257,7 @@ def extend_3000(records,rules,views):
 
 
 def extend_2012(records,rules,views):
-    proof=Path('output/ordinary_effects/ability2012')
+    proof=read_path(Path('output/ordinary_effects/ability2012'))
     trace=json.loads((proof/'trace.json').read_text(encoding='utf-8'))
     checks=json.loads((proof/'native_checks.json').read_text(encoding='utf-8'))
     selected=[r for r in records if r['layer']=='CACHE' and r['table']=='skilllist' and r['raw'].get('ability')==2012]
@@ -307,7 +308,7 @@ def extend_2012(records,rules,views):
 
 
 def extend_1017(records,rules,views):
-    proof=Path('output/ordinary_effects/ability1017')
+    proof=read_path(Path('output/ordinary_effects/ability1017'))
     trace=json.loads((proof/'trace.json').read_text(encoding='utf-8'))
     checks=json.loads((proof/'native_checks.json').read_text(encoding='utf-8'))
     selected=[r for r in records if r['layer']=='CACHE' and r['table']=='skilllist' and r['raw'].get('ability')==1017]

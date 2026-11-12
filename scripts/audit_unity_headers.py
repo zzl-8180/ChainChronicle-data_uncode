@@ -5,10 +5,12 @@ from pathlib import Path
 
 import UnityPy
 
+from project_layout_paths import read_path, write_path
+
 
 def main():
     source = Path('work/apk/assets/bin/Data/data.unity3d')
-    evidence = Path('output/unity/mono_errors.jsonl')
+    evidence = read_path(Path('output/unity/mono_errors.jsonl'))
     failures = [json.loads(line) for line in evidence.open(encoding='utf-8')]
     wanted = {(row['asset_file'], row['path_id']): row for row in failures}
     assert len(wanted) == len(failures), 'Ambiguous object identities'
@@ -47,7 +49,7 @@ def main():
         'rows': rows,
         'limit': 'Original dereference failures remain; this is not successful typed gameplay parsing or whole-APK coverage proof',
     }
-    output = Path('output/field_guide/unity_header_gap_audit.json')
+    output = write_path(Path('projects/skill-research/reports/field_guide/20261111/unity_header_gap_audit.json'))
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps({key: result[key] for key in ('status', 'count', 'sizes', 'all_null_script')}))

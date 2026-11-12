@@ -5,11 +5,14 @@ import json
 from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from versioned_outputs import experiment_report_source, fresh_output, report_links
 
 ROOT=Path(__file__).resolve().parents[2]
-BASE=ROOT/'output/skill_mechanism_scale/20261104'
+BASE=experiment_report_source('skill_mechanism_scale',ROOT/'output/skill_mechanism_scale/20261104')
 def load(name): return json.loads((BASE/name).read_text(encoding='utf-8-sig'))
-def save(name,data): (BASE/name).write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+def save(output,name,data): (output/name).write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 def duration(s): return f'{int(s//60)}分{s%60:.1f}秒'
 def cell(x): return escape(str(x))
@@ -60,21 +63,23 @@ h1,h2{{line-height:1.35}}h2{{margin-top:32px}}table{{border-collapse:collapse;wi
 <li><a href="input/manifest.json">冻结输入</a> · <a href="input/targets.json">31条目标及未解基线</a> · <a href="arm_freeze_manifest.json">四组提交冻结哈希</a></li>
 <li><a href="card_serial/REPORT.md">逐卡组</a> · <a href="family_serial/REPORT.md">分组串行组</a> · <a href="parallel_attack/REPORT.md">并行攻击组</a> · <a href="parallel_heal/REPORT.md">并行回复组</a></li>
 </ul><p><small>从项目根目录以 .venv\\Scripts\\python.exe -B 依次运行 scripts/skill_mechanism_scale/collect.py、summarize.py、report.py（后两者同目录）可复算统计与展示，仅写本目录；这些程序不会重新执行代理研究。冻结输入准备器拒绝覆盖已有快照。</small></p></html>'''
-    (BASE/'report.html').write_text(html,encoding='utf-8')
+    output=fresh_output('projects/skill-research/experiments/skill_mechanism_scale/reports','report')
+    html=report_links(html,BASE,output)
+    (output/'report.html').write_text(html,encoding='utf-8')
     class Links(HTMLParser):
         def __init__(self): super().__init__(); self.links=[]
         def handle_starttag(self,tag,attrs):
             if tag=='a': self.links += [v for k,v in attrs if k=='href' and not v.startswith('https://')]
     links=Links();links.feed(html)
-    assert all((BASE/link).is_file() for link in links.links)
+    assert all((output/link).is_file() for link in links.links)
     scripts=sorted((ROOT/'scripts/skill_mechanism_scale').glob('*.py'))
     for p in scripts: ast.parse(p.read_text(encoding='utf-8-sig'),str(p))
-    save('delivery_validation.json',{'passed':True,'input_hashes_checked':len(m['files']),
+    save(output,'delivery_validation.json',{'passed':True,'input_hashes_checked':len(m['files']),
         'arm_hashes_checked':sum(len(x) for x in f['arms'].values()),'local_links_checked':len(links.links),
         'source_files_parsed':len(scripts),'independent_review':s['validation_notes']})
-    files=[p for p in BASE.rglob('*') if p.is_file() and p.name!='delivery_manifest.json']+scripts
-    save('delivery_manifest.json',{'scope':'Isolated experiment, not production promotion',
+    files=[p for p in BASE.rglob('*') if p.is_file() and p.name!='delivery_manifest.json']+[p for p in output.glob('*') if p.is_file()]+scripts
+    save(output,'delivery_manifest.json',{'scope':'Isolated experiment, not production promotion',
         'files':{p.relative_to(ROOT).as_posix():{'bytes':p.stat().st_size,'sha256':digest(p)} for p in sorted(files)}})
-    print(json.dumps({'passed':True,'report':str(BASE/'report.html'),'links':len(links.links)},ensure_ascii=True))
+    print(json.dumps({'passed':True,'report':str(output/'report.html'),'links':len(links.links)},ensure_ascii=True))
 
 if __name__=='__main__': main()

@@ -20,12 +20,13 @@ import struct
 import sys
 import time
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-INVENTORY = Path('output/cache_refresh_20261015/composite_inventory.jsonl')
-OUTPUT = Path('output/full_unpack')
-SHARDS = Path('work/full_unpack/shards')
+INVENTORY = read_path(Path('output/cache_refresh_20261015/composite_inventory.jsonl'))
+OUTPUT = write_path(Path('output/full_unpack'))
+SHARDS = write_path(Path('work/full_unpack/shards'))
 
 _DECODER = None
 _DECODER_KW = {}
@@ -80,7 +81,7 @@ def safe_name(name):
 def export_bundle(work_file, rel_path, expected_size, out_dir):
     """Decode one bdl and export its objects. Returns a ledger record dict."""
     record = {'path': rel_path, 'size': expected_size}
-    raw = Path(work_file).read_bytes()
+    raw = read_path(Path(work_file)).read_bytes()
     if len(raw) != expected_size:
         record.update(status='error', error_or_unknown_reason=f'size mismatch: {len(raw)} != {expected_size}')
         return record
@@ -276,9 +277,9 @@ def process_chunk(args):
     if config:
         # spawn worker 不继承父进程模块全局：输出/分片/解码器配置全部经任务参数传入
         if config.get('output'):
-            OUTPUT = Path(config['output'])
+            OUTPUT = write_path(Path(config['output']))
         if config.get('shards'):
-            SHARDS = Path(config['shards'])
+            SHARDS = write_path(Path(config['shards']))
         configure_decoder(native_image=config.get('native_image'), apk=config.get('apk'),
                           cert_hex=config.get('cert_hex'), protection=config.get('protection'))
     shard = SHARDS / f'chunk_{chunk_id:06d}.jsonl'
@@ -350,12 +351,17 @@ def main():
     parser.add_argument('--retry-list', type=Path, default=None,
                         help='text file of bdl paths to force-reprocess (ignores progress)')
     args = parser.parse_args()
+    args.inventory=read_path(args.inventory);args.output=write_path(args.output);args.shards=write_path(args.shards)
+    if args.native_image is not None:args.native_image=read_path(Path(args.native_image))
+    if args.protection is not None:args.protection=read_path(Path(args.protection))
+    if args.apk is not None:args.apk=read_path(Path(args.apk))
+    if args.retry_list is not None:args.retry_list=read_path(args.retry_list)
 
     OUTPUT = args.output
     SHARDS = args.shards
     cert_hex = args.cert_hex
     if cert_hex and cert_hex.startswith('@'):
-        cert_hex = Path(cert_hex[1:]).read_text(encoding='ascii').strip()
+        cert_hex = read_path(Path(cert_hex[1:])).read_text(encoding='ascii').strip()
     config = {'output': str(OUTPUT), 'shards': str(SHARDS), 'protection': args.protection,
               'native_image': args.native_image, 'apk': args.apk, 'cert_hex': cert_hex}
     configure_decoder(native_image=args.native_image, apk=args.apk, cert_hex=cert_hex,

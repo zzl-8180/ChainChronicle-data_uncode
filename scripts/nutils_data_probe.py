@@ -14,6 +14,7 @@ from unicorn import UC_HOOK_CODE
 from unicorn.arm64_const import UC_ARM64_REG_SP, UC_ARM64_REG_X0, UC_ARM64_REG_X29
 
 from protection_emulate import Experiment, SOURCE, BASE, STACK
+from project_layout_paths import read_path, write_path
 
 LIBRARY_BASE = 0x50000000
 
@@ -28,14 +29,14 @@ def main():
         e.uc.reg_write(UC_ARM64_REG_SP, STACK+0xe0000)
         return e.call(LIBRARY_BASE-BASE+rva, *args)
 
-    cert = Path("output/apk/certificates/signer_0_certificate_0.der").read_bytes()
+    cert = read_path(Path("output/apk/certificates/signer_0_certificate_0.der")).read_bytes()
     signature = cert.hex().encode("ascii")
     call(0x1c9f0, e.allocate(len(signature)+1, signature+b"\0"), len(signature))
     constants = bytes(e.uc.mem_read(LIBRARY_BASE+0x56474, 0x3c))
     initialized_magic = struct.unpack_from("<I", constants, 8)[0]
-    output = Path("output/native/data_probe")
+    output = write_path(Path("projects/unpack/research/native/20261111/data_probe"))
     output.mkdir(parents=True, exist_ok=True)
-    work = Path("work/decoded_candidates")
+    work = write_path(Path("work/nutils_data_probe/20261111"))
     work.mkdir(parents=True, exist_ok=True)
     rows = []
     for source in sorted(Path("work/phone_candidates").glob("*.data5")):

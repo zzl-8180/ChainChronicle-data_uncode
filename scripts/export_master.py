@@ -11,6 +11,7 @@ import shutil
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 PARSER_VERSION = 'phase-e-1.0'
 RULE_VERSION = 'highhp1105-local-fields-1.0;daskill-id-fallback-1.0;one-level-sub-1.0'
@@ -55,7 +56,7 @@ def strict_load(raw):
 
 def read_source(path):
     try:
-        return {'raw':Path(path).read_bytes()}
+        return {'raw':read_path(Path(path)).read_bytes()}
     except OSError as error:
         return {'raw':None,'read_error':str(error)}
 
@@ -235,12 +236,13 @@ def csv_text(value):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output-root', type=Path, default=Path('output/export'))
+    parser.add_argument('--output-root', type=Path, default=write_path(Path('output/export')))
     args = parser.parse_args()
-    baseline = strict_load(Path('output/apk/baseline.json').read_bytes())
-    decoded = strict_load(Path('output/decoded/report.json').read_bytes())
-    archive = strict_load(Path('output/base_master/report.json').read_bytes())
-    collected = strict_load(Path('output/phone/collected_files.json').read_bytes())
+    args.output_root = write_path(args.output_root)
+    baseline = strict_load(read_path(Path('output/apk/baseline.json')).read_bytes())
+    decoded = strict_load(read_path(Path('output/decoded/report.json')).read_bytes())
+    archive = strict_load(read_path(Path('output/base_master/report.json')).read_bytes())
+    collected = strict_load(read_path(Path('output/phone/collected_files.json')).read_bytes())
     evidence_paths = ['output/sample/sample.json','output/il2cpp/sample_code.json',
                       'output/phase_d/chain_probe.json','output/phase_d/source_rule_36000358.json',
                       'output/validation/high_hp_sample.json',
@@ -249,9 +251,9 @@ def main():
     evidence, evidence_errors, parsed_evidence = {}, {}, {}
     for p in evidence_paths:
         try:
-            evidence[p] = sha(Path(p).read_bytes())
+            evidence[p] = sha(read_path(Path(p)).read_bytes())
             if p.endswith('.json'):
-                parsed_evidence[p] = strict_load(Path(p).read_bytes())
+                parsed_evidence[p] = strict_load(read_path(Path(p)).read_bytes())
         except (OSError,ValueError) as error:
             evidence_errors[p] = str(error)
     metadata = parsed_evidence.get('output/il2cpp/sample_code.json',{})
@@ -265,13 +267,13 @@ def main():
     for row in decoded['files']:
         p = Path('output/decoded')/(row['filename']+'.json.raw')
         originals = [c for c in collected if Path(c.get('local','')).name==row['filename'] and c.get('sha256_local')==row['source_sha256']]
-        documents.append({'layer':'CACHE','path':p.as_posix(),**read_source(p),
+        documents.append({'layer':'CACHE','path':Path(path_reference(read_path(p))).as_posix(),**read_source(p),
                           'expected_sha256':row['json_raw_sha256'], 'origin':{'kind':'COLLECTED_DATA5',
                           'work_input':row['source'],'encrypted_source_sha256':row['source_sha256'],
                           'original_collections':originals,'decoder_report':'output/decoded/report.json'}})
     for filename in ('_mdBossInfo.json','_mdCharacter.json','_mdSAbirity.json','_mdSkill.json'):
         p = Path('output/base_master')/filename
-        documents.append({'layer':'APK','path':p.as_posix(),**read_source(p),
+        documents.append({'layer':'APK','path':Path(path_reference(read_path(p))).as_posix(),**read_source(p),
                           'origin':{'kind':'APK_UNITY_COMPONENT_EXPORT','apk':baseline['apk'],
                           'apk_sha256':baseline['sha256'],'asset':archive['source'],'asset_sha256':archive['source_sha256'],
                           'serialized_file':archive['serialized_file'],'object_path_id':archive['object_path_id'],
@@ -284,9 +286,9 @@ def main():
                  'origin':d['origin'],**({'read_error':d['read_error']} if 'read_error' in d else {})} for d in documents]
     snapshot = 'snapshot_'+sha(compact(identity).encode())[:20]
     parser_hash = sha(Path(__file__).read_bytes())
-    verifier_hash = sha(Path('scripts/verify_export.py').read_bytes())
+    verifier_hash = sha((Path(__file__).resolve().parent / 'verify_export.py').read_bytes())
     support_paths = ['scripts/phase_d_chain_probe.py','scripts/phase_d_source_rule.py','scripts/sample_trace.py']
-    support_hashes = {p:sha(Path(p).read_bytes()) for p in support_paths}
+    support_hashes = {p:sha((Path(__file__).resolve().parent / Path(p).name).read_bytes()) for p in support_paths}
     build = 'build_'+sha(compact({'parser':parser_hash,'verifier':verifier_hash,'support':support_hashes,'rules':RULE_VERSION,'evidence':evidence,'evidence_errors':evidence_errors}).encode())[:16]
     destination = args.output_root/snapshot/build
     if destination.exists():
@@ -295,7 +297,7 @@ def main():
             if sha((destination/name).read_bytes()) != expected:
                 raise ValueError(f'Existing immutable export differs: {name}')
         # Select only after every payload has passed; never touch the old payload.
-        write_json(args.output_root/'latest.json',{'snapshot_id':snapshot,'build_id':build,'directory':destination.as_posix()})
+        write_json(args.output_root/'latest.json',{'snapshot_id':snapshot,'build_id':build,'directory':Path(path_reference(destination)).as_posix()})
         print(compact({'status':'EXISTING_SNAPSHOT_VERIFIED','output':destination.as_posix()}))
         return
     destination.parent.mkdir(parents=True,exist_ok=True)
@@ -306,7 +308,8 @@ def main():
     for p in list(evidence)+support_paths+['scripts/export_master.py','scripts/verify_export.py','requirements-lock.txt']:
         copied = staging/'provenance'/p
         copied.parent.mkdir(parents=True,exist_ok=True)
-        shutil.copyfile(p,copied)
+        source = (Path(__file__).resolve().parent / Path(p).name) if p.startswith('scripts/') else read_path(Path(p))
+        shutil.copyfile(source,copied)
     anomalies, records, sources = [], [], []
     core = {('CACHE','charainfo.data5.json.raw'):('charainfo','cid'),
             ('CACHE','skilllist.data5.json.raw'):('skilllist','skillid'),
@@ -462,7 +465,7 @@ def main():
                 'verifier_sha256':verifier_hash,
                 'support_script_sha256':support_hashes,
                 'rule_version':RULE_VERSION,'APK_identity':baseline['identity'],'APK_baseline_sha256':baseline['sha256'],
-                'runtime':{'python':sys.version,'added_dependencies':[],'requirements_lock_sha256':sha(Path('requirements-lock.txt').read_bytes())},
+                'runtime':{'python':sys.version,'added_dependencies':[],'requirements_lock_sha256':sha(read_path(Path('requirements-lock.txt')).read_bytes())},
                 'rules_enabled':rules_enabled,'evidence_sha256':evidence,'sources':sources,'record_counts':counts,
                 'evidence_errors':evidence_errors,'rules_disabled_scope':None if rules_enabled else 'Local parameter interpretation only; raw export unaffected',
                 'reference_counts':reference_counts,'resolution_counts':resolution_counts,'slot_array_lengths':slot_counts,
@@ -487,7 +490,7 @@ def main():
             manifest['output_sha256'][p.relative_to(staging).as_posix()] = sha(p.read_bytes())
     write_json(staging/'manifest.json',manifest)
     staging.rename(destination)
-    write_json(args.output_root/'latest.json',{'snapshot_id':snapshot,'build_id':build,'directory':destination.as_posix()})
+    write_json(args.output_root/'latest.json',{'snapshot_id':snapshot,'build_id':build,'directory':Path(path_reference(destination)).as_posix()})
     print(compact({'status':manifest['status'],'output':destination.as_posix(),'records':counts,
                    'references':reference_counts,'anomalies':len(anomalies),'rules_enabled':rules_enabled}))
 

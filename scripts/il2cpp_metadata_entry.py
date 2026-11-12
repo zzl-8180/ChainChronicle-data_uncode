@@ -12,6 +12,8 @@ from pathlib import Path
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from elftools.elf.elffile import ELFFile
 
+from project_layout_paths import write_path
+
 
 def main():
     raw = Path("work/apk/lib/arm64-v8a/libil2cpp.so").read_bytes()
@@ -58,7 +60,7 @@ def main():
                     context = list(md.disasm(image[max(begin,rva-96):rva+step+112],max(begin,rva-96)))
                     refs.append({"adrp_rva":hex(rva),"use_rva":hex(rva+step),"string_rva":hex(target),
                                  "context":[f"{hex(i.address)}: {i.mnemonic} {i.op_str}" for i in context]})
-    output = Path("output/il2cpp")
+    output = write_path(Path("projects/unpack/research/il2cpp/20261111"))
     output.mkdir(parents=True,exist_ok=True)
     result = {"original_library_sha256":hashlib.sha256(raw).hexdigest(),"guest_image_sha256":hashlib.sha256(image).hexdigest(),
               "filename_rvas":[hex(t) for t in targets],"references":refs,

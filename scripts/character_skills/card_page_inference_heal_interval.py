@@ -463,7 +463,7 @@ def apply_to_groups(data, cid, groups):
 def probe(data, cid, row_id=None):
     """按页面找「回復速度」行，输出两段原值与合成值（不写页面）。"""
     from pathlib import Path
-    page = json.loads((Path('output/character_skills/pages') / str(cid) / 'card.json')
+    page = json.loads((R.read_path(Path('output/character_skills/pages')) / str(cid) / 'card.json')
                       .read_text(encoding='utf-8'))
     out = dict(cid=cid, rows=[])
     for group in page.get('groups') or []:

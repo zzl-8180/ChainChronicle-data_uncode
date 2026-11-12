@@ -6,8 +6,9 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
-OUTPUT = Path('output/full_unpack')
+OUTPUT = write_path(Path('output/full_unpack'))
 SCRIPTS = ['scripts/full_unpack_probe.py', 'scripts/full_unpack_run.py',
            'scripts/full_unpack_merge.py', 'scripts/full_unpack_verify.py',
            'scripts/full_unpack_finalize.py', 'scripts/decode_data5.py',
@@ -23,8 +24,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=OUTPUT)
     parser.add_argument('--inventory', type=Path,
-                        default=Path('output/cache_refresh_20261015/composite_inventory.jsonl'))
+                        default=read_path(Path('output/cache_refresh_20261015/composite_inventory.jsonl')))
     args = parser.parse_args()
+    args.inventory=read_path(args.inventory);args.output=write_path(args.output)
     out_dir = args.output
     coverage = json.loads((out_dir / 'coverage.json').read_text(encoding='utf-8'))
     validation = json.loads((out_dir / 'validation.json').read_text(encoding='utf-8'))
@@ -42,12 +44,12 @@ def main():
         'task': 'full_unpack_20261016',
         'created_utc': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'input': {
-            'composite_inventory': str(args.inventory),
+            'composite_inventory': path_reference(args.inventory),
             'composite_inventory_sha256': inv_sha,
             'archives': archives,
             'scope': 'files listed in the input inventory; not a whole-game coverage claim',
         },
-        'code_versions': {s: sha(s) for s in SCRIPTS},
+        'code_versions': {s: sha(Path(__file__).resolve().parent / Path(s).name) for s in SCRIPTS},
         'dependencies': {'UnityPy': UnityPy.__version__, 'Pillow': Image.__version__,
                          'unicorn': unicorn.__version__,
                          'python': '3.12.14 (.venv)'},

@@ -7,8 +7,9 @@ import copy
 import hashlib
 import json
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
-ROOT = Path('output/card_comparison_cid30236')
+ROOT = read_path(Path('output/card_comparison_cid30236'))
 POLICY_PATH = ROOT/'difference_sources/adoption_policy.json'
 
 

@@ -1,10 +1,11 @@
 """Extend the same card table to all remaining described numeric effects."""
 import json
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 
 def wedge_time_overlay(records):
-    root=Path('output/card_comparison_cid30236/wedge_time')
+    root=read_path(Path('output/card_comparison_cid30236/wedge_time'))
     trace=json.loads((root/'trace.json').read_text(encoding='utf-8'));checks=json.loads((root/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
     assert all(r in records for r in trace['source_records'])
@@ -18,7 +19,7 @@ def wedge_time_overlay(records):
 
 
 def super_counter_overlay(records):
-    root=Path('output/card_comparison_cid30236/super_counter')
+    root=read_path(Path('output/card_comparison_cid30236/super_counter'))
     trace=json.loads((root/'trace.json').read_text(encoding='utf-8'));checks=json.loads((root/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
     assert all(r in records for r in trace['source_records'])
@@ -32,7 +33,7 @@ def super_counter_overlay(records):
 
 
 def leader_condition_overlay(records):
-    root=Path('output/card_comparison_cid30236/leader_condition')
+    root=read_path(Path('output/card_comparison_cid30236/leader_condition'))
     trace=json.loads((root/'trace.json').read_text(encoding='utf-8'));checks=json.loads((root/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
     r=trace['source_records'][0];assert r in records
@@ -50,11 +51,11 @@ def leader_condition_overlay(records):
 
 
 def chain_mana_overlay(records):
-    root=Path('output/card_comparison_cid30236/chain_mana')
+    root=read_path(Path('output/card_comparison_cid30236/chain_mana'))
     trace=json.loads((root/'trace.json').read_text(encoding='utf-8'));checks=json.loads((root/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
     assert all(r in records for r in trace['source_records'])
-    dispatch_root=Path('output/card_comparison_cid30236/chain_dispatch')
+    dispatch_root=read_path(Path('output/card_comparison_cid30236/chain_dispatch'))
     dispatch=json.loads((dispatch_root/'trace.json').read_text(encoding='utf-8'))
     dispatch_checks=json.loads((dispatch_root/'native_checks.json').read_text(encoding='utf-8'))
     assert dispatch['native_sha256']==dispatch_checks['native_sha256']==trace['native_sha256']
@@ -75,7 +76,7 @@ def chain_mana_overlay(records):
 
 
 def mana_chance_overlay(records):
-    root=Path('output/card_comparison_cid30236/mana_chance')
+    root=read_path(Path('output/card_comparison_cid30236/mana_chance'))
     trace=json.loads((root/'trace.json').read_text(encoding='utf-8'));checks=json.loads((root/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
     r=trace['source_records'][0];assert r in records and r['raw']['ability']==28
@@ -96,7 +97,7 @@ def mana_chance_overlay(records):
 
 
 def field_time_overlay(records):
-    root=Path('output/card_comparison_cid30236/field_time')
+    root=read_path(Path('output/card_comparison_cid30236/field_time'))
     trace=json.loads((root/'trace.json').read_text(encoding='utf-8'));checks=json.loads((root/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
     assert all(r in records for r in trace['source_records'])
@@ -111,7 +112,7 @@ def field_time_overlay(records):
 
 
 def lifesteal_overlay(records):
-    root=Path('output/card_comparison_cid30236/lifesteal')
+    root=read_path(Path('output/card_comparison_cid30236/lifesteal'))
     trace=json.loads((root/'trace.json').read_text(encoding='utf-8'));checks=json.loads((root/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
     r=trace['source_records'][0];assert r in records and r['raw']['ability']==21
@@ -128,7 +129,7 @@ def lifesteal_overlay(records):
 
 
 def movement_overlay(records):
-    root=Path('output/card_comparison_cid30236/movement')
+    root=read_path(Path('output/card_comparison_cid30236/movement'))
     trace=json.loads((root/'trace.json').read_text(encoding='utf-8'));checks=json.loads((root/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
     specs=((1095,'param2',(65000001,),'multiply'),(7,'param2',(43023607,),'multiply'),(1008,'param2',(43023606,),'multiply'),(1017,'param2',(43023605,65000002),'multiply'),
@@ -151,7 +152,7 @@ def movement_overlay(records):
 
 
 def critical_overlay(records):
-    root=Path('output/card_comparison_cid30236/critical')
+    root=read_path(Path('output/card_comparison_cid30236/critical'))
     trace=json.loads((root/'trace.json').read_text(encoding='utf-8'));checks=json.loads((root/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
     rules,views=[],[]

@@ -12,16 +12,20 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
 
 ROOT = Path(__file__).resolve().parents[2]
-CACHE_DIR = ROOT / "output" / "cache_full_20261015_v3"
+CACHE_DIR = read_path(ROOT / "output" / "cache_full_20261015_v3", root=ROOT)
 DECODED = CACHE_DIR / "decoded"
-BASE_MASTER = ROOT / "output" / "base_master"
+BASE_MASTER = read_path(ROOT / "output" / "base_master", root=ROOT)
 RECORDS_JSONL = CACHE_DIR / "records.jsonl"
-ROSTER_JSON = ROOT / "output" / "char_roster" / "data" / "playable_characters.json"
-ROSTER_OTHER_JSON = ROOT / "output" / "char_roster" / "data" / "other_characters.json"
-CARD_COMPARISON = ROOT / "output" / "card_comparison_cid30236"
-REFERENCE_ANALYSIS = ROOT / "output" / "reference_analysis" / "claude_cc_site_pages"
+ROSTER_JSON = read_path(ROOT / "output" / "char_roster" / "data" / "playable_characters.json", root=ROOT)
+ROSTER_OTHER_JSON = read_path(ROOT / "output" / "char_roster" / "data" / "other_characters.json", root=ROOT)
+CARD_COMPARISON = read_path(ROOT / "output" / "card_comparison_cid30236", root=ROOT)
+REFERENCE_ANALYSIS = read_path(ROOT / "output" / "reference_analysis" / "claude_cc_site_pages", root=ROOT)
 
 SNAPSHOT_ID = "cache_full_20261015_v3"
 
@@ -77,7 +81,7 @@ _JSON_CACHE: dict[Path, object] = {}
 
 def load_json(path: Path):
     """Load a JSON document once per process."""
-    path = Path(path)
+    path = read_path(Path(path), root=ROOT)
     if path not in _JSON_CACHE:
         with path.open(encoding="utf-8") as fh:
             _JSON_CACHE[path] = json.load(fh)

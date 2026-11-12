@@ -5,6 +5,7 @@ import json
 import zipfile
 from collections import Counter
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 from pyaxmlparser.axmlprinter import AXMLPrinter
 
@@ -16,9 +17,12 @@ def digest(data):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("apk", type=Path)
-    parser.add_argument("--work", type=Path, default=Path("work/apk"))
-    parser.add_argument("--output", type=Path, default=Path("output/apk"))
+    parser.add_argument("--work", type=Path, default=write_path(Path("work/apk")))
+    parser.add_argument("--output", type=Path, default=write_path(Path("output/apk")))
     args = parser.parse_args()
+    args.apk = read_path(args.apk)
+    args.work = write_path(args.work)
+    args.output = write_path(args.output)
     args.work.mkdir(parents=True, exist_ok=True)
     args.output.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(args.apk) as archive:
@@ -55,10 +59,10 @@ def main():
             dest = args.work / name
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(data)
-            extracted.append({"apk_entry": name, "work_path": dest.as_posix(),
+            extracted.append({"apk_entry": name, "work_path": Path(path_reference(dest)).as_posix(),
                               "size": len(data), "sha256": digest(data),
                               "head_hex": data[:32].hex()})
-    summary = {"apk": str(args.apk), "size": args.apk.stat().st_size,
+    summary = {"apk": path_reference(args.apk), "size": args.apk.stat().st_size,
                "sha256": digest(args.apk.read_bytes()), "identity": identity,
                "entry_count": len(entries),
                "abi": sorted({e["path"].split("/")[1] for e in entries if e["path"].startswith("lib/")}),

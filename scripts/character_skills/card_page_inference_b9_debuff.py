@@ -129,7 +129,7 @@ def _registered_rule(param):
     """profiles/rules.json 登记的规则条目（origin 权威来源；B8._registered_rule 同法）。"""
     global _REGISTERED_RULES
     if _REGISTERED_RULES is None:
-        p = B8.Path('output/character_skills/profiles/rules.json')
+        p = R.read_path(B8.Path('output/character_skills/profiles/rules.json'))
         _REGISTERED_RULES = json.loads(p.read_text(encoding='utf-8')) if p.is_file() else {}
     return _REGISTERED_RULES.get(f'skilllist|99|/{param}') or {}
 
@@ -149,7 +149,7 @@ def _field_evidence(param):
     if not files or any(not any(p.startswith(d) for d in dirs) for p in files):
         raise ValueError(f'批 9 证据解析异常（INFR-01）：skilllist|99|/{param} 的 rules.json '
                          f'evidence 未解析为 {dirs} 下的文件，实际 {files!r}')
-    missing = [p for p in files if not B8.Path(p).is_file()]
+    missing = [p for p in files if not R.read_path(B8.Path(p)).is_file()]
     if missing:
         raise FileNotFoundError(f'批 9 证据文件缺失（INFR-01）：{missing}')
     _EVIDENCE_CACHE[param] = (dirs, files)

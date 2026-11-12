@@ -93,6 +93,7 @@ import re
 import sys
 import unicodedata
 from pathlib import Path
+from project_layout_paths import read_path
 
 _HERE = Path(__file__).resolve().parent
 if str(_HERE) not in sys.path:            # 允许从任意工作目录直接导入
@@ -296,8 +297,8 @@ def apk_tables(root):
     key = str(Path(root).resolve())
     if key not in _RAW_CACHE:
         base = Path(root)
-        skill = json.loads((base / APK_SKILLLIST_REL).read_text(encoding='utf-8-sig'))['skilllist']
-        chara = json.loads((base / APK_CHARAINFO_REL).read_text(encoding='utf-8-sig'))['charainfo']
+        skill = json.loads(read_path(base / APK_SKILLLIST_REL, root=base).read_text(encoding='utf-8-sig'))['skilllist']
+        chara = json.loads(read_path(base / APK_CHARAINFO_REL, root=base).read_text(encoding='utf-8-sig'))['charainfo']
         skill_index, chara_index = {}, {}
         for i, rec in enumerate(skill):
             skill_index.setdefault(rec.get('skillid'), []).append(i)
@@ -305,8 +306,8 @@ def apk_tables(root):
             chara_index.setdefault(rec.get('cid'), []).append(i)
         _RAW_CACHE[key] = dict(
             skilllist=skill, charainfo=chara, skill_index=skill_index, chara_index=chara_index,
-            skilllist_sha256=sha256_file(base / APK_SKILLLIST_REL),
-            charainfo_sha256=sha256_file(base / APK_CHARAINFO_REL))
+            skilllist_sha256=sha256_file(read_path(base / APK_SKILLLIST_REL, root=base)),
+            charainfo_sha256=sha256_file(read_path(base / APK_CHARAINFO_REL, root=base)))
     return _RAW_CACHE[key]
 
 
@@ -315,8 +316,8 @@ def cache_presence(root):
     key = 'cache:' + str(Path(root).resolve())
     if key not in _RAW_CACHE:
         base = Path(root)
-        chara = json.loads((base / CACHE_CHARAINFO_REL).read_text(encoding='utf-8-sig'))['charainfo']
-        skill = json.loads((base / CACHE_SKILLLIST_REL).read_text(encoding='utf-8-sig'))['skilllist']
+        chara = json.loads(read_path(base / CACHE_CHARAINFO_REL, root=base).read_text(encoding='utf-8-sig'))['charainfo']
+        skill = json.loads(read_path(base / CACHE_SKILLLIST_REL, root=base).read_text(encoding='utf-8-sig'))['skilllist']
         chara_index, skill_index = {}, {}
         for i, rec in enumerate(chara):
             chara_index.setdefault(rec.get('cid'), []).append(i)

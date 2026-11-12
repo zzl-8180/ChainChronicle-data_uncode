@@ -4,9 +4,13 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
+from versioned_outputs import experiment_output
 
 ROOT=Path(__file__).resolve().parents[2]
-BASE=ROOT/'output/skill_mechanism_scale/20261104'
+BASE=experiment_output('skill_mechanism_scale')
 
 def load(path): return json.loads(path.read_text(encoding='utf-8-sig'))
 def save(name,data): (BASE/name).write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

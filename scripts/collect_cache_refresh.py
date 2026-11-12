@@ -1,10 +1,11 @@
 """Collect explicit refresh plan as read-only tar stream; preserve old snapshot."""
 import json,subprocess,re,shlex
 from pathlib import Path,PurePosixPath
+from project_layout_paths import read_path, write_path
 from datetime import datetime,timezone
-plan_dir=Path('output/phone_refresh_20261015');dest=Path('raw/phone_20261015_refresh_02')
+plan_dir=read_path(Path('output/phone_refresh_20261015'));dest=write_path(Path('raw/phone_20261015_refresh_02'))
 plan=json.loads((plan_dir/'plan.json').read_text(encoding='utf-8'));probe=json.loads((plan_dir/'probe.json').read_text(encoding='utf-8'))
-adb=str(Path('tools/platform-tools/adb.exe').resolve());devices=subprocess.check_output([adb,'devices'],text=True)
+adb=str(read_path(Path('tools/platform-tools/adb.exe')).resolve());devices=subprocess.check_output([adb,'devices'],text=True)
 ready=[s.split()[0] for s in devices.splitlines()[1:] if s.split()[1:]==['device']];assert len(ready)==1
 names=[]
 for r in plan['files']:

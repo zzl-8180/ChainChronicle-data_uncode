@@ -8,6 +8,7 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from unicorn import Uc, UC_ARCH_ARM64, UC_MODE_ARM, UC_HOOK_CODE
 from unicorn.arm64_const import (UC_ARM64_REG_X0, UC_ARM64_REG_X20,
@@ -97,8 +98,8 @@ def probe(image, records, hp_bits, apply_type):
 
 
 def main():
-    image = Path('work/protection/il2cpp_loader_seed1.bin').read_bytes()
-    sample = json.loads(Path('output/sample/sample.json').read_text(encoding='utf-8'))
+    image = read_path(Path('work/protection/il2cpp_loader_seed1.bin')).read_bytes()
+    sample = json.loads(read_path(Path('output/sample/sample.json')).read_text(encoding='utf-8'))
     records = [sample['skill_raw'],sample['subskills_raw'][0]]
     assert all(r['ability']==1105 for r in records)
     hp_values = [bits(0),bits(0.25)-1,bits(0.25),bits(0.25)+1,
@@ -113,7 +114,7 @@ def main():
                         'Local loop outputs are not final game damage or whole-party stacked effects',
                         'HP ratio computation verified statically separately; ratio is an input here'],
               'case_count':len(cases),'cases':cases}
-    Path('output/validation/high_hp_sample.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
+    write_path(Path('output/validation/high_hp_sample.json')).write_text(json.dumps(result,indent=2),encoding='utf-8')
     print(json.dumps({'status':result['status'],'case_count':len(cases),'limits':result['limits']}))
 
 

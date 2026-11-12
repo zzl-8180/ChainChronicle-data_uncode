@@ -7,10 +7,11 @@ import struct
 from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from chica_description_effects import fallback_records
 
-OUT = Path('output/card_comparison_cid30236')
-SOURCE = Path('output/cache_full_20261015_v3/records.jsonl')
+OUT = read_path(Path('output/card_comparison_cid30236'))
+SOURCE = read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 
 def load(path): return json.loads(Path(path).read_text(encoding='utf-8'))
 def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -43,7 +44,7 @@ check('six_sample_fields_and_explicit_progress_states', len(samples['field_compa
       and samples['correspondence_status'] == 'CONFIRMED_PATTERN_CODE_AND_SCREENSHOT_VALUES'
       and samples['calculation_status'] == 'CONFIRMED_LOCAL_INPUT_RULE_NOT_FINAL_DAMAGE')
 expected = {43023601: (43023600, 3.5), 43023600: (43023605, 3.75), 43023602: (43023609, 4.25)}
-boss_bytes = Path('output/cache_full_20261015_v3/decoded/bossinfo.data5.json.raw').read_bytes()
+boss_bytes = read_path(Path('output/cache_full_20261015_v3/decoded/bossinfo.data5.json.raw')).read_bytes()
 for v in samples['field_comparisons']:
     sid, p1 = expected[v['pattern_id']]
     source = records[v['record_key']]
@@ -210,7 +211,7 @@ for c in reusable_checks['checks']:
     assert c['reads']==([dict(source_id=c['skill_id'],field=c['field'],raw=c['raw_value'],origin='SOURCE')] if c['qualifier'] else [])
 check('32_native_samples_bound_to_1095_type_branch_current_inputs_and_observed_numeric_extremes',True)
 
-skill_bytes=Path('output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw').read_bytes()
+skill_bytes=read_path(Path('output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw')).read_bytes()
 for r in reusable_records:
     loc=r['location'];fragment=skill_bytes[loc['byte_begin']:loc['byte_end_exclusive']]
     assert json.loads(fragment)==r['raw'] and hashlib.sha256(fragment).hexdigest()==loc['raw_record_sha256']
@@ -495,7 +496,7 @@ check('1390_7_native_checks_current_bg_encoding_eligibility_self_multiply_extrem
 stage_views=[v for v in ordinary_views if v['effect_type']==7 and v['field_path'] in ('/param0','/param1','/param3')]
 assert len(stage_views)==192 and Counter(v['field_path'] for v in stage_views)=={'/param0':64,'/param1':64,'/param3':64}
 for r in stage_records+background_records:
-    loc=r['location'];source_bytes=skill_bytes if r['table']=='skilllist' else Path('output/cache_full_20261015_v3/decoded/battleinfo.data5.json.raw').read_bytes()
+    loc=r['location'];source_bytes=skill_bytes if r['table']=='skilllist' else read_path(Path('output/cache_full_20261015_v3/decoded/battleinfo.data5.json.raw')).read_bytes()
     fragment=source_bytes[loc['byte_begin']:loc['byte_end_exclusive']]
     assert json.loads(fragment)==r['raw'] and hashlib.sha256(fragment).hexdigest()==loc['raw_record_sha256']
 for v in stage_views:
@@ -1085,5 +1086,5 @@ result = dict(status='PASS_DATA_AND_STRUCTURE', checks=checks,
               ordinary_records=1723,ordinary_fields=4947,ordinary_rules=60,reusable_1008_records=37,reusable_1008_fields=111,native_checks_reusable_1008=389,reusable_7_records=64,reusable_7_fields=192,native_checks_reusable_7=1390,reusable_99_records=133,reusable_99_fields=382,native_checks_reusable_99=192,reusable_3000_records=382,reusable_3000_records_with_fields=348,reusable_3000_fields=1098,native_checks_reusable_3000=86,reusable_2012_records=406,reusable_2012_fields=1025,native_checks_reusable_2012=49,reusable_1017_records=321,reusable_1017_fields=1284,native_checks_reusable_1017=236,reusable_1095_records=407,reusable_1095_fields=814,native_checks_reusable_1095=32,native_checks_ordinary=39,native_checks_skill_power=6,native_checks_timed_support=15,native_checks_barrier=4,native_checks_barrier_request=29,native_checks_critical=33,native_checks_movement=19,native_checks_lifesteal=13,native_checks_field_time=7,native_checks_mana_chance=14,native_checks_chain_mana=14,native_checks_chain_dispatch=17,native_checks_leader_condition=8,native_checks_super_counter=8,native_checks_wedge_time=9,
               description_effects=len(effects),description_effects_answered=sum(r['readable_value'] is not None for r in effects),
               visual_browser_check='NOT_COMPLETED: browser security policy rejects file:// URLs; no workaround attempted')
-(OUT/'validation.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+write_path(Path('output/card_comparison_cid30236/validation.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
 print(json.dumps(dict(passed=len(checks),status=result['status'])))

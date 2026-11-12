@@ -116,6 +116,7 @@ import math
 import re
 import struct
 from pathlib import Path
+from project_layout_paths import read_path
 
 #: 批标识：保持直接阶段字符串，便于与 ``candidate/`` 产物对账；镜像阶段用 MIRROR_SCOPE
 #: 与 MIRROR_STRUCTURE_SCOPE 区分（模块哈希随镜像分支更新，直接四行由 candidate_mirror 的
@@ -253,7 +254,7 @@ def tables(data):
     root = Path(getattr(data, 'root', Path('.'))).resolve()
     key = str(root)
     if key not in _TABLES:
-        base = root / BASE
+        base = read_path(root / BASE, root=root)
         boss = _read(base / 'bossinfo.data5.json.raw')['bossinfo']
         patterns, skills = {}, {}
         for i, rec in enumerate(boss.get('bosspattern') or []):

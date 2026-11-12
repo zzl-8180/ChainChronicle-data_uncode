@@ -2,13 +2,14 @@
 import hashlib
 import json
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 
 
 def main():
-    raw = Path("work/apk/lib/arm64-v8a/libcompatible.so").read_bytes()
-    image = Path("work/protection/compatible_stage3_seed1.bin").read_bytes()
+    raw = read_path(Path("work/apk/lib/arm64-v8a/libcompatible.so")).read_bytes()
+    image = read_path(Path("work/protection/compatible_stage3_seed1.bin")).read_bytes()
     target = raw[0x153200:0x153210]
     md = Cs(CS_ARCH_ARM64,CS_MODE_ARM)
     # Confirm the first-block rule on two actually executed conversions.
@@ -36,7 +37,7 @@ def main():
               "target_rva":"0x153200","candidates":candidates,
               "method":"Evidenced first16-byte XOR rule + four-instruction stack prologue constraint; one distinct key",
               "limit":"Runtime selection of the key pointer is UNKNOWN; full native conversion/loader/data5 integrity corroborate candidate"}
-    out = Path("output/protection/callback_key_candidates.json")
+    out = write_path(Path("output/protection/callback_key_candidates.json"))
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result,indent=2),encoding="utf-8")
     print(json.dumps({"distinct_keys":len(candidates),"occurrences":len(next(iter(candidates.values()))["occurrences"])}))

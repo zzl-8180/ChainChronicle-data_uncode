@@ -3,6 +3,8 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from il2cpp_sample_code import Native
@@ -12,7 +14,7 @@ from metadata_targets import Metadata
 def main():
     m = Metadata('work/protection/metadata_aei_decoded.bin')
     n = Native(m)
-    sample = json.loads(Path('output/sample/sample.json').read_text(encoding='utf-8'))
+    sample = json.loads(read_path(Path('output/sample/sample.json')).read_text(encoding='utf-8'))
     card = sample['card_raw']
     active_type = card['skillid'][0]
     matches = [f for f in n.fields(717) if f['name']!='value__' and n.default(f['index'])['value']==active_type]
@@ -27,8 +29,9 @@ def main():
     if not any(i.mnemonic=='bl' and i.op_str=='#0x119d924' for i in context):
         raise ValueError('Active dispatch does not call expected handler')
     methods = []
-    directory = Path('output/il2cpp/active_code')
-    directory.mkdir(exist_ok=True)
+    output = fresh_output('projects/skill-research/evidence/sample','active-skill-trace')
+    directory = output/'active_code'
+    directory.mkdir()
     for mi in (5191,5275,5350,5486,5487,8770,8771,8772,8773):
         row = n.method(mi)
         start = int(row['native_rva'],16)
@@ -75,7 +78,7 @@ def main():
                          'skillparam9 absent in source; not filled with an invented default',
                          'Following heal/buff stages of active skill still require separate pattern/load path analysis'],
               'local_description':card['skilltext']}
-    Path('output/sample/active_skill_trace.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+    (output/'active_skill_trace.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({'status':result['status'],'type':result['active_type_enum'],'dispatch_branch':hex(branch),
                       'parameters':[(r['field'],r['raw'],r['argument']) for r in result['parameter_bindings']]},ensure_ascii=False))
 

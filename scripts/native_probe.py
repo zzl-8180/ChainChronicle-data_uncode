@@ -7,18 +7,21 @@ from pathlib import Path
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from elftools.elf.elffile import ELFFile
 
+from project_layout_paths import read_path, write_path
+
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
     parser.add_argument("--match", default="Master|master|decrypt|Decrypt|Chronicle|Skill|skill|CSTM")
-    parser.add_argument("--output", type=Path, default=Path("output/native"))
+    parser.add_argument("--output", type=Path, default=Path("projects/unpack/research/native/20261111"))
     parser.add_argument("--disassemble", action="store_true")
     parser.add_argument("--address", action="append", type=lambda x: int(x, 0), default=[])
     parser.add_argument("--size", type=int, default=256, help="bounded byte window; not a confirmed function size")
     args = parser.parse_args()
+    args.output = write_path(args.output)
     args.output.mkdir(parents=True, exist_ok=True)
-    with args.source.open("rb") as stream:
+    with read_path(args.source).open("rb") as stream:
         elf = ELFFile(stream)
         symbols = {}
         for section in elf.iter_sections():

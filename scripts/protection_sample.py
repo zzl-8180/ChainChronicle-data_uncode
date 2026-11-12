@@ -3,6 +3,7 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from protection_emulate import Experiment, SOURCE
@@ -70,10 +71,10 @@ def main():
     assert len(complete) == 3924 and sum(i.size for i in instructions) == 3924
     assert instructions[0].mnemonic == "stp" and any(i.mnemonic == "ret" for i in instructions[-3:])
     assert hashlib.sha256(SOURCE.read_bytes()).hexdigest() == EXPECTED
-    Path("work/protection").mkdir(parents=True, exist_ok=True)
-    Path("work/protection/init_control_record.bin").write_bytes(decoded)
-    Path("work/protection/init_stage1_full.bin").write_bytes(complete)
-    result = {"status": "PASS_PROTECTION_SAMPLE", "source": str(SOURCE), "source_sha256": EXPECTED,
+    write_path(Path("work/protection")).mkdir(parents=True, exist_ok=True)
+    write_path(Path("work/protection/init_control_record.bin")).write_bytes(decoded)
+    write_path(Path("work/protection/init_stage1_full.bin")).write_bytes(complete)
+    result = {"status": "PASS_PROTECTION_SAMPLE", "source": path_reference(SOURCE), "source_sha256": EXPECTED,
               "rule_basis": ["0x1432bc-0x1432d4: key/IV same buffer, key/block widths 16",
                              "0x14345c-0x143470: whole-block length, mode argument 0",
                              "0x12ca2c-0x12ca68: independent block decryption, no IV chaining",
@@ -84,7 +85,7 @@ def main():
               "limits": ["This is a protection-layer sample, not a card/skill record",
                          "AES-ECB here does not establish an algorithm for data5 or chronicle.dat",
                          "Instruction recovery is separate from actual Android runtime behavior"]}
-    output = Path("output/protection/protection_sample.json")
+    output = write_path(Path("output/protection/protection_sample.json"))
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps({k: v for k, v in result.items() if k != "record"} |

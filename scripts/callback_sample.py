@@ -3,16 +3,19 @@
 This is a bounded instruction model, not Android/native execution or a decoder.
 The flag and module bias are controlled experiment inputs, not runtime evidence.
 """
+import argparse
 import hashlib
 import io
 import json
 from pathlib import Path
+from project_layout_paths import read_path, path_reference
+from versioned_outputs import fresh_output
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from capstone.arm64 import ARM64_OP_IMM, ARM64_OP_REG, ARM64_OP_MEM, ARM64_CC_EQ
 from elftools.elf.elffile import ELFFile
 
-SOURCE = Path("work/apk/lib/arm64-v8a/libcompatible.so")
+SOURCE = read_path(Path("work/apk/lib/arm64-v8a/libcompatible.so"))
 START, END = 0x91a2c, 0x91acc  # complete straight-line block ending in RET
 FLAG, CELL = 0x1a46a0, 0x1a61e0
 
@@ -83,6 +86,10 @@ def evaluate(instructions, relocations, flag, bias):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, help="A new run directory")
+    args = parser.parse_args()
+    directory = fresh_output("projects/unpack/reports/phase_c", "callback", args.output)
     raw = SOURCE.read_bytes()
     elf = ELFFile(io.BytesIO(raw))
     segment = next(s for s in elf.iter_segments() if s["p_type"] == "PT_LOAD"
@@ -93,7 +100,7 @@ def main():
     md.detail = True
     instructions = list(md.disasm(code, START))
     assert sum(i.size for i in instructions) == len(code) and instructions[-1].mnemonic == "ret"
-    relocations = json.loads(Path("output/protection/relocations.json").read_text())["all_relocations"]
+    relocations = json.loads(read_path(Path("output/protection/relocations.json")).read_text())["all_relocations"]
     # Reject relocation evidence from a different binary before modeling it.
     for slot, target in [(0x19c4f8, FLAG), (0x19c6e0, CELL), (0x19c6c8, 0x165764)]:
         row = next(r for r in relocations if r["slot"] == slot)
@@ -107,7 +114,7 @@ def main():
         expected = 0x4580 if row["controlled_flag"] == 0 else bias + 0x165764
         assert int(row["callback_value"], 0) == expected
         assert any(s["instruction_rva"] == "0x91abc" and s["cell_rva"] == hex(CELL) for s in row["stores"])
-    result = {"status": "PASS_OFFLINE_BLOCK_MODEL", "source": str(SOURCE),
+    result = {"status": "PASS_OFFLINE_BLOCK_MODEL", "source": path_reference(SOURCE),
               "sha256": hashlib.sha256(raw).hexdigest(), "block_file_offset": offset,
               "block_rva": hex(START), "block_bytes": len(code), "instruction_count": len(instructions),
               "disassembly": [f"{hex(i.address)}: {i.mnemonic} {i.op_str}" for i in instructions],
@@ -115,8 +122,7 @@ def main():
               "limits": ["Flag value, module load bias and block invocation in the game remain UNKNOWN",
                          "No protected instructions, native callbacks or Android code executed",
                          "No data5 or chronicle.dat conversion rule established"]}
-    out = Path("output/protection/callback_sample.json")
-    out.parent.mkdir(parents=True, exist_ok=True)
+    out = directory / "callback_sample.json"
     out.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps({k: result[k] for k in ("status", "block_bytes", "instruction_count", "experiments")}, indent=2))
 

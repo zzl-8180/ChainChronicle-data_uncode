@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT/'scripts'))
+from project_layout_paths import read_path, write_path
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from il2cpp_sample_code import Native
 from metadata_targets import Metadata
@@ -89,7 +90,7 @@ class Fixture:
 
 
 def main():
-    md = Metadata(MD)
+    md = Metadata(read_path(MD, root=ROOT))
     n, lib = Native(md), Native(md, 'mscorlib.dll')
     assert hashlib.sha256(n.raw).hexdigest() == '562a6975fe722d39842a3c7daa3982785c04beaf503c4fe1cc6fbbec3cd047c1'
     assert hashlib.sha256(md.raw).hexdigest() == '07d582df6318e128424e41b93a8a6e86b238b9be14832756a780e47fb70443b1'
@@ -114,9 +115,9 @@ def main():
     # Inputs: one raw extra parent, with levels kept separate. No profile rec_key lookup.
     extra_path=ROOT/'output/cache_full_20261015_v3/decoded/extraabilitylist.data5.json.raw'
     skill_path=ROOT/'output/cache_full_20261015_v3/decoded/skilllist.data5.json.raw'
-    extra=json.loads(extra_path.read_bytes())['extra_ability_info']
+    extra=json.loads(read_path(extra_path, root=ROOT).read_bytes())['extra_ability_info']
     parent=next(r for r in extra if r['cid']==30236)
-    skills={r['skillid']:r for r in json.loads(skill_path.read_bytes())['skilllist']}
+    skills={r['skillid']:r for r in json.loads(read_path(skill_path, root=ROOT).read_bytes())['skilllist']}
     # Exact wrapper samples from the first two distinct levels.
     wrappers=[]
     for idx in (0,1):
@@ -216,7 +217,7 @@ def main():
     assert all(not (i['op'].startswith('bl ') and '0x1dbcf0c' in i['op'])
                for lo,hi in [(0xfa15ac,0xfa1740),(0xfa1ac8,0xfa1bf8)] for i in dis(lo,hi))
     report=dict(verdict='FORWARD',evidence_kind='STATIC_NATIVE_CALL_CHAIN_AND_CONTROLLED_NATIVE_FRAGMENTS',
-                inputs=[dict(path=p.relative_to(ROOT).as_posix(),sha256=hashlib.sha256(p.read_bytes()).hexdigest())
+                inputs=[dict(path=p.relative_to(ROOT).as_posix(),sha256=hashlib.sha256(read_path(p, root=ROOT).read_bytes()).hexdigest())
                         for p in (IMAGE,MD,extra_path,skill_path)],enum_identity=dict(field=extra_field,default=enum_default),
                 version=dict(package='com.sega.chainchronicle',version_name='5.6.2',version_code=56021,
                              source='output/apk/phase_a_report.md; source library/image binding: output/il2cpp/metadata_entry_refs.json',
@@ -244,8 +245,9 @@ def main():
                              'Supplied aggregate counts are quoted by README and were not recomputed.'],
                 remaining_breakpoints=['Full managed dictionary population/iteration and runtime account/party state were not emulated.',
                                        'Unknown selector values and individual sentence-to-effect attribution remain outside this verdict.'])
-    OUT.mkdir(parents=True,exist_ok=True)
-    (OUT/'native_checks.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    output = write_path(OUT, root=ROOT)
+    output.mkdir(parents=True,exist_ok=True)
+    (output/'native_checks.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(dict(verdict=report['verdict'],checks=[dict(name=c['name'],passed=c['passed'],samples=len(c['observations'])) for c in report['checks']]),ensure_ascii=True))
 
 

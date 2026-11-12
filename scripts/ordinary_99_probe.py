@@ -10,6 +10,8 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from unicorn.arm64_const import UC_ARM64_REG_S0,UC_ARM64_REG_S8,UC_ARM64_REG_SP,UC_ARM64_REG_X29
@@ -18,8 +20,7 @@ from il2cpp_sample_code import Native
 from chica_timed_support import TimedGuest
 from phase_d_chain_probe import Guest,BASE,STACK,fbits,fvalue
 
-OUT=Path('output/ordinary_effects/ability99')
-SOURCE=Path('output/cache_full_20261015_v3/records.jsonl')
+SOURCE=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 FIELDS=('param7','param9','param0')
 ROUTES={0:'param1',1:'param3',2:'param2'}  # Normal, Skill, Critical (metadata)
 
@@ -120,7 +121,7 @@ def main():
         support_multi_check=(0x17775c8,0x1777634),time_update=(0x172e4a8,0x172e800),
         normal_sum=(0x172e8c0,0x172e98c),skill_sum=(0x172e98c,0x172ea5c),incoming_sum=(0x172eb24,0x172ebec),
         default_support2=(0x1778c4c,0x1778cac),bounds_constructor=(0x172dd30,0x172ddb0))
-    OUT.mkdir(parents=True,exist_ok=True)
+    OUT=fresh_output('projects/skill-research/evidence/ordinary_effects/ability99','native-checks')
     for name,(a,b) in ranges.items():
         lines=[]
         for ins in d.disasm(n.raw[a:b],a):

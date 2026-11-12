@@ -10,6 +10,8 @@ import io
 import json
 import struct
 from pathlib import Path
+from versioned_outputs import fresh_output
+from project_layout_paths import read_path, path_reference
 
 from unicorn import UC_HOOK_CODE
 from unicorn.arm64_const import UC_ARM64_REG_SP, UC_ARM64_REG_X0, UC_ARM64_REG_X29
@@ -57,21 +59,21 @@ def parse_plaintext(plaintext):
 
 
 class NativeDecoder:
-    def __init__(self, image=Path("work/protection/nutils_loader_seed1.bin"), apk=Path("チェンクロ.apk"),
+    def __init__(self, image=read_path(Path("work/protection/nutils_loader_seed1.bin")), apk=Path("チェンクロ.apk"),
                  cert_hex=None, protection=None):
-        native = Path(image).read_bytes()
+        native = read_path(Path(image)).read_bytes()
         if hashlib.sha256(native).hexdigest() != IMAGE_SHA:
             raise ValueError("Recovered native image differs from verified build")
         if cert_hex is not None:
             # 便携入口：直接使用预提取的 APK 签名证书（公开信息，随每份 APK 分发）
             cert = bytes.fromhex(cert_hex.strip())
         else:
-            rows, _ = certificates(Path(apk).read_bytes())
+            rows, _ = certificates(read_path(Path(apk)).read_bytes())
             if len(rows) != 1:
                 raise ValueError("Multiple signer/certificate selection requires explicit evidence")
             cert = rows[0]["bytes"]
         signature = cert.hex().encode("ascii")  # Android Signature.toCharsString
-        protection = Path(protection).read_bytes() if protection is not None else SOURCE.read_bytes()
+        protection = read_path(Path(protection)).read_bytes() if protection is not None else read_path(SOURCE).read_bytes()
         if hashlib.sha256(protection).hexdigest() != "79b6ae193625494b5facbc1c7eafa5bb16c4252dd9050fe10caee2393aa8767c":
             raise ValueError("Protection import/relocation model differs from verified build")
         self.e = Experiment(protection, 1)
@@ -141,21 +143,23 @@ class NativeDecoder:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=Path, default=Path("work/phone_candidates"))
-    parser.add_argument("--output", type=Path, default=Path("output/decoded"))
+    parser.add_argument("--input", type=Path, default=read_path(Path("work/phone_candidates")))
+    parser.add_argument("--output", type=Path, help="Fresh decoded output directory")
     parser.add_argument("--apk", type=Path, default=Path("チェンクロ.apk"),
                         help="compatible APK supplying the signing certificate (default: repo-root name)")
     args = parser.parse_args()
+    args.input = read_path(args.input)
+    args.apk = read_path(args.apk)
     sources = sorted(args.input.glob("*.data5")) if args.input.is_dir() else [args.input]
     if not sources:
         raise ValueError("No data5 input")
-    args.output.mkdir(parents=True, exist_ok=True)
+    args.output = fresh_output('projects/unpack/data/cache', 'data5', args.output)
     decoder, reports = NativeDecoder(apk=args.apk), []
     for source in sources:
         decoded = decoder.decode(source.read_bytes(), source.name)
         (args.output/(source.name+".json")).write_text(json.dumps(decoded["record"],ensure_ascii=False,indent=2),encoding="utf-8")
         (args.output/(source.name+".json.raw")).write_bytes(decoded["json_raw"])
-        reports.append(decoded["meta"] | {"source": str(source),"json_type": "dict"})
+        reports.append(decoded["meta"] | {"source": path_reference(source),"json_type": "dict"})
     report = decoder.provenance | {"files": reports,"status": "PASS",
                                   "scope": "This APK/cache snapshot; decoded records are not all game records"}
     (args.output/"report.json").write_text(json.dumps(report,indent=2),encoding="utf-8")

@@ -1,10 +1,15 @@
 """Deduplicate the independent verdict; keep missing-source candidates separate."""
 import json
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
+from versioned_outputs import experiment_output
 from collections import Counter
 from datetime import datetime
 
-BASE=Path(__file__).resolve().parents[2]/'output/skill_mechanism_scale/20261104'
+ROOT=Path(__file__).resolve().parents[2]
+BASE=experiment_output('skill_mechanism_scale')
 def read(p): return json.loads((BASE/p).read_text(encoding='utf-8-sig'))
 def save(p,x): (BASE/p).write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 def time(x): return datetime.fromisoformat(x.replace('Z','+00:00'))

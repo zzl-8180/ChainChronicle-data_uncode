@@ -8,6 +8,7 @@ import json
 import struct
 from collections import Counter
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 import UnityPy
 from unicorn import UC_HOOK_CODE
@@ -18,7 +19,7 @@ from protection_emulate import BASE, STACK
 
 
 def main():
-    source = Path('work/apk/assets/chronicle.dat')
+    source = read_path(Path('work/apk/assets/chronicle.dat'))
     raw = source.read_bytes()
     if not 64 <= len(raw) <= 8*1024*1024:
         raise ValueError('Bundle candidate size outside experiment bound')
@@ -26,7 +27,7 @@ def main():
     e = decoder.e
     buffer = e.allocate(len(raw),raw)
     output_pointer = e.allocate(8)
-    symbols = {r['name']:r for r in json.loads(Path('output/native/recovered_symbols.json').read_text())}
+    symbols = {r['name']:r for r in json.loads(read_path(Path('output/native/recovered_symbols.json')).read_text())}
     aliases = [(0x51e30,'s_pBundleMasterData'),(0x51e38,'s_nBundleMasterData_decrypt'),(0x51e40,'s_nBundleMasterDataSize')]
     for slot,name in aliases:
         e.uc.mem_write(LIBRARY_BASE+slot,struct.pack('<Q',LIBRARY_BASE+symbols[name]['address']))
@@ -60,7 +61,7 @@ def main():
     script = obj.assets_file.objects[data['m_Script']['m_PathID']].read_typetree()
     if script['m_ClassName']!='ChronicleArchiveData':
         raise ValueError('Unexpected master component class')
-    directory = Path('output/base_master')
+    directory = write_path(Path('output/base_master'))
     directory.mkdir(exist_ok=True)
     blob = obj.get_raw_data()
     if len(blob)!=obj.byte_size:
@@ -82,8 +83,8 @@ def main():
             summaries.append(summary)
     if source.read_bytes()!=raw:
         raise ValueError('Input changed')
-    Path('work/protection/chronicle_decoded.unityfs').write_bytes(converted)
-    report = {'status':'NATIVE_TRANSFORM_AND_COMPLETE_UNITY_MASTER_COMPONENT','source':str(source),
+    write_path(Path('work/protection/chronicle_decoded.unityfs')).write_bytes(converted)
+    report = {'status':'NATIVE_TRANSFORM_AND_COMPLETE_UNITY_MASTER_COMPONENT','source':path_reference(source),
               'source_sha256':hashlib.sha256(raw).hexdigest(),'converted_sha256':hashlib.sha256(converted).hexdigest(),
               'converted_bytes':len(converted),'unityfs_declared_bytes':declared_size,
               'decoder':decoder.provenance,'entry_rva':'0x26cfc',

@@ -50,6 +50,10 @@ import math
 import re
 import struct
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
 
 MODULE_VERSION = "g1_b1_mirror_20261029"
 SCOPE = "G1_B1_MIRROR_20261029"
@@ -177,7 +181,7 @@ _BOSSINFO_CACHE = {}
 def _bossinfo(root):
     key = str(Path(root).resolve())
     if key not in _BOSSINFO_CACHE:
-        path = Path(root) / "output/cache_full_20261015_v3/decoded/bossinfo.data5.json.raw"
+        path = read_path(Path(root) / "output/cache_full_20261015_v3/decoded/bossinfo.data5.json.raw", root=Path(root))
         doc = json.loads(path.read_text(encoding="utf-8-sig"))["bossinfo"]
         _BOSSINFO_CACHE[key] = dict(
             patterns={p["patternid"]: (i, p) for i, p in enumerate(doc["bosspattern"])},

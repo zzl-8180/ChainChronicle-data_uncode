@@ -3,6 +3,7 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from metadata_targets import Metadata
 from il2cpp_sample_code import Native
@@ -10,19 +11,19 @@ from sample_trace import locate_record
 from phase_d_chain_probe import Guest,fbits,fvalue
 from unicorn.arm64_const import UC_ARM64_REG_S8
 
-OUT=Path('output/card_comparison_cid30236/skill_power')
+OUT=write_path(Path('output/card_comparison_cid30236/skill_power'))
 
 
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
-    source=Path('output/cache_full_20261015_v3/records.jsonl')
+    source=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
     records=[json.loads(s) for s in source.read_text(encoding='utf-8').splitlines()]
     assert not any(r['table']=='skilllist' and r['raw'].get('skillid')==106001 for r in records)
     cache=next(r for r in records if r['table']=='skilllist' and r['raw'].get('skillid')==43023615)
-    apk=Path('output/base_master/_mdSkill.json');raw=apk.read_bytes();allrows=json.loads(raw)['skilllist']
+    apk=read_path(Path('output/base_master/_mdSkill.json'));raw=apk.read_bytes();allrows=json.loads(raw)['skilllist']
     indices=[i for i,r in enumerate(allrows) if r['skillid']==106001];assert len(indices)==1
     row,loc=locate_record(raw,'skilllist',indices[0])
-    base_report=json.loads(Path('output/base_master/report.json').read_text(encoding='utf-8'))
+    base_report=json.loads(read_path(Path('output/base_master/report.json')).read_text(encoding='utf-8'))
     fallback=dict(record_key='APK_AB:skilllist:106001',layer='APK_AB',table='skilllist',raw=row,
         original_file=str(apk),source_sha256=hashlib.sha256(raw).hexdigest(),location=loc,
         location_scope='Exported TypedTree JSON byte offsets, not original Unity binary record bytes',

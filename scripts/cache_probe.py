@@ -5,30 +5,31 @@ import json
 import math
 import shutil
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
 
 def main():
-    output = Path("output/phone")
+    output = write_path(Path("output/phone"))
     output.mkdir(parents=True, exist_ok=True)
     acquired = {}
     failures = []
-    for report in sorted(Path("raw").glob("phone_20261014_*/acquisition.json")):
+    for report in sorted(read_path(Path("raw")).glob("phone_20261014_*/acquisition.json")):
         data = json.loads(report.read_text(encoding="utf-8"))
         for row in data["items"]:
             if row["status"] != "COPIED":
-                failures.append({"report": report.as_posix(), "remote": row["remote"], "error": row["stderr"]})
+                failures.append({"report": Path(path_reference(report)).as_posix(), "remote": row["remote"], "error": row["stderr"]})
                 continue
-            path = Path(row["local"])
+            path = read_path(Path(row["local"]))
             raw = path.read_bytes()
             sha = hashlib.sha256(raw).hexdigest()
             if sha != row["sha256_local"] or len(raw) != row["bytes"]:
                 raise ValueError(f"Collected file changed: {path}")
-            acquired[row["remote"]] = dict(row, report=report.as_posix())
+            acquired[row["remote"]] = dict(row, report=Path(path_reference(report)).as_posix())
     records = []
-    work = Path("work/phone_candidates")
+    work = write_path(Path("work/phone_candidates"))
     work.mkdir(parents=True, exist_ok=True)
     for row in acquired.values():
-        source = Path(row["local"])
+        source = read_path(Path(row["local"]))
         if source.suffix != ".data5":
             continue
         dest = work / source.name
@@ -36,8 +37,8 @@ def main():
         raw = dest.read_bytes()
         counter = collections.Counter(raw)
         entropy = -sum((n/len(raw))*math.log2(n/len(raw)) for n in counter.values())
-        record = {"name": source.name, "source_file": source.as_posix(), "source_sha256": row["sha256_local"],
-                  "work_file": dest.as_posix(), "size": len(raw), "head_hex": raw[:32].hex(),
+        record = {"name": source.name, "source_file": Path(path_reference(source)).as_posix(), "source_sha256": row["sha256_local"],
+                  "work_file": Path(path_reference(dest)).as_posix(), "size": len(raw), "head_hex": raw[:32].hex(),
                   "size_multiple_of_16": len(raw) % 16 == 0, "entropy_bits_per_byte": entropy,
                   "record_decode_status": "UNKNOWN", "algorithm": None, "records": None}
         try:
@@ -53,9 +54,9 @@ def main():
         record["known_compression_header"] = ("gzip" if raw.startswith(b"\x1f\x8b") else
                                                "zip" if raw.startswith(b"PK\x03\x04") else None)
         records.append(record)
-    baseline = json.loads(Path("output/apk/baseline.json").read_text(encoding="utf-8"))
-    apk = next(r for r in acquired.values() if Path(r["local"]).name == "base.apk")
-    meta = next(r for r in acquired.values() if Path(r["local"]).name == "global-metadata.dat")
+    baseline = json.loads(read_path(Path("output/apk/baseline.json")).read_text(encoding="utf-8"))
+    apk = next(r for r in acquired.values() if read_path(Path(r["local"])).name == "base.apk")
+    meta = next(r for r in acquired.values() if read_path(Path(r["local"])).name == "global-metadata.dat")
     expected_meta = next(r for r in baseline["extracted"] if r["apk_entry"].endswith("global-metadata.dat"))
     summary = {"verified_copied_files": len(acquired), "verified_copied_bytes": sum(r["bytes"] for r in acquired.values()),
                "data5_candidates": len(records), "data5_bytes": sum(r["size"] for r in records),

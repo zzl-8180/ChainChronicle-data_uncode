@@ -8,6 +8,7 @@ from pathlib import Path
 from jni_prefix_probe import prepare_experiment
 from protection_emulate import STACK
 from metadata_targets import Metadata
+from project_layout_paths import write_path
 from unicorn.arm64_const import UC_ARM64_REG_SP
 
 
@@ -19,7 +20,6 @@ def main():
     raw = source.read_bytes()
     assert raw[:3] == b"AEI"
     e, _, preparatory = prepare_experiment(heap_size=0x4000000)
-    Path("work/protection").mkdir(parents=True, exist_ok=True)
     lz4_model = None
     if args.accelerate_lz4:
         from guest_lz4 import install
@@ -46,9 +46,11 @@ def main():
     metadata = Metadata(decoded)
     if source.read_bytes()!=raw:
         raise ValueError('Source changed during conversion')
-    output = Path("output/il2cpp")
+    output = write_path(Path("projects/unpack/research/il2cpp/20261111"))
     output.mkdir(parents=True,exist_ok=True)
-    Path("work/protection/metadata_aei_decoded.bin").write_bytes(decoded)
+    work = write_path(Path("work/metadata_decode_probe/20261111"))
+    work.mkdir(parents=True, exist_ok=True)
+    (work/"metadata_aei_decoded.bin").write_bytes(decoded)
     result = {"source":str(source),"source_sha256":hashlib.sha256(raw).hexdigest(),
               "AEI_header_fields_u32_at_3_7_11":list(struct.unpack_from("<III",raw,3)),
               "preparatory":preparatory,"entry_rva":"0xf3ed8","mode":0,"steps":steps,

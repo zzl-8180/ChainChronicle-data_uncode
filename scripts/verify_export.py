@@ -8,6 +8,7 @@ import sys
 import tempfile
 from collections import Counter, defaultdict
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from export_master import (SCENARIOS, annotate, build_index, compact, expand_roots,
                            lookup, parse_records, sha, strict_load, typed_value, write_json)
@@ -24,7 +25,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--directory',type=Path)
     args = parser.parse_args()
-    directory = args.directory or Path(strict_load(Path('output/export/latest.json').read_bytes())['directory'])
+    directory = read_path(args.directory) if args.directory else read_path(Path(strict_load(read_path(Path('output/export/latest.json')).read_bytes())['directory']))
     manifest = strict_load((directory/'manifest.json').read_bytes())
     checks = []
     for relative,digest in manifest['output_sha256'].items():
@@ -47,7 +48,7 @@ def main():
         copied = (directory/source['copied_file']).read_bytes()
         assert sha(copied)==source['sha256']
         # Current source compared too: confirms export did not alter decoder results.
-        assert Path(source['input_file']).read_bytes()==copied
+        assert read_path(Path(source['input_file'])).read_bytes()==copied
         if 'main_table' not in source or source['status']!='PARSED_AND_PRESERVED':
             continue
         original = strict_load(copied)
@@ -144,7 +145,7 @@ def main():
             return apk_rows[key]
     apk_rows = {sid:rows[0]['raw'] for sid,rows in indexes['APK'].items() if len(rows)==1}
     cache_rows = {sid:rows[0]['raw'] for sid,rows in indexes['CACHE'].items() if len(rows)==1}
-    native = Path('work/protection/il2cpp_loader_seed1.bin').read_bytes()
+    native = read_path(Path('work/protection/il2cpp_loader_seed1.bin')).read_bytes()
     sample = strict_load((directory/'provenance/output/sample/sample.json').read_bytes())
     assert sha(native)==sample['native_code_provenance']['native_image_sha256']
     for regression in regressions:
@@ -235,10 +236,11 @@ def main():
     for path,digest in manifest['evidence_sha256'].items():
         assert sha((directory/'provenance'/path).read_bytes())==digest
     for path,digest in manifest['support_script_sha256'].items():
-        assert sha((directory/'provenance'/path).read_bytes())==sha(Path(path).read_bytes())==digest
+        source = Path(__file__).resolve().parent / Path(path).name
+        assert sha((directory/'provenance'/path).read_bytes())==sha(source.read_bytes())==digest
     assert sha(Path(__file__).read_bytes())==manifest['verifier_sha256']
     review='output/审查报告/阶段D独立审查报告_2026-10-15.md'
-    assert sha(Path(review).read_bytes())==manifest['evidence_sha256'][review]
+    assert sha(read_path(Path(review)).read_bytes())==manifest['evidence_sha256'][review]
     checks.append('Evidence/parser copies pinned; independent D review remains byte-identical')
     report={'status':'PASS','snapshot_id':manifest['snapshot_id'],'build_id':manifest['build_id'],
             'manifest_sha256':sha((directory/'manifest.json').read_bytes()),

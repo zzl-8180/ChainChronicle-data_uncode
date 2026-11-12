@@ -3,18 +3,20 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from project_layout_paths import read_path, path_reference
+from versioned_outputs import fresh_output
 
 
 def attach_code_evidence(result):
     """Promote only when the matching recovered-image evidence is available."""
-    path = Path('output/il2cpp/sample_code.json')
-    checks_path = Path('output/validation/high_hp_sample.json')
+    path = read_path(Path('output/il2cpp/sample_code.json'))
+    checks_path = read_path(Path('output/validation/high_hp_sample.json'))
     if not path.exists() or not checks_path.exists():
         return False
     code = json.loads(path.read_text(encoding='utf-8'))
     checks = json.loads(checks_path.read_text(encoding='utf-8'))
-    native_hash = hashlib.sha256(Path('work/protection/il2cpp_loader_seed1.bin').read_bytes()).hexdigest()
-    metadata_hash = hashlib.sha256(Path('work/protection/metadata_aei_decoded.bin').read_bytes()).hexdigest()
+    native_hash = hashlib.sha256(read_path(Path('work/protection/il2cpp_loader_seed1.bin')).read_bytes()).hexdigest()
+    metadata_hash = hashlib.sha256(read_path(Path('work/protection/metadata_aei_decoded.bin')).read_bytes()).hexdigest()
     if code['native_image_sha256']!=native_hash or checks['native_image_sha256']!=native_hash or code['metadata_sha256']!=metadata_hash:
         raise ValueError('Code evidence differs from current recovered inputs')
     if checks['status']!='PASS' or code['enums']['ABILITY_TYPE']['HighHPAll']['value']!=result['effect_code_raw']:
@@ -29,7 +31,7 @@ def attach_code_evidence(result):
         row.update({'status':'CONFIRMED_STATIC_AND_BOUNDED_NATIVE','meaning':meanings[field],
                     'evidence':'ability enum1105; PlayerManager.subAbilityApply_HighHPAll@0x159321c; typed apply switch/getters and 32 native boundary checks; output/il2cpp/sample_code.json',
                     'limit':'Confirmed for this effect accumulator. Input membership and float getter supplied in experiment; live eligibility, engine value icall and final battle damage not executed'})
-    result['native_code_provenance'] = {'report':str(path),'boundary_checks':str(checks_path),
+    result['native_code_provenance'] = {'report':path_reference(path),'boundary_checks':path_reference(checks_path),
                                        'native_image_sha256':native_hash,'metadata_sha256':metadata_hash,
                                        'effect_enum_name':'ABILITY_TYPE.HighHPAll','handler_rva':'0x159321c'}
     result['confirmed'].append('Recovered native effect handler confirms inclusive HP threshold and parameter-specific multiply/add operations')
@@ -44,7 +46,7 @@ def skip_space(text, pos):
 
 
 def attach_phase_d_evidence(result, required=False):
-    paths = [Path('output/phase_d/chain_probe.json'), Path('output/phase_d/source_rule_36000358.json')]
+    paths = [read_path(Path('output/phase_d/chain_probe.json')), read_path(Path('output/phase_d/source_rule_36000358.json'))]
     if not any(p.exists() for p in paths) and not required:
         return False
     if not all(p.exists() for p in paths) or 'native_code_provenance' not in result:
@@ -64,7 +66,7 @@ def attach_phase_d_evidence(result, required=False):
         if result['record_locations'][key]!=location:
             raise ValueError('Phase D record location differs')
     for source in rule['source_records'].values():
-        raw = Path(source['file']).read_bytes()
+        raw = read_path(Path(source['file'])).read_bytes()
         if hashlib.sha256(raw).hexdigest()!=source['file_sha256']:
             raise ValueError('Source conflict evidence stale')
         record,location = locate_record(raw,'skilllist',source['location']['ordinal_zero_based'])
@@ -73,7 +75,7 @@ def attach_phase_d_evidence(result, required=False):
     if len(rule['cases'])!=4 or any(c['status']!='PASS' for c in rule['cases']) or rule['actual_current_device_value']['value'] is not None:
         raise ValueError('Source rule checks incomplete or current value promoted without device evidence')
     result['phase_d'] = {
-        'status':'CONDITIONAL_ASSOCIATION_CONFIRMED', 'chain_report':str(paths[0]),
+        'status':'CONDITIONAL_ASSOCIATION_CONFIRMED', 'chain_report':path_reference(paths[0]),
         'evidence_level':chain['evidence_level'], 'controlled_case_count':12,
         'native_scope':chain['native_scope'], 'models':chain['models'], 'limits':chain['limits'],
         'installation':{'input':'CardInfo.skillid; scenario input, not current player observation',
@@ -89,19 +91,19 @@ def attach_phase_d_evidence(result, required=False):
                              'float32_contribution':chain['cases'][3]['attack_contribution_float32'],
                              'current_live_or_final_multiplier':None},
         'unknowns':chain['unknowns'],
-        'code_report':'output/phase_d/cid2327_关联链与来源规则.md'}
-    result['source_resolution'] = {'report':str(paths[1]),'skill_id':36000358,
+        'code_report':Path(path_reference(read_path(Path('output/phase_d/cid2327_关联链与来源规则.md')))).as_posix()}
+    result['source_resolution'] = {'report':path_reference(paths[1]),'skill_id':36000358,
                                    'source_records':rule['source_records'],'native_rule':rule['native_rule'],
                                    'actual_current_device_value':rule['actual_current_device_value'],
                                    'evidence_level':'STATIC_AND_BOUNDED_NATIVE','limits':rule['limits']}
     result['external_references'] = []
-    reference = Path('output/phase_d/external_reference/cid2327_database_20261015.json')
+    reference = read_path(Path('output/phase_d/external_reference/cid2327_database_20261015.json'))
     if reference.exists():
         external = json.loads(reference.read_text(encoding='utf-8'))
         original = external['source']
-        if hashlib.sha256(Path(original['retained_file']).read_bytes()).hexdigest()!=original['sha256']:
+        if hashlib.sha256(read_path(Path(original['retained_file'])).read_bytes()).hexdigest()!=original['sha256']:
             raise ValueError('External screenshot differs from retained evidence')
-        result['external_references'].append({'report':str(reference),'evidence_level':external['evidence_level'],
+        result['external_references'].append({'report':path_reference(reference),'evidence_level':external['evidence_level'],
                                               'identity':external['identity'],'not_established':external['not_established']})
     for row in result['interpretations']:
         row['limit'] = 'Local handler semantics only; installation/filtering now demonstrated with explicit models, not current player state, engine icall or final battle damage'
@@ -163,7 +165,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--require-phase-d',action='store_true')
     args = parser.parse_args()
-    directory = Path("output/decoded")
+    directory = read_path(Path("output/decoded"))
     card_raw = (directory/"charainfo.data5.json.raw").read_bytes()
     skill_raw = (directory/"skilllist.data5.json.raw").read_bytes()
     cards = json.loads(card_raw)["charainfo"]
@@ -191,12 +193,12 @@ def main():
     assert "25%" in cross[0]["text"] and "(5%)" in cross[0]["text"]
     assert "50%" in cross[1]["text"] and "(2.5%)" in cross[1]["text"]
     report = json.loads((directory/"report.json").read_text())
-    sources = {Path(row["source"]).name:row for row in report["files"]}
-    collection = json.loads(Path("output/phone/collected_files.json").read_text())
+    sources = {read_path(Path(row["source"])).name:row for row in report["files"]}
+    collection = json.loads(read_path(Path("output/phone/collected_files.json")).read_text())
     original_sources = [row for row in collection if Path(row.get("local","")).name in ("charainfo.data5","skilllist.data5")]
     for original in original_sources:
-        name = Path(original["local"]).name
-        if hashlib.sha256(Path(original["local"]).read_bytes()).hexdigest() != sources[name]["source_sha256"]:
+        name = read_path(Path(original["local"])).name
+        if hashlib.sha256(read_path(Path(original["local"])).read_bytes()).hexdigest() != sources[name]["source_sha256"]:
             raise ValueError("Collected original/work input differs")
     interpretations = [
         {"field":"param0","raw":0.25,"status":"INFERRED","meaning":"HP threshold ratio 0.25, corresponding to HP >=25%",
@@ -222,18 +224,17 @@ def main():
                          "Complete live game coverage and uncollected base tables"],
               "coverage":{"card_records":len(cards),"skill_records":len(skills),"complete_sample_chains":1}}
     has_code = attach_code_evidence(result)
-    active_path = Path('output/sample/active_skill_trace.json')
+    active_path = read_path(Path('output/sample/active_skill_trace.json'))
     if active_path.exists():
         active = json.loads(active_path.read_text(encoding='utf-8'))
         if active['card_id']!=card['cid']:
             raise ValueError('Active trace belongs to another card')
-        result['active_trace_artifact'] = str(active_path)
+        result['active_trace_artifact'] = path_reference(active_path)
         result['unknown'][1] = 'Active following heal/buff stages and full live-game execution not confirmed'
-    if Path('output/base_master/report.json').exists():
+    if read_path(Path('output/base_master/report.json')).exists():
         result['unknown'][-1] = 'Complete live game coverage and APK/cache runtime override priority not confirmed; APK base tables exported separately'
     has_phase_d = attach_phase_d_evidence(result,args.require_phase_d)
-    output = Path("output/sample")
-    output.mkdir(parents=True,exist_ok=True)
+    output = fresh_output('projects/skill-research/evidence/sample','trace')
     (output/"sample.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
     location_lines = "\n".join(f"| {identifier} | {row['json_pointer']} | {row['byte_begin']}–{row['byte_end_exclusive']} |" for identifier,row in evidence.items())
     text = f"""# 单卡技能证据链

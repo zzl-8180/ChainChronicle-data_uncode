@@ -1,6 +1,7 @@
 """Ability21 critical lifesteal amount, ordinary flag packing and Heal cap."""
 import hashlib,json,struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from metadata_targets import Metadata
 from il2cpp_sample_code import Native
@@ -8,7 +9,7 @@ from chica_timed_support import TimedGuest
 from phase_d_chain_probe import BASE,STACK,fvalue
 from unicorn.arm64_const import UC_ARM64_REG_S0,UC_ARM64_REG_X29
 
-OUT=Path('output/card_comparison_cid30236/lifesteal')
+OUT=write_path(Path('output/card_comparison_cid30236/lifesteal'))
 
 
 class HealGuest(TimedGuest):
@@ -32,11 +33,11 @@ class HealGuest(TimedGuest):
 
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
-    source=Path('output/cache_full_20261015_v3/records.jsonl')
+    source=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
     records=[json.loads(s) for s in source.read_text(encoding='utf-8').splitlines()]
     row=next(r for r in records if r['table']=='skilllist' and r['raw'].get('skillid')==65000003)
     assert row['raw']['ability']==21 and row['raw']['param1']==.25 and row['raw']['flag0_1']==512
-    constants_path=Path('output/boss_heal/constants.json');constants=json.loads(constants_path.read_text(encoding='utf-8'))
+    constants_path=read_path(Path('output/boss_heal/constants.json'));constants=json.loads(constants_path.read_text(encoding='utf-8'))
     m=Metadata('work/protection/metadata_aei_decoded.bin');n=Native(m);d=Cs(CS_ARCH_ARM64,CS_MODE_ARM)
     ranges=dict(returned_damage=(0x153c0a8,0x153c0d4),damage_to_hp_ability=(0x153c324,0x153c338),
         type21_list_and_rates=(0x154067c,0x1540724),amount_math=(0x1540dcc,0x1540ec8),

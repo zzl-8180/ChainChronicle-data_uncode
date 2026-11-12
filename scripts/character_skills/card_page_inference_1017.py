@@ -127,7 +127,7 @@ def _field_evidence(field):
     """按字段取已解析证据（含存在性检查：证据指针缺失时显式失败，不产出死指针）。"""
     if field not in _EVIDENCE_CACHE:
         evidence_dir, files = _resolve_field_evidence(field)
-        missing = [p for p in files if not Path(p).is_file()]
+        missing = [p for p in files if not R.read_path(Path(p)).is_file()]
         if missing:
             raise FileNotFoundError(f'模板试点证据文件缺失（INFR-01）：{missing}')
         _EVIDENCE_CACHE[field] = (evidence_dir, files)

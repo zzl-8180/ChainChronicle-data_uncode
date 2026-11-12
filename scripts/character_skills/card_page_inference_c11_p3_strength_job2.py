@@ -89,6 +89,10 @@ import copy
 import json
 import math
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from project_layout_paths import read_path
 
 MODULE_VERSION = 'c11_p3_strength_job2_20261031'
 #: 候选标记：本模块**未**接入共享接线，正式生成前不得当作已交付规则。
@@ -222,7 +226,7 @@ def _int_or_zero(record, name):
 
 
 def _read(path):
-    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
+    return json.loads(read_path(Path(path)).read_text(encoding='utf-8-sig'))
 
 
 # ---------------------------------------------------------------- CACHE 主表
@@ -236,7 +240,7 @@ def tables(data):
     root = Path(getattr(data, 'root', Path('.'))).resolve()
     key = str(root)
     if key not in _TABLES:
-        base = root / BASE
+        base = read_path(root / BASE, root=root)
         skilllist = _read(base / 'skilllist.data5.json.raw')['skilllist']
         skills = {}
         for index, record in enumerate(skilllist):

@@ -2,6 +2,8 @@
 import hashlib
 import json
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 from phase_d_chain_probe import Guest, fvalue, UC_ARM64_REG_S0
 from sample_trace import locate_record
@@ -44,7 +46,7 @@ def main():
     cache = selected('output/decoded/skilllist.data5.json.raw','skilllist','skillid',36000358,True)
     base = selected('output/base_master/_mdSkill.json','skilllist','skillid',36000358,False)
     assert cache['record']['param1']==400 and base['record']['param1']==300.0
-    native = Path('work/protection/il2cpp_loader_seed1.bin').read_bytes()
+    native = read_path(Path('work/protection/il2cpp_loader_seed1.bin')).read_bytes()
     cases = []
     missing_field = dict(cache['record'])
     del missing_field['param1']
@@ -62,7 +64,7 @@ def main():
         assert value==expected,(name,value,expected)
         cases.append({'case':name,'lookup_sequence':g.lookups,'param1_after_native_getter':value,'status':'PASS',
                       'scope':'Existing source records except explicitly named counterfactual; per-layer lookup and engine scalar supplied, actual daSkill.get branch/get_param1 execute'})
-    archive = json.loads(Path('output/base_master/report.json').read_text(encoding='utf-8'))
+    archive = json.loads(read_path(Path('output/base_master/report.json')).read_text(encoding='utf-8'))
     result = {'status':'STATIC_RULE_AND_BOUNDED_BRANCH_PROVEN','skill_id':36000358,
               'source_records':{'APK':base,'phone_cache':cache},
               'APK_original_component':{'source_sha256':archive['source_sha256'],
@@ -83,8 +85,7 @@ def main():
               'limits':['Layer lookup fixture returns matching source object; generic binary search itself not reimplemented as game runtime',
                         'Record0.0 in missing-field scenario is constructor behavior evidence, not a new source value',
                         'Original APK/cache records remain separate and unmodified']}
-    out = Path('output/phase_d')
-    out.mkdir(exist_ok=True)
+    out = fresh_output('projects/skill-research/evidence/phase_d','source-rule')
     (out/'source_rule_36000358.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({'status':result['status'],'cases':[(r['case'],r['param1_after_native_getter']) for r in cases],
                       'actual_device':result['actual_current_device_value']},ensure_ascii=False))

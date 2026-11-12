@@ -10,11 +10,12 @@ import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
+from project_layout_paths import read_path, write_path, path_reference
 
-INVENTORY = Path('output/cache_refresh_20261015/composite_inventory.jsonl')
-OUTPUT = Path('output/full_unpack')
-SHARDS = Path('work/full_unpack/shards')
-V3_DECODED = Path('output/cache_full_20261015_v3/decoded')
+INVENTORY = read_path(Path('output/cache_refresh_20261015/composite_inventory.jsonl'))
+OUTPUT = write_path(Path('output/full_unpack'))
+SHARDS = read_path(Path('work/full_unpack/shards'))
+V3_DECODED = read_path(Path('output/cache_full_20261015_v3/decoded'))
 
 AD_SDK_MARKERS = ('/mbridge', '/.mbridge700', '/MBridge', '/UnityAdsCache', '/mb/res/', '/mb/other/', '/mb/config/')
 JUNK_NAMES = {'.DS_Store', '.nomedia'}
@@ -62,6 +63,8 @@ def main():
     parser.add_argument('--shards', type=Path, default=SHARDS)
     parser.add_argument('--v3-decoded', type=Path, default=V3_DECODED)
     args = parser.parse_args()
+    args.inventory=read_path(args.inventory);args.output=write_path(args.output)
+    args.shards=read_path(args.shards);args.v3_decoded=read_path(args.v3_decoded)
 
     OUTPUT, SHARDS, V3_DECODED = args.output, args.shards, args.v3_decoded
     rows = [json.loads(line) for line in args.inventory.open(encoding='utf-8')]
@@ -90,7 +93,7 @@ def main():
             entry.update(
                 detected_format='data5_native_aes_gzip_json',
                 processing_status='already_decoded_prior',
-                output_path=str(decoded) if decoded.exists() else None,
+                output_path=path_reference(decoded) if decoded.exists() else None,
                 error_or_unknown_reason=None if decoded.exists() else 'decoded json.raw missing in v3',
             )
             stats['data5_' + ('ok' if decoded.exists() else 'missing')] += 1

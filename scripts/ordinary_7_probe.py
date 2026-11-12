@@ -8,6 +8,8 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from unicorn.arm64_const import UC_ARM64_REG_S8,UC_ARM64_REG_X29
@@ -16,8 +18,7 @@ from il2cpp_sample_code import Native
 from chica_timed_support import TimedGuest
 from phase_d_chain_probe import Guest,BASE,fbits,fvalue
 
-OUT=Path('output/ordinary_effects/ability7')
-SOURCE=Path('output/cache_full_20261015_v3/records.jsonl')
+SOURCE=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 
 
 def indices(code):return [v for v in (code%100,(code//100)%100,(code//10000)%100) if v]
@@ -64,7 +65,7 @@ def main():
         target_stage=(0x1117e60,0x1117fd8),current_stage=(0x156aa54,0x156aad4),bg_flag_getter=(0x1a71454,0x1a7146c),
         attack_dispatch=(0x1107680,0x11076ac),attack_type_gate=(0x1107940,0x110797c),attack_multiply=(0x1107c84,0x1107c88),
         defence_dispatch=(0x1107fec,0x1108020),defence_gate_multiply=(0x1108104,0x1108148))
-    OUT.mkdir(parents=True,exist_ok=True)
+    OUT=fresh_output('projects/skill-research/evidence/ordinary_effects/ability7','native-checks')
     for name,(a,b) in ranges.items():
         lines=[]
         for ins in d.disasm(n.raw[a:b],a):
@@ -120,7 +121,7 @@ def main():
     labels={i:dict(index=i,bit=1<<i,background_ids=[r['raw']['id'] for r in bgs if r['raw']['flag']&(1<<i)],
                    background_names_ja=list(dict.fromkeys(r['raw']['bg_name'] for r in bgs if r['raw']['flag']&(1<<i))),
                    status='SOURCE_BG_NAMES_WITH_SHARED_BIT_NOT_A_UNIQUE_DISPLAY_ENUM') for i in bg_indices}
-    prior=Path('output/card_comparison_cid30236/ordinary_rules/trace.json');old=json.loads(prior.read_text(encoding='utf-8'))
+    prior=read_path(Path('output/card_comparison_cid30236/ordinary_rules/trace.json'));old=json.loads(prior.read_text(encoding='utf-8'))
     assert old['native_sha256']==hashlib.sha256(n.raw).hexdigest()
     trace=dict(effect_type=7,namespace='ordinary skilllist',source=str(SOURCE),source_sha256=hashlib.sha256(SOURCE.read_bytes()).hexdigest(),
         native_sha256=hashlib.sha256(n.raw).hexdigest(),metadata_sha256=hashlib.sha256(m.raw).hexdigest(),script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),

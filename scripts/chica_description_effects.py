@@ -3,6 +3,7 @@ import html
 import json
 import unicodedata
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 from chica_remaining_effects import add_remaining_effects, critical_overlay, movement_overlay, lifesteal_overlay, field_time_overlay, mana_chance_overlay, chain_mana_overlay, leader_condition_overlay, super_counter_overlay, wedge_time_overlay
 
 
@@ -27,13 +28,13 @@ EFFECT_UNITS={
 
 
 def fallback_records():
-    proof=json.loads(Path('output/card_comparison_cid30236/skill_power/trace.json').read_text(encoding='utf-8'))
+    proof=json.loads(read_path(Path('output/card_comparison_cid30236/skill_power/trace.json')).read_text(encoding='utf-8'))
     return [r for r in proof['source_records'] if r['layer']=='APK_AB']
 
 
 def difference_source_overlay(records,rules,views):
     """Annotate existing scoped rules/views; older records never become game inputs."""
-    proof=json.loads(Path('output/card_comparison_cid30236/difference_sources/trace.json').read_text(encoding='utf-8'))
+    proof=json.loads(read_path(Path('output/card_comparison_cid30236/difference_sources/trace.json')).read_text(encoding='utf-8'))
     ev=['difference_sources/README.md','difference_sources/trace.json','difference_sources/reference_observations.json']
     for case in proof['cases']:
         assert case['current_record'] in records and all(f['exact_match'] for f in case['fields'])
@@ -49,11 +50,11 @@ def difference_source_overlay(records,rules,views):
 
 
 def barrier_overlay(records):
-    root=Path('output/card_comparison_cid30236/barrier')
+    root=read_path(Path('output/card_comparison_cid30236/barrier'))
     trace=json.loads((root/'trace.json').read_text(encoding='utf-8'));checks=json.loads((root/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
     r=trace['source_records'][0];assert r in records
-    request_root=Path('output/card_comparison_cid30236/barrier_request')
+    request_root=read_path(Path('output/card_comparison_cid30236/barrier_request'))
     request_trace=json.loads((request_root/'trace.json').read_text(encoding='utf-8'))
     request_checks=json.loads((request_root/'native_checks.json').read_text(encoding='utf-8'))
     assert request_trace['native_sha256']==request_checks['native_sha256']==trace['native_sha256']
@@ -67,7 +68,7 @@ def barrier_overlay(records):
 
 
 def timed_overlay(records):
-    proof=Path('output/card_comparison_cid30236/timed_support')
+    proof=read_path(Path('output/card_comparison_cid30236/timed_support'))
     trace=json.loads((proof/'trace.json').read_text(encoding='utf-8'))
     checks=json.loads((proof/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
@@ -93,7 +94,7 @@ def timed_overlay(records):
 
 def ordinary_overlay(records):
     """Only fields exercised by the bounded twelve-record ordinary-rule probe."""
-    proof=Path('output/card_comparison_cid30236/ordinary_rules')
+    proof=read_path(Path('output/card_comparison_cid30236/ordinary_rules'))
     trace=json.loads((proof/'trace.json').read_text(encoding='utf-8'))
     checks=json.loads((proof/'native_checks.json').read_text(encoding='utf-8'))
     assert trace['native_sha256']==checks['native_sha256'] and all(c['passed'] for c in checks['checks'])
@@ -114,8 +115,8 @@ def ordinary_overlay(records):
                 value=r['raw'][field];percent=(value-1)*100 if field=='param1' else (1-value)*100
                 display=f'攻击+{percent:g}%（×{value:g}）' if field=='param1' else f'本项减伤{percent:g}%（受伤量×{value:g}）'
                 views.append(dict(record_key=r['record_key'],source=r['layer'],table=r['table'],namespace='ordinary skilllist',record_id=r['raw']['skillid'],effect_type=ability,field_path='/'+field,raw_value=value,original_file=r['original_file'],source_sha256=r['source_sha256'],location=r['location'],json_pointer=r['location']['json_pointer']+'/'+field,meaning_zh=kind,unit=rules[-1]['unit'],target=target,conversion=conversion,converted_value=percent,display_value=display,raw_value_status='RAW_FOUND',correspondence_status='ORDINARY_HANDLER_MAPPING_CONFIRMED',calculation_status='CONFIRMED_LOCAL_INPUT_RULE',conditions=scope,evidence=ev,limits=limits))
-    power=json.loads(Path('output/card_comparison_cid30236/skill_power/trace.json').read_text(encoding='utf-8'))
-    power_checks=json.loads(Path('output/card_comparison_cid30236/skill_power/native_checks.json').read_text(encoding='utf-8'))
+    power=json.loads(read_path(Path('output/card_comparison_cid30236/skill_power/trace.json')).read_text(encoding='utf-8'))
+    power_checks=json.loads(read_path(Path('output/card_comparison_cid30236/skill_power/native_checks.json')).read_text(encoding='utf-8'))
     assert power['native_sha256']==power_checks['native_sha256']==trace['native_sha256'] and all(c['passed'] for c in power_checks['checks'])
     ev=['skill_power/README.md','skill_power/trace.json','skill_power/native_checks.json']
     conversion='RequestSkill当前技能请求系数×param0；正值复制到Boss util.skillChainRate后进入技能基值。不是给Chain增加param0-1个百分点'
@@ -252,14 +253,14 @@ def build_effects(records):
     _,leader_condition=leader_condition_overlay(records);v=leader_condition[0]
     next(r for r in rows if r['effect_id']=='other_leader_threshold').update(readable_value=v['display_value']+'；职业=战士（JOB_TYPE=0）',quantity_kind='Leader职业人数资格',answer_status='CONFIRMED_NUMERIC',calculation_status='CONFIRMED_LOCAL_RULE',evidence='；'.join(v['evidence']),remaining_gap=v['limits'],comparison_note='至少4名战士的配置资格与截图对应；不证明当前玩家编成已满足')
     _,super_counter=super_counter_overlay(records);v=super_counter[0]
-    code=json.loads(Path('output/card_comparison_cid30236/super_counter/trace.json').read_text(encoding='utf-8'))['code_constants'][0]
+    code=json.loads(read_path(Path('output/card_comparison_cid30236/super_counter/trace.json')).read_text(encoding='utf-8'))['code_constants'][0]
     next(r for r in rows if r['effect_id']=='other_sp_super_counter').update(readable_value=v['display_value'],quantity_kind=v['meaning_zh'],raw_value_status=v['raw_value_status'],answer_status='CONFIRMED_NUMERIC',calculation_status='CONFIRMED_LOCAL_RULE',code_refs=[code],evidence='；'.join(v['evidence']),remaining_gap=v['limits'],comparison_note='原生常量10与截图10次对应；不是角色主表字段值')
     _,wedge_time=wedge_time_overlay(records);v=wedge_time[0]
-    code=json.loads(Path('output/card_comparison_cid30236/wedge_time/trace.json').read_text(encoding='utf-8'))['code_constants'][0]
+    code=json.loads(read_path(Path('output/card_comparison_cid30236/wedge_time/trace.json')).read_text(encoding='utf-8'))['code_constants'][0]
     next(r for r in rows if r['effect_id']=='other_a1_wedge_stop').update(readable_value=v['display_value'],quantity_kind=v['meaning_zh'],raw_value_status=v['raw_value_status'],answer_status='CONFIRMED_NUMERIC',calculation_status='CONFIRMED_LOCAL_RULE',condition='释放普通时楔；clockUpFlag=0；合格目标',duration='本项输入5游戏秒；已有时停可累加',code_refs=[code],evidence='；'.join(v['evidence']),remaining_gap=v['limits'],comparison_note='普通模式5秒与截图对应；ClockUp模式另为8秒，当前队伍模式未知')
     next(r for r in rows if r['effect_id']=='other_sp_normal_cost')['calculation_status']='RAW_CONFIGURATION_VALUE_CONFIRMED'
     next(r for r in rows if r['effect_id']=='other_a1_barrier_count')['calculation_status']='ORIGINAL_TEXT_AND_FIELD_NUMBER_CONFIRMED'
-    differences=json.loads(Path('output/card_comparison_cid30236/difference_sources/trace.json').read_text(encoding='utf-8'))
+    differences=json.loads(read_path(Path('output/card_comparison_cid30236/difference_sources/trace.json')).read_text(encoding='utf-8'))
     case_by_effect={key:case for case in differences['cases'] for key in case['effect_ids']}
     for row in rows:
         row.setdefault('effect_scope','attack_defence')

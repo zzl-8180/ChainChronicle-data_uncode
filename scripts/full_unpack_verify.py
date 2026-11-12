@@ -19,11 +19,12 @@ import sys
 import wave
 from collections import Counter, defaultdict
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-INVENTORY = Path('output/cache_refresh_20261015/composite_inventory.jsonl')
-OUTPUT = Path('output/full_unpack')
+INVENTORY = read_path(Path('output/cache_refresh_20261015/composite_inventory.jsonl'))
+OUTPUT = write_path(Path('output/full_unpack'))
 
 
 def fail(checks, name, detail):
@@ -46,6 +47,10 @@ def main():
     parser.add_argument('--apk', default=None)
     parser.add_argument('--cert-hex', default=None)
     args = parser.parse_args()
+    args.inventory=read_path(args.inventory);args.output=write_path(args.output)
+    if args.native_image is not None:args.native_image=read_path(Path(args.native_image))
+    if args.protection is not None:args.protection=read_path(Path(args.protection))
+    if args.apk is not None:args.apk=read_path(Path(args.apk))
 
     OUTPUT, INVENTORY = args.output, args.inventory
 
@@ -178,7 +183,7 @@ def main():
         dec_kw['protection'] = Path(args.protection)
     cert_hex = args.cert_hex
     if cert_hex and cert_hex.startswith('@'):
-        cert_hex = Path(cert_hex[1:]).read_text(encoding='ascii').strip()
+        cert_hex = read_path(Path(cert_hex[1:])).read_text(encoding='ascii').strip()
     if cert_hex:
         dec_kw['cert_hex'] = cert_hex
     elif args.apk:
@@ -188,7 +193,7 @@ def main():
     hash_problems = []
     for e in sampled[:20]:
         row = inv_by_path[e['path']]
-        raw = Path(row['work_file']).read_bytes()
+        raw = read_path(Path(row['work_file'])).read_bytes()
         wm = decoder.e.heap
         p = decoder.e.allocate(len(raw), raw)
         decoder.call(0x2097c, p, len(raw))

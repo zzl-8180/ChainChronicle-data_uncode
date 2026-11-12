@@ -9,6 +9,8 @@ import hashlib
 import json
 import struct
 from pathlib import Path
+from project_layout_paths import read_path
+from versioned_outputs import fresh_output
 
 from unicorn import Uc, UC_ARCH_ARM64, UC_MODE_ARM, UC_HOOK_CODE
 from unicorn.arm64_const import *
@@ -221,7 +223,7 @@ class Guest:
         self.installed_ids = [reverse[p] for p in ptrs]
         # Native caller converts expanded list to array, storing BattleParam+0x1e0.
         self.put64(self.bp+0x1e0,self.array(ptrs))
-        enum = json.loads(Path('output/il2cpp/sample_code.json').read_text())['enums']['ABILITY_TYPE']
+        enum = json.loads(read_path(Path('output/il2cpp/sample_code.json')).read_text())['enums']['ABILITY_TYPE']
         values = sorted(v['value'] for v in enum.values())
         self.flag_index = values.index(1105)
         self.put64(self.statics[0x29bda68]+0x18,self.array(values,'I'))
@@ -269,8 +271,8 @@ class Guest:
 
 
 def main():
-    native = Path('work/protection/il2cpp_loader_seed1.bin').read_bytes()
-    rows = {r['skillid']:r for r in json.loads(Path('output/decoded/skilllist.data5.json').read_text(encoding='utf-8'))['skilllist']}
+    native = read_path(Path('work/protection/il2cpp_loader_seed1.bin')).read_bytes()
+    rows = {r['skillid']:r for r in json.loads(read_path(Path('output/decoded/skilllist.data5.json')).read_text(encoding='utf-8'))['skilllist']}
     cases = []
     for receiver_hp,owner_hp,owner_state,receiver_state,same_actor,target_hp in (
         (24,100,0,0,False,None),(25,100,0,0,False,None),(49,1,0,0,False,None),
@@ -296,9 +298,8 @@ def main():
     assert empty.install([])==[]
     absent = empty.effect(50,100)
     assert absent['selected_ids']==[] and absent['value_bits']==hex(fbits(1.0))
-    output = Path('output/phase_d')
-    output.mkdir(exist_ok=True)
-    sample = json.loads(Path('output/sample/sample.json').read_text(encoding='utf-8'))
+    output = fresh_output('projects/skill-research/evidence/phase_d','chain-probe')
+    sample = json.loads(read_path(Path('output/sample/sample.json')).read_text(encoding='utf-8'))
     report = {'status':'PASS','native_image_sha256':hashlib.sha256(native).hexdigest(),
               'evidence_level':'CONTROLLED_NATIVE_WITH_MODELS; outer call sites are STATIC; no DEVICE evidence',
               'source_sample':{'card_raw':sample['card_raw'],'skill_raw':sample['skill_raw'],

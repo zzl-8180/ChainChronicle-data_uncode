@@ -7,10 +7,11 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from project_layout_paths import read_path
 from ordinary_effect_dictionary import context_3000,context_99
 
-ROOT=Path('output/card_comparison_cid30236')
-SOURCE=Path('output/cache_full_20261015_v3/records.jsonl')
+ROOT=read_path(Path('output/card_comparison_cid30236'))
+SOURCE=read_path(Path('output/cache_full_20261015_v3/records.jsonl'))
 
 
 def lookup(table,record_id=None,name=None):

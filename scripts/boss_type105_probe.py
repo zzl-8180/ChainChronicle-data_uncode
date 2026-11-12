@@ -4,12 +4,13 @@ import json
 import math
 import struct
 from pathlib import Path
+from project_layout_paths import read_path, write_path
 
 from unicorn import Uc, UC_ARCH_ARM64, UC_MODE_ARM, UC_HOOK_CODE
 from unicorn.arm64_const import *
 
 BASE, HEAP, STACK, STOP = 0x50000000, 0x10000000, 0x20000000, 0x30000000
-raw = Path('work/protection/il2cpp_loader_seed1.bin').read_bytes()
+raw = read_path(Path('work/protection/il2cpp_loader_seed1.bin')).read_bytes()
 u = Uc(UC_ARCH_ARM64, UC_MODE_ARM)
 u.mem_map(BASE, (len(raw) + 4095) & ~4095)
 u.mem_write(BASE, raw)
@@ -156,6 +157,6 @@ if __name__ == '__main__':
                           'No list creation, pattern selection, runtime initialization or actual player state.',
                           'Attack is intercepted: damage_input is before target defence and actual HP reduction.',
                           'Base provider values are fixture inputs; no panel ATK conversion or final battle multiplier proven.'])
-    Path('output/boss_chain/type105/native_checks.json').write_text(
+    write_path(Path('output/boss_chain/type105/native_checks.json')).write_text(
         json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
     print(json.dumps(dict(passed=len(checks))))

@@ -12,6 +12,7 @@ from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
 from elftools.elf.elffile import ELFFile
 from il2cpp_sample_code import Native
 from metadata_targets import Metadata
+from project_layout_paths import write_path
 
 
 def main():
@@ -54,8 +55,8 @@ def main():
     report = {'methods':rows,'calls':calls,'PInvoke_string_arguments':bridge_names,
               'archive_asset_name_usage':archive_name,
               'scope':'Direct BL references in original executable extent; wrapper control flow exported. No complete CFG or actual Java asset-origin claim'}
-    output = Path('output/il2cpp/native_paths')
-    output.mkdir(exist_ok=True)
+    output = write_path(Path('projects/unpack/research/il2cpp/20261111/native_paths'))
+    output.mkdir(parents=True, exist_ok=True)
     for row in rows:
         start = int(row['native_rva'],16)
         end = min(p for p in plugin.pointers if p>start)
@@ -65,7 +66,7 @@ def main():
         start = int(row['native_rva'],16)
         end = min(p for p in game.pointers if p>start)
         (output/f'parent_{mi}.txt').write_text('\n'.join(f'{i.address:08x}: {i.mnemonic} {i.op_str}' for i in md.disasm(game.raw[start:end],start)),encoding='utf-8')
-    Path('output/il2cpp/nativeplugin_paths.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+    (output.parent/'nativeplugin_paths.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({'methods':[(r['name'],r['native_rva']) for r in rows],'references':len(calls),'PInvoke':bridge_names},ensure_ascii=False))
 
 

@@ -201,7 +201,7 @@ def _child_field_evidence(child_type, field_path):
             if not e.startswith(('scripts/', 'output/')):
                 continue
             head = re.split(r'[（( \s]', e, 1)[0]
-            if head and Path(head).is_file():
+            if head and ((Path(__file__).resolve().parents[2] / head) if head.startswith("scripts/") else R.read_path(Path(head))).is_file():
                 if head not in path_files:
                     path_files.append(head)
             else:

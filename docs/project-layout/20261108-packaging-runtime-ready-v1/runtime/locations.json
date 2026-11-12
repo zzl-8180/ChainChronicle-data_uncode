@@ -1,0 +1,41 @@
+{
+  "source": {
+    "path": "docs/project-layout/20261108-packaging-full-retirement-v1/full-disposition.jsonl",
+    "sha256": "274c6cd5602b591047ce2b2c907b4e5d9bb33ff55b190b0bb8678ec586e82ef1",
+    "rows": 6935
+  },
+  "entries": {
+    "output/share_bundle/20261104-mechanism-first-handoff-r1/payload/manifest.json": {
+      "archive": "operations/history/retired-packaging/20261108/share_bundle/20261104-mechanism-first-handoff-r1/payload/manifest.json",
+      "disposition": "REHOME_BUSINESS",
+      "identity": {
+        "bytes": 45882,
+        "sha256": "ae3a591d1dd35be221294a6418ca7455c9ec1184f247192cfee6c0f80bdef051"
+      }
+    },
+    "output/share_bundle/20261025-character-tools/isolated 中文 space/scripts/release/build_explicit_bundle.py": {
+      "archive": "operations/history/retired-packaging/20261108/share_bundle/20261025-character-tools/isolated 中文 space/scripts/release/build_explicit_bundle.py",
+      "disposition": "REHOME_BUSINESS",
+      "identity": {
+        "bytes": 12340,
+        "sha256": "b74e4681d492fbf0f7258e138669abf91bba23c27e091f865deae428ec4e9ee2"
+      }
+    },
+    "output/share_bundle/cc_skill_values_20261021/manifest.json": {
+      "archive": "operations/history/retired-packaging/20261108/share_bundle/cc_skill_values_20261021/manifest.json",
+      "disposition": "ARCHIVE_HISTORY",
+      "identity": {
+        "bytes": 1957351,
+        "sha256": "9492d8c53935fe395aca80f741a04e3c740f4c270e022dd70c474622cb4b4045"
+      }
+    },
+    "output/share_bundle/cc_skill_values_20261022/manifest.json": {
+      "archive": "operations/history/retired-packaging/20261108/share_bundle/cc_skill_values_20261022/manifest.json",
+      "disposition": "ARCHIVE_HISTORY",
+      "identity": {
+        "bytes": 1960840,
+        "sha256": "424aaf23bd3ccc9c37f8c802243436872a8be2eed1d537d3a170fdffe84d67b2"
+      }
+    }
+  }
+}

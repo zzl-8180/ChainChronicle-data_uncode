@@ -6,6 +6,8 @@ import re
 import winreg
 from pathlib import Path
 
+from project_layout_paths import write_path
+
 
 def main():
     matches, denied = [], 0
@@ -43,7 +45,8 @@ def main():
               "registry_denied_count": denied, "existing_known_paths": [p for p in candidates if Path(p).exists()],
               "hardware_acceleration": "UNKNOWN (no emulator accel-check available yet)",
               "installed_or_started_by_this_probe": False}
-    output = Path("output/phone/emulator_probe.json")
+    output = write_path(Path("projects/unpack/reports/acquisition/phone/20261111/emulator_probe.json"))
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
