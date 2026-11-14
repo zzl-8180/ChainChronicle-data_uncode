@@ -1,0 +1,191 @@
+{
+  "status": "PASS",
+  "stage": "stage4-final",
+  "run_id": "cleanup-20261114-0ae961a99b48",
+  "approval_reference": "codex:01a1d09b-34d1-7373-a862-77b592993108:user-approval-20261114-execute-all",
+  "counts": {
+    "delete_manifest_events_and_live_poststate": {
+      "deleted_manifest_intent_event_identity_length_and_sha": 65639,
+      "deleted_paths_absent": 65639,
+      "ordinary_ancestors_still_present": 42272,
+      "delete_by_branch": {
+        "S2": 17389,
+        "S5": 42912,
+        "S6": 169,
+        "S7": 5169
+      },
+      "logical_bytes": 12218673553,
+      "volume_free_before": 187854737408,
+      "volume_free_after": 205909942272,
+      "delete_window_observed_free_delta": 18055204864,
+      "expected_conditional_full_clusters": 12339138560,
+      "delete_intents_sha256": "c280ad3aac0b4ca88b01abdcb547e822b6a8d69c56e40c8b70bf1f17c0f79999"
+    },
+    "exact_handle_review": {
+      "nonrecursive_exact_file_executor": true,
+      "handle_identity_length_sha_precede_disposition": true,
+      "earlier_fixture_cases": 5,
+      "source_sha256": {
+        "remove_stages.py": "fe636554c51fc0fa69e61d99e72b802a5550901ad4671f1e23ef2bcb8e71d6ed",
+        "exact_remove.py": "adf2265bad5f8a984423ea45dc7c63d9bbe2d5c61dc5d470f7f630e0255d4905",
+        "execution.py": "82de92f68d04765481b699fa76643017faf0a63a2dcb29093a4b4c9b66566dcf"
+      }
+    },
+    "exact_removals_and_targets": {
+      "old_sources_absent": 2466,
+      "targets_sha256_length_and_identity": 2466,
+      "removal_intents": 2466
+    },
+    "junction_leaves_and_aliases": {
+      "junction_leaves_absent": 5,
+      "parents_and_isolation_input_roots_present": 5,
+      "observed_output_sibling_entries": 212,
+      "unchanged_alias_identities": 6
+    },
+    "formal_post_lineage": {
+      "s7_moved_journal_rows": 148,
+      "s7_distinct_target_copy_journal_rows": 148,
+      "state_rows_bound": 5
+    },
+    "current_consumers": {
+      "source_locations": 2635,
+      "s6_survivors": 169,
+      "s6_with_s7_predecessor": 168,
+      "s6_distinct_s7_predecessors": 121,
+      "historical_manifest_queries": 2,
+      "actual_unicode_fragment_probes": 1
+    },
+    "preserved_bindings_keep_and_special": {
+      "prep_bindings_readback": 184,
+      "keep_sha256_length_identity": 112,
+      "special_protected": 127,
+      "special_approved_relocations": [
+        "operations/records/retired-packaging-identities/20261113/P222/build_explicit_bundle.py",
+        "operations/records/retired-packaging-identities/20261113/cc_skill_values_20261021/manifest.json",
+        "operations/records/retired-packaging-identities/20261113/cc_skill_values_20261022/manifest.json"
+      ],
+      "ignore_paths": [
+        "projects/reference-analysis/.gitignore",
+        "projects/reference-analysis/history/.gitignore",
+        "operations/history/retired-packaging/.gitignore"
+      ],
+      "historical_tools": [
+        "scripts/project_layout/check_retirement_alias.py",
+        "scripts/project_layout/check_retirement_survivors.py",
+        "scripts/project_layout/retirement_delete.py",
+        "scripts/project_layout/retirement_empty_cleanup.py",
+        "scripts/project_layout/run_retirement_preservation.py",
+        "scripts/project_layout/switch_retirement_entry.ps1"
+      ]
+    },
+    "live_s6_formal_answers": {
+      "s6_formal_answers_current": 51,
+      "formal_answers_by_cycle": {
+        "C16": 49,
+        "C17": 2
+      },
+      "live_inputs": 42,
+      "receipt": "E:/代码项目/锁链战记数据解包/work/20261114-cleanup-execution-r1/audit-stage4/s6-final.json"
+    },
+    "live_s5_source_route_and_kept_inputs": {
+      "installed_source_map_sha256": "66c2f22e7777cc0fe402cc9646d7e1b05574a94cfde77676ad8d5b022e5fcc7b",
+      "s5_routed_live_targets": 2234,
+      "s5_consumer_entries": 12,
+      "s5_consumer_unique_inputs": 38,
+      "s5_keep_readback": 100
+    }
+  },
+  "findings": [],
+  "commands": [
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-E",
+        "-s",
+        "-B",
+        "-X",
+        "utf8",
+        "work\\20261114-cleanup-execution-r1\\remove_stages.py",
+        "delete"
+      ],
+      "exit_code": 0,
+      "session": 9824,
+      "stdout_stderr_log": "work/20261114-cleanup-execution-r1/delete.log",
+      "provenance": "Parent observed outer process exit and log terminator"
+    },
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-E",
+        "-s",
+        "-B",
+        "-X",
+        "utf8",
+        "scripts\\skill_reader_preview\\reference_source_route.py",
+        "--reference",
+        "cards/cid10001受命の追憶 エル/unpack.html#article[1]"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"path\": \"E:\\\\代码项目\\\\锁链战记数据解包\\\\projects\\\\reader\\\\data\\\\reference_sources\\\\cc_20261027\\\\cards\\\\cid10001受命の追憶 エル\\\\unpack.html\", \"fragment\": \"#article[1]\", \"sha256\": \"84002b429a53efbfd0707266cb1cf9d10c23a87a3fd2e51c24fb6f0e79fdd258\", \"mapping_sha256\": \"66c2f22e7777cc0fe402cc9646d7e1b05574a94cfde77676ad8d5b022e5fcc7b\"}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-E",
+        "-s",
+        "-B",
+        "-X",
+        "scripts/skill_reader_preview/reference_source_route.py",
+        "--reference",
+        "index_unpack.html"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "unknown option --reference\nusage: C:\\Users\\zouzh\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe [option] ... [-c cmd | -m mod | file | -] [arg] ...\nTry `python -h' for more information.\n"
+    },
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-E",
+        "-s",
+        "-B",
+        "-X",
+        "utf8",
+        "work/20261114-cleanup-execution-r1/audit-stage4/verify_stage4.py"
+      ],
+      "exit_code": 1,
+      "cwd": "E:\\代码项目\\锁链战记数据解包"
+    },
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-E",
+        "-s",
+        "-B",
+        "-X",
+        "utf8",
+        "scripts/skill_reader_preview/reference_source_route.py",
+        "--reference",
+        "index_unpack.html"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"path\": \"E:\\\\代码项目\\\\锁链战记数据解包\\\\projects\\\\reader\\\\data\\\\reference_sources\\\\cc_20261027\\\\index_unpack.html\", \"fragment\": \"\", \"sha256\": \"f59931d7b07a11e60316e40c14e2a9c19547a723242f97529e14ab1d965b454a\", \"mapping_sha256\": \"66c2f22e7777cc0fe402cc9646d7e1b05574a94cfde77676ad8d5b022e5fcc7b\"}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-E",
+        "-s",
+        "-B",
+        "-X",
+        "utf8",
+        "work/20261114-cleanup-execution-r1/audit-stage4/verify_stage4.py",
+        "--s5-only"
+      ],
+      "exit_code": 0,
+      "cwd": "E:\\代码项目\\锁链战记数据解包"
+    }
+  ]
+}

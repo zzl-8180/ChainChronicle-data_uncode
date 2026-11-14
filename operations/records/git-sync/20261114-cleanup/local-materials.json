@@ -1,0 +1,64 @@
+{
+  "scope": "Inventory only; no payload copied into Git",
+  "roots": [
+    {
+      "path": "projects/reader/data/reference_sources",
+      "files": 2234,
+      "logical_bytes": 105446076,
+      "kept_local_files": 2234,
+      "kept_local_bytes": 105446076
+    },
+    {
+      "path": "projects/skill-research/evidence/mechanism-first-handoff",
+      "files": 139,
+      "logical_bytes": 50124806,
+      "kept_local_files": 139,
+      "kept_local_bytes": 50124806
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments",
+      "files": 84,
+      "logical_bytes": 72801727,
+      "kept_local_files": 74,
+      "kept_local_bytes": 72693923
+    },
+    {
+      "path": "projects/unpack/research/retained-native-inputs",
+      "files": 6,
+      "logical_bytes": 12168232,
+      "kept_local_files": 6,
+      "kept_local_bytes": 12168232
+    },
+    {
+      "path": "operations/records/retired-packaging-identities",
+      "files": 3,
+      "logical_bytes": 3930531,
+      "kept_local_files": 3,
+      "kept_local_bytes": 3930531
+    },
+    {
+      "path": "operations/records/retired-packaging-rehome",
+      "files": 7,
+      "logical_bytes": 167336,
+      "kept_local_files": 7,
+      "kept_local_bytes": 167336
+    },
+    {
+      "path": "operations/records/cleanup-retirement",
+      "files": 60,
+      "logical_bytes": 176613312,
+      "kept_local_files": 49,
+      "kept_local_bytes": 176526810
+    }
+  ],
+  "required_local_inputs": [
+    "docs/project-layout/20261113-cleanup-review-v2/ complete frozen manifests; S5 manifest is 40,255,018 B and cannot be replaced by an extracted subset",
+    "docs/project-layout/20261113-cleanup-prep-v2 and independent review packages; actual S7 approval/journal/states/receipts",
+    "operations/records/cleanup-retirement/20261113-v2/reference-source-map.json plus its exact bound user-authorization.json (kept local, contains chat metadata)",
+    "output/character_skills frozen pairs, current formal pages/rules/ledger and C21/C21-R01 evidence",
+    "projects/reader/site/c21-incremental-20261112 and retained accepted Reader runtime inputs",
+    "work/20261113-final5-readonly-v1/fresh-process-verification.json and frozen final5 evidence"
+  ],
+  "full_execution_package_sha256": "d7af4aeb5f1118739289881c0d007c2d0b933ed06193d3e92f6f0692673a401e",
+  "clean_clone_reproduction": "NOT_CLAIMED; this is source/history synchronization, not a complete data/tool release"
+}

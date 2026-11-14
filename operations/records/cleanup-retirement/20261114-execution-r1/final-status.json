@@ -1,0 +1,87 @@
+{
+  "status": "COMPLETED_WITH_ALL_FOUR_STAGE_AUDITS_PASS",
+  "run_id": "cleanup-20261114-0ae961a99b48",
+  "approval_reference": "codex:01a1d09b-34d1-7373-a862-77b592993108:user-approval-20261114-execute-all",
+  "completed_at": "2026-11-14T02:41:23.990085+00:00",
+  "rehome_copied_and_verified": 2466,
+  "old_rehome_paths_removed": 2466,
+  "delete_allowlist_removed": 65639,
+  "total_old_regular_paths_removed": 68105,
+  "keep_in_place": 112,
+  "junctions_retired": 5,
+  "other_aliases_retained": 6,
+  "target_status": "PASS_TARGET_VALIDATION",
+  "post_status": "PASS_POST_REHOME",
+  "reader_sources_installed_and_consumed": true,
+  "formal_reader_overwritten": false,
+  "delete_logical_bytes": 12218673553,
+  "delete_window_volume_free_before": 187854737408,
+  "delete_window_volume_free_after": 205909942272,
+  "delete_window_observed_free_delta": 18055204864,
+  "conditional_full_cluster_estimate_before_execution": 12339138560,
+  "capacity_limitation": "Deletion-window net free-space delta is observed, not guaranteed attribution. About 70GB unrelated volume change occurred before this window; full-turn increase is not cleanup reclaimed space.",
+  "original_review_and_frozen_materials_preserved": true,
+  "recursive_empty_directory_cleanup": "NOT_RUN_OUT_OF_SCOPE",
+  "git_stage_commit_push": "NOT_RUN_OUT_OF_SCOPE",
+  "stages": [
+    {
+      "stage": "stage1-copy",
+      "verification": {
+        "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage1-copy/verification.json",
+        "bytes": 22655,
+        "sha256": "beccd157c8d5fbd5e1e77eb3cd9207b74a838927fd59b796e09f167f7114c4a3"
+      },
+      "report": {
+        "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage1-copy/REPORT.md",
+        "bytes": 3228,
+        "sha256": "96630fd37beef2403f63419ebdea0f790161aeef53ede10125a728fd7d8eb560"
+      }
+    },
+    {
+      "stage": "stage2-consumers-target",
+      "verification": {
+        "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage2-consumers-target/verification.json",
+        "bytes": 6568,
+        "sha256": "5dbfa5f6360d87f418ea9497dae5a5384d0a47b560c2cf7a3ad3b2dc792d6396"
+      },
+      "report": {
+        "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage2-consumers-target/REPORT.md",
+        "bytes": 3552,
+        "sha256": "2152f4601963dfad80c58f67a331f6263561fab0d2b98312d0c4550220e47c51"
+      }
+    },
+    {
+      "stage": "stage3-old-sources-post",
+      "verification": {
+        "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage3-old-sources-post/verification.json",
+        "bytes": 5253,
+        "sha256": "401bd646db006bb7405955730ce4ba8b523b3b9959bc7962c01c29e7d90dd671"
+      },
+      "report": {
+        "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage3-old-sources-post/REPORT.md",
+        "bytes": 2208,
+        "sha256": "09ec4d392dcb21d2cdbde184f37209b0125042997500b45ab7a308439bc924ac"
+      }
+    },
+    {
+      "stage": "stage4-final",
+      "verification": {
+        "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage4-final/verification.json",
+        "bytes": 7393,
+        "sha256": "a38592f038374a42af4a4b8f77710f1d7b9ff15513f76c20a796fb6a3a37c677"
+      },
+      "report": {
+        "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage4-final/REPORT.md",
+        "bytes": 2932,
+        "sha256": "4c945f52e5d6a3293cddd3d1369dffbc10224173055aee39c39ef04ec35183b8"
+      }
+    }
+  ],
+  "retained_limits": [
+    "Current Reader output is independent validation candidate; original assembler simulation UI label is retained. Formal reader output unchanged.",
+    "Legacy build.py+C19 from-zero C21 path remains unsupported. Use installed source route for current C21 baseline assembly.",
+    "Historical missing dependency hashes remain NOT_PROVEN; old reviewed receipts were not rewritten.",
+    "Audio reconstruction evidence reused accepted four-class recovery; no fresh full audio reconstruction.",
+    "Files outside exact manifests, empty parents, three ignores and six historical tools preserved."
+  ]
+}

@@ -1,0 +1,492 @@
+{
+  "status": "PASS",
+  "counts": {
+    "package_artifacts": 50,
+    "package_basis": 29,
+    "git_keep_flags_reconciled": 7,
+    "source_files": 2466,
+    "target_files": 2466,
+    "target_distinct_nlink1": 2466,
+    "copy_journal_events": 2466,
+    "copy_logical_bytes": 244471372,
+    "groups": {
+      "S7_MECHANISM_139": 139,
+      "S7_OTHER_9": 9,
+      "S6_UNIQUE_84": 84,
+      "S4_REFERENCE_2234": 2234
+    },
+    "target_scope_files": 2466,
+    "target_scope_directories": 2359,
+    "target_scope_roots": 5,
+    "keep_files": 112,
+    "original_junctions": 5,
+    "unchanged_aliases": 6,
+    "delete_manifest_disjoint_objects": 65639,
+    "ordinary_ancestors_observed": 4785
+  },
+  "findings": [
+    {
+      "severity": "note",
+      "code": "JOURNAL_FIELDS",
+      "text": "Copy events bind PACKAGE and expected values through the exact authorization and contract. They do not repeat PACKAGE SHA, ancestor details or dependencies on each row. The independent audit separately checked package, contract and complete live ancestry. Preserve the raw log for subsequent TARGET."
+    },
+    {
+      "severity": "note",
+      "code": "SCOPE",
+      "text": "The audit compared journal and the five dedicated target roots with the exact manifest and verified physical REHOME/KEEP and the 11 junctions. The unrelated workspace and the full DELETE candidate file contents were outside this physical audit."
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-B",
+        "work/20261114-cleanup-execution-r1/audit-stage1/verify.py"
+      ],
+      "cwd": "E:\\代码项目\\锁链战记数据解包",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "git",
+        "--no-optional-locks",
+        "ls-tree",
+        "-r",
+        "--name-only",
+        "-z",
+        "3ba9106",
+        "--",
+        "docs/tasks/20261016-reproducibility-audit.md",
+        "docs/tasks/20261025-clean-release-reproduction.md",
+        "docs/tasks/20261104-mechanism-first-handoff.md",
+        "operations/history/retired-packaging/.gitignore",
+        "projects/reference-analysis/.gitignore",
+        "projects/reference-analysis/README.md",
+        "projects/reference-analysis/history/.gitignore"
+      ],
+      "cwd": "E:\\代码项目\\锁链战记数据解包",
+      "exit_code": 0,
+      "paths": [
+        "docs/tasks/20261016-reproducibility-audit.md",
+        "docs/tasks/20261025-clean-release-reproduction.md",
+        "docs/tasks/20261104-mechanism-first-handoff.md",
+        "operations/history/retired-packaging/.gitignore",
+        "projects/reference-analysis/.gitignore",
+        "projects/reference-analysis/README.md",
+        "projects/reference-analysis/history/.gitignore"
+      ]
+    },
+    {
+      "argv": [
+        "git",
+        "--no-optional-locks",
+        "ls-files",
+        "-z",
+        "--",
+        "docs/tasks/20261016-reproducibility-audit.md",
+        "docs/tasks/20261025-clean-release-reproduction.md",
+        "docs/tasks/20261104-mechanism-first-handoff.md",
+        "operations/history/retired-packaging/.gitignore",
+        "projects/reference-analysis/.gitignore",
+        "projects/reference-analysis/README.md",
+        "projects/reference-analysis/history/.gitignore"
+      ],
+      "cwd": "E:\\代码项目\\锁链战记数据解包",
+      "exit_code": 0,
+      "paths": [
+        "docs/tasks/20261016-reproducibility-audit.md",
+        "docs/tasks/20261025-clean-release-reproduction.md",
+        "docs/tasks/20261104-mechanism-first-handoff.md",
+        "operations/history/retired-packaging/.gitignore",
+        "projects/reference-analysis/.gitignore",
+        "projects/reference-analysis/README.md",
+        "projects/reference-analysis/history/.gitignore"
+      ]
+    },
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-E",
+        "-s",
+        "-B",
+        "work\\20261114-cleanup-execution-r1\\execution.py",
+        "copy"
+      ],
+      "cwd": "E:\\代码项目\\锁链战记数据解包",
+      "exit_code": 0,
+      "reported_by": "parent executor tool session 50845",
+      "output_log": "work/20261114-cleanup-execution-r1/copy.log"
+    }
+  ],
+  "evidence": {
+    "docs/project-layout/20261114-cleanup-final-ready-r4/PACKAGE.json": {
+      "bytes": 17050,
+      "sha256": "364646aba25894e65e7cd1cc23a65d4e69cd614463e799f878928fb69f516881"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/approval-stage-request.proposed.json": {
+      "bytes": 5988,
+      "sha256": "76967fb5762bead5a60ca7faf2d8f07eb68e034b21c7391983e8de618180d0cd"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/capacity.json": {
+      "bytes": 1645,
+      "sha256": "c10ee691854d60417b605e755a43b9af98e2ac9b883c3ffa0c5373c27f2c2050"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/concurrency-check.json": {
+      "bytes": 134615,
+      "sha256": "107cabebd926b962ace5f0a86eb22d77a329dcacf1f9c9785499f64ceb8dca67"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/consumers/REPORT.md": {
+      "bytes": 4981,
+      "sha256": "02398ce1b8c4eb76a92874d89bfe34b473567b28dd1f9eeeca4a653734e754de"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/consumers/s5-execution.json": {
+      "bytes": 925,
+      "sha256": "f8bcb9527d3eaf7ddbc21e93a90da73e70afeed14a226155f201c2c994b55309"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/consumers/s5.json": {
+      "bytes": 216953,
+      "sha256": "16b72f0addb5a0139cf1115166ede2daf2d3b02a1b47c8b037f6b859002c0c58"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/consumers/s6-execution.json": {
+      "bytes": 737,
+      "sha256": "c55d59af644abf10102d4d5be627967d24f2a3f3455eada6d11aa43a1dfcc692"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/consumers/s6-final.json": {
+      "bytes": 72836,
+      "sha256": "7c99d62855c904905148d20c9659748fc6c36bb6aba36649cb1dbe989e5f0568"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/delete-candidates.not-authorized.jsonl": {
+      "bytes": 40632357,
+      "sha256": "2a6d00fa457c0de71c901067ccd22123e2a80fd279191ffeed2b64a9741f59ca"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/EXECUTION-ORDER.md": {
+      "bytes": 6094,
+      "sha256": "870c93364cc98f7d3a60cf55ecc9f4124f8cbf85f7276f183fdc0397eb659528"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/link-poststates.proposed.json": {
+      "bytes": 4741,
+      "sha256": "1385af6eec65d52aab1708bec5533a13a106c03888723295e813ac847b63a6c3"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/packet-check.json": {
+      "bytes": 991,
+      "sha256": "d4f33e471665b9a61607465263ea32c35b5ba535b887819b200190707d3d083b"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/parent-execution-record.json": {
+      "bytes": 1491,
+      "sha256": "8fa11cb23391d0d59d866cada2f32296dd40975b2e98a11230dbe2993229b7fe"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/protected-refresh.json": {
+      "bytes": 331856,
+      "sha256": "c3f74eaa978bbaa5c6642da175a0e171327d3a3cf7fdf9aeca31133cdc4276b3"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/reference-source-map.proposed.json": {
+      "bytes": 2681,
+      "sha256": "8b969c4e6762021ac3e794e68be309c2829dcdfd2f7d07c85d72e99ba5b9b29f"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/delete-candidates-not-authorized.jsonl": {
+      "bytes": 48119173,
+      "sha256": "ad059df5ae35a6f72bb0788717f647e3689a80c555450f8f5737fd78f0839a0d"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/git-membership-reconciliation.json": {
+      "bytes": 3936,
+      "sha256": "22d7ca9d9d531411cf978a1828354898219a077f952a1f73d02bb50c269a9cb3"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/keep-refresh.jsonl": {
+      "bytes": 56648,
+      "sha256": "a65aaa52e0d3a24fb5681055a3828bd75b83831448997a12a2f52c02b6f74e74"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/links-refresh.json": {
+      "bytes": 4014,
+      "sha256": "8d7690038184c40f0bab90a22c5bd9abc6064c33de9f621ba41085998f23f90f"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/metadata-refresh.jsonl": {
+      "bytes": 36703450,
+      "sha256": "c08f205aa6d0912848c8f857e0258967cfee11ef92cde125a52ba3da6451cefd"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/rehome-contracts.jsonl": {
+      "bytes": 3142222,
+      "sha256": "633e846201be3d15f97ace2d0012dc9e8cb932046511fe41f96e3959d173c137"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/REPORT.md": {
+      "bytes": 3043,
+      "sha256": "1617869737bf18ea20584e8e9f9b1053971ecf18f91acb8f3390490f6f5b6947"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/run-receipt.json": {
+      "bytes": 6537,
+      "sha256": "4910049fda1dc98531b7e3110f1c152977d909a3560ff499fd3ee09236cffb10"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/s6-surviving-evidence.jsonl": {
+      "bytes": 214987,
+      "sha256": "882425a590063d4f911f379a998de1407dd860110c4ab21cdd8f12a1d65c51f2"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/s6-unique-rehome.jsonl": {
+      "bytes": 103097,
+      "sha256": "4efd002b4ff8ac7599c8e9f6923d26931c3430a5cbb52c30922f4acef0d71c97"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/scope-refresh.json": {
+      "bytes": 1945,
+      "sha256": "8c4ce07bff2d672a0c92c15c6dc13df0db9323c2bcf23958cf855886fde58ec5"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/source-ancestors.jsonl": {
+      "bytes": 11002390,
+      "sha256": "d2de75f5061a9bcbda9a44ce9c6bdf322eb864dcee582bd0f67e5b4bdb41ac57"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/tracked-paths-refresh.json": {
+      "bytes": 46122,
+      "sha256": "df041a00ec1a0c231d15ae17f4bf9ddb3910eafb1d63e8c7eb3371b4add3c38c"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/refresh/validation.json": {
+      "bytes": 15059,
+      "sha256": "945ac7f41e9af31d26ccf70ad6a351773ef5b2e6d1455b1eac2034fd399ee6f3"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/rehome-copy-first.proposed.jsonl": {
+      "bytes": 4912941,
+      "sha256": "d3de625d55f76fbb1b07722761a928544a3d352fabc6a38fe9aaea203500fa47"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/rehome-identities.accepted.jsonl": {
+      "bytes": 2691190,
+      "sha256": "b7c74eda8f61640e6653c53dfcdffb163302e8e95cd5846dcb55b54ee9a1b58c"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/REPORT.md": {
+      "bytes": 3978,
+      "sha256": "8f06e5fa0fc51a38eea302d7d748b855dc10fc6ef1bd54266d8f57f2a6f25646"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/S4-TRANSITION-PROPOSAL.md": {
+      "bytes": 1354,
+      "sha256": "765dd487cd8c73382419b9dacf6467bc19ecdd68c89574658c40bd5288ea24da"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/s7-input-current.json": {
+      "bytes": 701,
+      "sha256": "819a2f9c6589ae1f4d64e656b2980f6344070d79a850654bfb1f77da65a973a6"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/validation.json": {
+      "bytes": 2648,
+      "sha256": "e261b915071c0b80a631d71d22bc1108f29709ffc30151dbc49f9027b93e67e9"
+    },
+    "docs/project-layout/20261114-cleanup-final-ready-r4/version-bindings.json": {
+      "bytes": 7533,
+      "sha256": "f003387318b354f5c6dad81cdff41b0589000715304c24361096b6c55f6448d7"
+    },
+    "work/20261114-cleanup-final-ready-r4/assemble_packet.py": {
+      "bytes": 16667,
+      "sha256": "bf01d9410b86c6bd9aa179ad463f8cfc1eae0f0f5808d9b4d44be86a902a2fa2"
+    },
+    "work/20261114-cleanup-final-ready-r4/concurrency.py": {
+      "bytes": 2495,
+      "sha256": "b37fcacfa2493064244345fa265131c323455e3d4db6f1d3c029146f32a72977"
+    },
+    "work/20261114-cleanup-final-ready-r4/consumers/check.py": {
+      "bytes": 27035,
+      "sha256": "019036ec6b1a4e8f3988c7fcf63ec29913649732200d392fe55a7d869fd21f9d"
+    },
+    "work/20261114-cleanup-final-ready-r4/consumers/check_s5.py": {
+      "bytes": 38474,
+      "sha256": "c1d77884e493ebb865f21387bda478e307134f492f49f5bace6ff551bf928407"
+    },
+    "work/20261114-cleanup-final-ready-r4/consumers/run.py": {
+      "bytes": 1114,
+      "sha256": "e461a1bf5439eb7fac70521e22a4b61b895d51df255fa31b0b86e6f6bac4b269"
+    },
+    "work/20261114-cleanup-final-ready-r4/consumers/s5-initial-execution.json": {
+      "bytes": 933,
+      "sha256": "7c9c5893ff3a840ca7c97a60798fc267057286fb2d41f43fb344cfc74c8464f6"
+    },
+    "work/20261114-cleanup-final-ready-r4/protect.py": {
+      "bytes": 4680,
+      "sha256": "fe529d1305b8e7cb5667b24f2777e9d4423fa0c1c9cf2ba4128ffbeac94f8563"
+    },
+    "work/20261114-cleanup-final-ready-r4/refresh/build-adaptation.diff": {
+      "bytes": 24025,
+      "sha256": "ab712bcc5d532766745054926375c0d5a4dd14dabc9865cf51670d94685c77f3"
+    },
+    "work/20261114-cleanup-final-ready-r4/refresh/build.py": {
+      "bytes": 32432,
+      "sha256": "d4d9d54fd5a637f49c8f6816fbba50722a1cbf1fab6b872bbb1fc1c5727b3429"
+    },
+    "work/20261114-cleanup-final-ready-r4/refresh/run.log": {
+      "bytes": 8517,
+      "sha256": "86d07410d364bbabcbd2b0c083c385b4c0eaa172e2d11806f0fb6663ee4d6e5c"
+    },
+    "work/20261114-cleanup-final-ready-r4/refresh/verify.py": {
+      "bytes": 8733,
+      "sha256": "51e7af974df97319b6d92a2d7c4485b32120198327fc51e4c982d1bfc870a920"
+    },
+    "work/20261114-cleanup-final-ready-r4/seal_packet.py": {
+      "bytes": 3651,
+      "sha256": "b1859ec69340c45dab030330437041159ffc853fd8e51bd136b09cfc62c534c0"
+    },
+    "work/20261114-cleanup-final-ready-r4/threads-observed.json": {
+      "bytes": 13006,
+      "sha256": "db47dc43f87f41a2363fc2b67a6745133162607f10100ca34fe606ebd0747315"
+    },
+    "docs/tasks/20261114-cleanup-final-ready-r4.md": {
+      "bytes": 1379,
+      "sha256": "b304a6b29792252d9619f231d9e43bb64330a972a792bb368e1951bfa5e451c6"
+    },
+    "docs/project-layout/20261113-cleanup-review-v2/PACKAGE.json": {
+      "bytes": 13018,
+      "sha256": "89744904b52dba728758d21bf4bdf8b21755e98155226c0dbc0686c2d5e4c2a5"
+    },
+    "docs/project-layout/20261113-cleanup-prep-v2/PACKAGE.json": {
+      "bytes": 203760,
+      "sha256": "5aeadb4a52a27b5357fa00bca9aa1dd0cec9765896d5d0824bf2e21820cc7903"
+    },
+    "docs/project-layout/20261113-cleanup-prep-thirdparty-r2/verdict.json": {
+      "bytes": 1651,
+      "sha256": "9c83f80871cb60b835bcf19c2f208e5a1c2efc1efe7c70e2323f8c58226d3065"
+    },
+    "docs/project-layout/20261114-cleanup-final-preflight-v1/PACKAGE.json": {
+      "bytes": 17319,
+      "sha256": "fa0b067fcbe34d8cc7b82cb61fa55819b393b779844b3670fbbdcc8af676d5fd"
+    },
+    "docs/project-layout/20261114-cleanup-b01-decision-v1/PACKAGE.json": {
+      "bytes": 3306,
+      "sha256": "759e2b33cf8cc222e433c63f25ca88828723f3da8e6ecfbba68de8a806554084"
+    },
+    "docs/project-layout/20261114-reader-cleanup-coordination-v1/PACKAGE.json": {
+      "bytes": 5857,
+      "sha256": "f2c455f25c69354176b0ecb8e19e6f4f3706fd5e52ae063c53acd2d4c29bbecd"
+    },
+    "projects/reader/site/c21-r01-s4-20261114-v2/incremental_receipt.json": {
+      "bytes": 5820045,
+      "sha256": "484564c403bb3e9fa7d878e9c7f2d0e4f1f28aa78b5fa257d301f4eb9f1a0a23"
+    },
+    "docs/project-layout/20261114-cleanup-b01-decision-v1/delete-candidates.final.jsonl": {
+      "bytes": 40632357,
+      "sha256": "2a6d00fa457c0de71c901067ccd22123e2a80fd279191ffeed2b64a9741f59ca"
+    },
+    "docs/project-layout/20261114-cleanup-final-preflight-v1/rehome-candidates.final.jsonl": {
+      "bytes": 2691190,
+      "sha256": "b7c74eda8f61640e6653c53dfcdffb163302e8e95cd5846dcb55b54ee9a1b58c"
+    },
+    "operations/config/retired-packaging/20261113/locations-v2.json": {
+      "bytes": 45507,
+      "sha256": "a1b720693aff12c3e00dfbd1a7dbf1701739cf9851d2366fa435de2dadceb459"
+    },
+    "scripts/skill_reader_preview/assemble_reviewed_reader.py": {
+      "bytes": 20625,
+      "sha256": "26dc98244410826fdae3729f3b21bfdc61e7f0eff91bcdb04278f9a64b0bb588"
+    },
+    "docs/project-layout/20261114-cleanup-coordination-v3/reader/input-seal.json": {
+      "bytes": 2356,
+      "sha256": "3cf218b605b2b644500c64ba861460f6ea84f7f37a4da4b1c55b3a8dedb13af8"
+    },
+    "scripts/skill_reader_preview/rerun_output.py": {
+      "bytes": 477,
+      "sha256": "a31c7739f809d2896566d0bab32481a031e2a8f726881b9be29f4b0471612762"
+    },
+    "scripts/versioned_outputs.py": {
+      "bytes": 2152,
+      "sha256": "df0a1c169390c0bbaf170f9d31e8c2dcca9cbf2971890084a075db66baac3557"
+    },
+    "work/20261113-final5-readonly-v1/fresh-process-verification.json": {
+      "bytes": 11917,
+      "sha256": "94795ea3aa45c4a587af24a8f5a447785b40902e2220459e9d19fc0f02d73263"
+    },
+    "docs/project-layout/20261114-cleanup-final-preflight-v1/reference-source-map.proposed.json": {
+      "bytes": 2542,
+      "sha256": "fc9f5f93389641ee845b15b15bfbe30d6e9b6451ed8f5f3876a3535cc9a08d32"
+    },
+    "work/20261114-cleanup-coordination-v3/reader/check_candidate.py": {
+      "bytes": 25356,
+      "sha256": "0c0bfb297dde7eeae3d414afb575f998ec8a58d7c1c60c3967dab35dc943a2f4"
+    },
+    "docs/project-layout/20261114-cleanup-coordination-v3/reader/support-inputs.json": {
+      "bytes": 383473,
+      "sha256": "ddc4dc5af47bcf5ff04aaf31512de5bb05d65f25fc7a08968472bca8d84b38c6"
+    },
+    "docs/project-layout/20261114-cleanup-coordination-v2/PACKAGE.json": {
+      "bytes": 113606,
+      "sha256": "7bf4a2395efda0f0b78ef5e4a2faade5651b27a284ae07753f96dd70d3d9e38d"
+    },
+    "docs/project-layout/20261114-cleanup-coordination-v2/reader/input-closure-v3.json": {
+      "bytes": 1849,
+      "sha256": "ef0288c47776594aa6caee56e40f8c302ad36156af15cfa9854e150f143d8007"
+    },
+    "docs/project-layout/20261114-cleanup-coordination-v3/PACKAGE.json": {
+      "bytes": 216975,
+      "sha256": "102867a430635f45d647b66d1e6163ad3989be76d805d74cc066ab64e02f08cb"
+    },
+    "docs/project-layout/20261114-cleanup-coordination-thirdparty-r4/verdict.json": {
+      "bytes": 1810,
+      "sha256": "3f21d671d4e09bbdb1ad634e0e4729e1a9698985d7ea3d46b0ca0303363eb795"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/user-authorization.json": {
+      "bytes": 4978,
+      "sha256": "b7017f6b151b006e2a9d88b01214848f86c95155cb596f1b997ce71e12660ad2"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/validation.json": {
+      "bytes": 15053,
+      "sha256": "5aa6a7adca8eb13993d35eba381dfe7c03a98946d05832121090ba21777e785a"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/metadata-refresh.jsonl": {
+      "bytes": 36703450,
+      "sha256": "c08f205aa6d0912848c8f857e0258967cfee11ef92cde125a52ba3da6451cefd"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/rehome-contracts.jsonl": {
+      "bytes": 3142222,
+      "sha256": "633e846201be3d15f97ace2d0012dc9e8cb932046511fe41f96e3959d173c137"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/s6-unique-rehome.jsonl": {
+      "bytes": 103097,
+      "sha256": "4efd002b4ff8ac7599c8e9f6923d26931c3430a5cbb52c30922f4acef0d71c97"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/s6-surviving-evidence.jsonl": {
+      "bytes": 214987,
+      "sha256": "882425a590063d4f911f379a998de1407dd860110c4ab21cdd8f12a1d65c51f2"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/delete-candidates-not-authorized.jsonl": {
+      "bytes": 48119173,
+      "sha256": "ad059df5ae35a6f72bb0788717f647e3689a80c555450f8f5737fd78f0839a0d"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/tracked-paths-refresh.json": {
+      "bytes": 46122,
+      "sha256": "df041a00ec1a0c231d15ae17f4bf9ddb3910eafb1d63e8c7eb3371b4add3c38c"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/links-refresh.json": {
+      "bytes": 4014,
+      "sha256": "8d7690038184c40f0bab90a22c5bd9abc6064c33de9f621ba41085998f23f90f"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/scope-refresh.json": {
+      "bytes": 1945,
+      "sha256": "8c4ce07bff2d672a0c92c15c6dc13df0db9323c2bcf23958cf855886fde58ec5"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/keep-refresh.jsonl": {
+      "bytes": 56648,
+      "sha256": "a65aaa52e0d3a24fb5681055a3828bd75b83831448997a12a2f52c02b6f74e74"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/refresh/source-ancestors.jsonl": {
+      "bytes": 11002390,
+      "sha256": "d2de75f5061a9bcbda9a44ce9c6bdf322eb864dcee582bd0f67e5b4bdb41ac57"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/copy-events.jsonl": {
+      "bytes": 3130022,
+      "sha256": "f569138d6f679d6c568644e28aec7b4ad29355d01a3d1725ac77a2bd60980f95"
+    },
+    "operations/records/cleanup-retirement/20261114-execution-r1/copy-receipt.json": {
+      "bytes": 533,
+      "sha256": "1f0e03caa80de17ec4dc32ef5d666e0599800a8b29811792c04c91000fd187f8"
+    },
+    "work/20261114-cleanup-execution-r1/execution.py": {
+      "bytes": 5654,
+      "sha256": "82de92f68d04765481b699fa76643017faf0a63a2dcb29093a4b4c9b66566dcf"
+    },
+    "work/20261114-cleanup-execution-r1/copy.log": {
+      "bytes": 145,
+      "sha256": "620f9130b7b9fd46e5d59d6d72292f77fb621c8ac7525d238019e8823c213bc1"
+    },
+    "target_scope_roots": [
+      "operations/records/retired-packaging-identities",
+      "projects/reader/data",
+      "projects/skill-research/evidence/mechanism-first-handoff",
+      "projects/skill-research/evidence/retired-experiments",
+      "projects/unpack/research/retained-native-inputs"
+    ],
+    "docs/project-layout/20261113-cleanup-review-v2/link-plan.json": {
+      "bytes": 5723,
+      "sha256": "8ebe4cf9d822adc761cfb33289b8f780e190ec157d8075f6f14526682bb9c703"
+    }
+  },
+  "started": "2026-11-14T02:09:09.430276+00:00",
+  "ended": "2026-11-14T02:09:28.284945+00:00"
+}

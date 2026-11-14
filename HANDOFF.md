@@ -1,5 +1,7 @@
 # 当前交接入口
 
+**2026-11-14 清理执行**：2,466项迁址、65,639项批准候选删除及五个联接退役已执行；112项KEEP保留，B01停止维护保留11项。新址消费者、真实TARGET/POST和逐阶段审核见[执行回执](operations/records/cleanup-retirement/20261114-execution-r1/REPORT.md)。旧清理提示词和历史路径不重新执行；Git暂存/提交/推送未做。
+
 ## 现行目录入口
 
 统一迁移已验收，已适配的 CLI 默认解析到新址。按[根 README 的现行入口表](README.md#现行入口)查找正式成果、试点、共享目录和退役归档。逐根新旧位置以[实际迁移回执](docs/project-layout/20261109-unified-physical-v1/REPORT.md)为准。正式规则、逐卡页面、账本与全库阅读器继续位于 `output/character_skills/`，存储保留及冻结审查也保留原位。下方各周期的旧 `output/...` 字符串按其历史版本理解。

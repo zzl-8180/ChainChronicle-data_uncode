@@ -1,18 +1,19 @@
 # 锁链战记（チェインクロニクル）数据解包工具
 
+> **2026-11-14 清理执行**：2,466项已迁入并验收，65,639项批准候选已删除，112项KEEP保留，五个旧联接已退役。下方2026-11-08归档叙述是历史状态，旧维护工具不再作为现行入口。[执行证据](operations/records/cleanup-retirement/20261114-execution-r1/REPORT.md)。
 ## 现行入口
 
 | 类型 | 去哪里找 | 内容 |
 |---|---|---|
 | 正式成果 · 数据解包 | [解包导航](projects/unpack/README.md)、[缓存主表指针](projects/unpack/data/cache/cache_full_latest.json)、[APK 内置主表](projects/unpack/data/apk/base_master/) | 完整 JSON、记录视图、APK 基线、补采清单和历史缓存。 |
-| 正式成果 · 媒体资源 | [媒体导航](projects/assets/README.md)、[媒体导出](projects/assets/data/full_unpack/)、[角色图片](projects/assets/data/card_images/) | 纹理、音频、模型及角色图片来源。 |
+| 正式成果 · 媒体资源 | [媒体导航](projects/assets/README.md)、[媒体导出](projects/assets/data/full_unpack/)、[角色图片](projects/assets/data/card_images/) | 图片、文字、模型保留；17,389项WAV按批准清理，原包仍可重解。 |
 | 正式成果 · 技能研究 | [研究导航](projects/skill-research/README.md)、[正式规则](output/character_skills/profiles/rules.json)、[逐卡答案](output/character_skills/pages/)、[效果账本](output/character_skills/effect_ledger/) | 研究证据和实验在 `projects/skill-research/`。正式规则、答案和账本随页面事务保留在 `output/character_skills/`。 |
 | 正式成果 · 角色阅读器 | [阅读器导航](projects/reader/README.md)、[全库阅读页](output/character_skills/reader_full_20261106/index.html) | 全库阅读入口。数据和前端版本见各自回执。 |
 | 试点 · 角色阅读器 | [B02 试点页面](projects/reader/site/b02-20261108-v1/index.html)、[试点范围与验收](docs/project-layout/20261108-b02-candidate-v1/README.md) | 限定范围的前端候选。正式入口仍使用全库阅读页。 |
-| 参考资料分析 | [参考分析导航](projects/reference-analysis/README.md)、[历史对照结果](projects/reference-analysis/history/reference_analysis/)、[独立分析报告](projects/reference-analysis/reports/) | 外部资料对照、差异和候选。第三方原件分源保留。 |
+| 参考资料分析（停止独立维护） | [冻结原导航](projects/reference-analysis/README.md)、[保留证据](projects/reference-analysis/history/reference_analysis/)、[当前处置回执](operations/records/cleanup-retirement/20261114-execution-r1/REPORT.md) | 100项共享证据原位保留，含B01的11项；S4原页迁入Reader来源目录。 |
 | 共享目录 | [工具源码](scripts/)、[原始采集](raw/)、[工作材料](work/)、[页面共享图片](output/character_skills/pages/art/) | 多个子项目共用的代码、输入、工作副本和页面媒体。 |
 | 运维与保留记录 | [运维配置](operations/config/)、[运维记录](operations/records/)、[存储保留](output/storage_retention/)、[项目布局记录](docs/project-layout/) | 路径配置、执行记录和历史保护说明。 |
-| 退役归档 · 工具与成果发行 | [旧发行保留材料](operations/history/retired-packaging/20261108/)、[退役清理回执](docs/project-layout/20261108-packaging-empty-cleanup-v1/REPORT.md)、[完整分享约定](AGENTS.md#8-完整解包工具与结果分享) | 旧打包支线的历史材料按原版本查阅。未来完整分享按 AGENTS 第 8 节。 |
+| 退役支线 · 工具与成果发行 | [机制交接证据](projects/skill-research/evidence/mechanism-first-handoff/20261104/)、[当前清理回执](operations/records/cleanup-retirement/20261114-execution-r1/REPORT.md)、[完整分享约定](AGENTS.md#8-完整解包工具与结果分享) | S7旧支线退出；保留件按新址和精确映射查阅。未来完整分享仍按第8节。 |
 
 31 个成果目录与 2 份 latest 指针已迁移并验收。已适配的 CLI 通过[路径定位配置](scripts/project_layout_active.json)默认解析到新址。逐根新旧路径见[实际迁移回执](docs/project-layout/20261109-unified-physical-v1/REPORT.md)。第二批的 5 个 v2 停用联接按[评估记录](docs/project-layout/20261109-batch2-previous-assessment-v1/REPORT.md)继续留证。
 
@@ -145,7 +146,7 @@ bdl 前 256 字节经原生 `DecodeXorData` 转换后即标准 UnityFS，由 Uni
 |---|---|
 | `projects/` | 各子项目的导航、成果及历史版本 |
 | `operations/` | 路径配置、运维记录与退役归档 |
-| `scripts/` | 解包／验证源码（含 `full_unpack_*.py` bdl 管线）；历史打包材料只读维护入口为 `scripts/project_layout/retirement_runtime.py` |
+| `scripts/` | 解包／验证源码；六个旧退役工具仅作冻结历史，新址和正式后验入口见当前清理回执 |
 | `docs/` | 任务交接与实施方案（含可复现性审计 `docs/tasks/20261016-reproducibility-audit.md`） |
 | `AGENTS.md` | 项目工作约定（协作、证据、Git 与分层发布规范） |
 | `HANDOFF.md`／`STATUS.md` | 当前进度入口与历史状态 |

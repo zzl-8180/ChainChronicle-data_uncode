@@ -1,0 +1,501 @@
+{
+  "scope": "Explicit cleanup source/history synchronization; no blanket add",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 4524,
+      "sha256": "f4fc875486d6dded0719500e4225be44981291586a426c45733ec169f5be0702",
+      "status": "PRESENT"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 5335,
+      "sha256": "8368ebb2b379743ccdefc34456b75c4eee6575e4fc11af33d44c3dc3c66e1fd5",
+      "status": "PRESENT"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 15634,
+      "sha256": "a73ade9252c11d5445f854fe9294ffcc9daef5b2d192ece16087af61f4c6d3d5",
+      "status": "PRESENT"
+    },
+    {
+      "path": "README.md",
+      "bytes": 15074,
+      "sha256": "7bbabd964d540857ba2b27d6c75f24849db58be2f7195275e3b51af04ce72cae",
+      "status": "PRESENT"
+    },
+    {
+      "path": "docs/tasks/20261114-cleanup-b01-decision.md",
+      "bytes": 608,
+      "sha256": "60a5a7e3561ed431e0cc3bc930cd7b52cde7d04cce1ea6c44bcb6fc7c9388326",
+      "status": "PRESENT"
+    },
+    {
+      "path": "docs/tasks/20261114-cleanup-execution-r1.md",
+      "bytes": 1209,
+      "sha256": "449aace016aeaeaf4bace37a9c5de631c40bd6b3d1cdd6ac6c341b1927b8edce",
+      "status": "PRESENT"
+    },
+    {
+      "path": "docs/tasks/20261114-cleanup-final-ready-r4.md",
+      "bytes": 1379,
+      "sha256": "b304a6b29792252d9619f231d9e43bb64330a972a792bb368e1951bfa5e451c6",
+      "status": "PRESENT"
+    },
+    {
+      "path": "docs/tasks/20261114-reader-c21-isolated-build.md",
+      "bytes": 766,
+      "sha256": "d0a02fbead35b591f4e2baec754b8ca4077aa9049f7c55b138d09b70287289c3",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/config/retired-packaging/20261113/locations-v2.json",
+      "bytes": 45507,
+      "sha256": "a1b720693aff12c3e00dfbd1a7dbf1701739cf9851d2366fa435de2dadceb459",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/PACKAGE.json",
+      "bytes": 23621,
+      "sha256": "d7af4aeb5f1118739289881c0d007c2d0b933ed06193d3e92f6f0692673a401e",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/REPORT.md",
+      "bytes": 4881,
+      "sha256": "8efacc5902cf36ba9f4926eff1a35fce43c4fcfa9d2a23f8e0f1636fc477525d",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage1-copy/REPORT.md",
+      "bytes": 3228,
+      "sha256": "96630fd37beef2403f63419ebdea0f790161aeef53ede10125a728fd7d8eb560",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage1-copy/verification.json",
+      "bytes": 22655,
+      "sha256": "beccd157c8d5fbd5e1e77eb3cd9207b74a838927fd59b796e09f167f7114c4a3",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage2-consumers-target/REPORT.md",
+      "bytes": 3552,
+      "sha256": "2152f4601963dfad80c58f67a331f6263561fab0d2b98312d0c4550220e47c51",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage2-consumers-target/verification.json",
+      "bytes": 6568,
+      "sha256": "5dbfa5f6360d87f418ea9497dae5a5384d0a47b560c2cf7a3ad3b2dc792d6396",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage3-old-sources-post/REPORT.md",
+      "bytes": 2208,
+      "sha256": "09ec4d392dcb21d2cdbde184f37209b0125042997500b45ab7a308439bc924ac",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage3-old-sources-post/verification.json",
+      "bytes": 5253,
+      "sha256": "401bd646db006bb7405955730ce4ba8b523b3b9959bc7962c01c29e7d90dd671",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage4-final/REPORT.md",
+      "bytes": 2932,
+      "sha256": "4c945f52e5d6a3293cddd3d1369dffbc10224173055aee39c39ef04ec35183b8",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage4-final/verification.json",
+      "bytes": 7393,
+      "sha256": "a38592f038374a42af4a4b8f77710f1d7b9ff15513f76c20a796fb6a3a37c677",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/final-status.json",
+      "bytes": 4211,
+      "sha256": "d89857b4f299a17ba4461023b8f9081484acc4c64424ad3827355397369f7be5",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/git-sync/20261114-cleanup/README.md",
+      "bytes": 1996,
+      "sha256": "5f450db177c0063f27981d8d45788bed687a941174b9b184d9d2b256ba84a2bb",
+      "status": "PRESENT"
+    },
+    {
+      "path": "operations/records/git-sync/20261114-cleanup/local-materials.json",
+      "bytes": 2499,
+      "sha256": "99edbf1e9065daaf2647d53656434f93412c8f020a3e9520d4e0aa8c1d9f8d14",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/assets/README.md",
+      "bytes": 5630,
+      "sha256": "5f58ce5978179c12e0c0671c776f591cb0a634a59e58f94e3e7379d026721bea",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/reader/README.md",
+      "bytes": 5843,
+      "sha256": "34daf10b92f12d6e857fd1dcc680996528edcdfca1b6759452bc5cb8212021d9",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/README.md",
+      "bytes": 4548,
+      "sha256": "453da260db0b0b625707dcd4cc7db941f135a7c3b8719617247379f6e7f14347",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/census.py",
+      "bytes": 3716,
+      "sha256": "f6742e665624b9aa6ced2238e958bd50791870a9e8841697555466a0560b12a7",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/collect.py",
+      "bytes": 6583,
+      "sha256": "404ec952b1b0cf18f42b3489fd46f3708d2cbff57b45676e352981c2dd875654",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/prepare.py",
+      "bytes": 9015,
+      "sha256": "cb9aa4d8fa81329825cb3a542b05f75f2e49e35fe6b38933ad4e55ca46caad8e",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/report.py",
+      "bytes": 9997,
+      "sha256": "0cb28da3a1a8681ffa056dec709e12a8f09a8f3c5f60a17c6c7f45a0d4bee3b6",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/summarize.py",
+      "bytes": 9946,
+      "sha256": "964c6b3f66ed8aa234815f1da4fb1ab2b099c83232eaaf1cde26c1d078bfd0d2",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_trial/compare.py",
+      "bytes": 6393,
+      "sha256": "33ad760b04a2e1d2f2830058916e0dbfa2bd14cb9cf8bef0e1c1c567bfece6ef",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_trial/prepare.py",
+      "bytes": 6166,
+      "sha256": "a8e053ae0d0919d115e016874cfd76dc12252c4b8dba10fd41368eff069c271d",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_trial/report.py",
+      "bytes": 12318,
+      "sha256": "037a1e8972cc8177ffed4327da34cedc78966cdbab4a13a273baa8ca437e6df2",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_route_experiments/run.py",
+      "bytes": 27444,
+      "sha256": "d6eab10c9b1fb260387429a499471e8c98164eb0158a3bba6bd60bf5cf76ef94",
+      "status": "PRESENT"
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_route_experiments/verify_and_report.py",
+      "bytes": 16226,
+      "sha256": "ffb499da5ffa149be9e86f50b4d3617a09a6e62dc622a4a65c0095562d134622",
+      "status": "PRESENT"
+    },
+    {
+      "path": "scripts/project_layout/check_retirement_rehome_v2.py",
+      "bytes": 26656,
+      "sha256": "93d585d7f3f83e5801cf7f4959d8fced6a8be00e4f72e49b77da62cf5eb884f2",
+      "status": "PRESENT"
+    },
+    {
+      "path": "scripts/ref_analysis_claude_cc.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/ref_analysis_claude_cc_20261023.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/ref_analysis_lead_reconcile_20261023.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/ref_ui_audit_20261023.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/corpus_01_snapshot_diff.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/corpus_02_card_coverage.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/corpus_03_increment_join.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/corpus_04_card_sample.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/corpus_05_site_corpus.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/corpus_06_increment_gaps.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/corpus_cards.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/lead_bond_check.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/lead_bond_join_check.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/lead_crosscheck.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/lead_spotcheck.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_REPORT_template.md",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_aggregates.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_candidates.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_check_md.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_common.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_diff.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_dump.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_knowledge.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_knowledge_new2.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_new1_vs_new2.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_ours_sitecheck.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_report.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_rows.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_show.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_summary.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/params_vs_1017.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/verify_01_params.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/verify_02_flags_units.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/verify_03_namespace.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/verify_build_report.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/verify_common.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/verify_dump.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/verify_find.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/refcheck_20261023_lead/verify_text_param.py",
+      "status": "DELETE_OLD_PATH"
+    },
+    {
+      "path": "scripts/skill_mechanism_scale/census.py",
+      "status": "REHOME_OLD_PATH"
+    },
+    {
+      "path": "scripts/skill_mechanism_scale/collect.py",
+      "status": "REHOME_OLD_PATH"
+    },
+    {
+      "path": "scripts/skill_mechanism_scale/prepare.py",
+      "status": "REHOME_OLD_PATH"
+    },
+    {
+      "path": "scripts/skill_mechanism_scale/report.py",
+      "status": "REHOME_OLD_PATH"
+    },
+    {
+      "path": "scripts/skill_mechanism_scale/summarize.py",
+      "status": "REHOME_OLD_PATH"
+    },
+    {
+      "path": "scripts/skill_mechanism_trial/compare.py",
+      "status": "REHOME_OLD_PATH"
+    },
+    {
+      "path": "scripts/skill_mechanism_trial/prepare.py",
+      "status": "REHOME_OLD_PATH"
+    },
+    {
+      "path": "scripts/skill_mechanism_trial/report.py",
+      "status": "REHOME_OLD_PATH"
+    },
+    {
+      "path": "scripts/skill_reader_preview/assemble_reviewed_reader.py",
+      "bytes": 20625,
+      "sha256": "26dc98244410826fdae3729f3b21bfdc61e7f0eff91bcdb04278f9a64b0bb588",
+      "status": "PRESENT"
+    },
+    {
+      "path": "scripts/skill_reader_preview/build.py",
+      "bytes": 28061,
+      "sha256": "e877de7c1d892d4f34f3b97e39fab5e8e1677dec9a00e92c97e5801bc442f7b6",
+      "status": "PRESENT"
+    },
+    {
+      "path": "scripts/skill_reader_preview/reference_copy.py",
+      "bytes": 11840,
+      "sha256": "9f4d7ce3c222745592e09e7f058e429cbeca6fa5459044c1601b418b139e159d",
+      "status": "PRESENT"
+    },
+    {
+      "path": "scripts/skill_reader_preview/reference_source_route.py",
+      "bytes": 3105,
+      "sha256": "2b50986f94dd28542166b6f7e13810e840895f307104475c5fdc6472656ba870",
+      "status": "PRESENT"
+    },
+    {
+      "path": "scripts/skill_reader_preview/reference_sources_v2.py",
+      "bytes": 4282,
+      "sha256": "9691924e29c41728e3c06a65d4e47bfd9133bd753e063d09cbafd3006395d5d2",
+      "status": "PRESENT"
+    },
+    {
+      "path": "scripts/skill_route_experiments/run.py",
+      "status": "REHOME_OLD_PATH"
+    },
+    {
+      "path": "scripts/skill_route_experiments/verify_and_report.py",
+      "status": "REHOME_OLD_PATH"
+    }
+  ],
+  "self_describing_files": [
+    "operations/records/git-sync/20261114-cleanup/selection.json",
+    "operations/records/git-sync/20261114-cleanup/validation.json"
+  ],
+  "exact_byte_paths": [
+    "HANDOFF.md",
+    "README.md",
+    "docs/tasks/20261114-cleanup-b01-decision.md",
+    "docs/tasks/20261114-cleanup-execution-r1.md",
+    "docs/tasks/20261114-cleanup-final-ready-r4.md",
+    "docs/tasks/20261114-reader-c21-isolated-build.md",
+    "operations/config/retired-packaging/20261113/locations-v2.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/PACKAGE.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/REPORT.md",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage1-copy/REPORT.md",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage1-copy/verification.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage2-consumers-target/REPORT.md",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage2-consumers-target/verification.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage3-old-sources-post/REPORT.md",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage3-old-sources-post/verification.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage4-final/REPORT.md",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage4-final/verification.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/final-status.json",
+    "projects/assets/README.md",
+    "projects/reader/README.md",
+    "projects/skill-research/README.md",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/census.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/collect.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/prepare.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/report.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/summarize.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_trial/compare.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_trial/prepare.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_trial/report.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_route_experiments/run.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_route_experiments/verify_and_report.py",
+    "scripts/project_layout/check_retirement_rehome_v2.py",
+    "scripts/skill_reader_preview/assemble_reviewed_reader.py",
+    "scripts/skill_reader_preview/build.py",
+    "scripts/skill_reader_preview/reference_copy.py",
+    "scripts/skill_reader_preview/reference_source_route.py",
+    "scripts/skill_reader_preview/reference_sources_v2.py"
+  ],
+  "local_task_notes_ignored": [
+    "docs/tasks/20261113-cleanup-levels.md",
+    "docs/tasks/20261113-cleanup-prep-v2.md",
+    "docs/tasks/20261113-cleanup-prep.md",
+    "docs/tasks/20261113-cleanup-review-v2.md",
+    "docs/tasks/20261113-cleanup-review.md",
+    "docs/tasks/20261114-cleanup-coordination-v2.md",
+    "docs/tasks/20261114-cleanup-coordination-v3.md",
+    "docs/tasks/20261114-cleanup-final-preflight.md",
+    "docs/tasks/20261114-reader-cleanup-coordination.md"
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "status": "PASS",
+  "stage": "stage3-old-sources-post",
+  "run_id": "cleanup-20261114-0ae961a99b48",
+  "approval_reference": "codex:01a1d09b-34d1-7373-a862-77b592993108:user-approval-20261114-execute-all",
+  "counts": {
+    "exact_removals_and_targets": {
+      "old_sources_absent": 2466,
+      "targets_sha256_length_and_identity": 2466,
+      "removal_intents": 2466
+    },
+    "protection_and_exact_delete_pending": {
+      "prep_bindings_readback": 184,
+      "keep_sha256_length_identity": 112,
+      "special_protected": 127,
+      "special_approved_relocations": [
+        "operations/records/retired-packaging-identities/20261113/P222/build_explicit_bundle.py",
+        "operations/records/retired-packaging-identities/20261113/cc_skill_values_20261021/manifest.json",
+        "operations/records/retired-packaging-identities/20261113/cc_skill_values_20261022/manifest.json"
+      ],
+      "delete_candidates_pending_identity_and_length": 65639
+    },
+    "formal_post_lineage": {
+      "s7_moved_journal_rows": 148,
+      "s7_distinct_target_copy_journal_rows": 148,
+      "state_rows_bound": 5
+    },
+    "current_consumers": {
+      "source_locations": 2635,
+      "s6_survivors": 169,
+      "s6_with_s7_predecessor": 168,
+      "s6_distinct_s7_predecessors": 121,
+      "historical_manifest_queries": 2,
+      "actual_unicode_fragment_probes": 1
+    },
+    "junction_leaves_and_aliases": {
+      "junction_leaves_absent": 5,
+      "parents_and_isolation_input_roots_present": 5,
+      "observed_output_sibling_entries": 212,
+      "unchanged_alias_identities": 6
+    }
+  },
+  "findings": [],
+  "commands": [
+    {
+      "command": "remove_stages.py old",
+      "exit_code": 0,
+      "session": 67264,
+      "evidence": "work\\20261114-cleanup-execution-r1\\old-removal.log",
+      "provenance": "Parent observed outer process exit"
+    },
+    {
+      "command": "s7_records.py post",
+      "exit_code": 0,
+      "evidence": "work\\20261114-cleanup-execution-r1\\post.log",
+      "provenance": "Parent observed outer process exit"
+    },
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-E",
+        "-s",
+        "-B",
+        "E:\\代码项目\\锁链战记数据解包\\scripts\\project_layout\\check_retirement_rehome_v2.py",
+        "--mode",
+        "POST_REHOME",
+        "--package-sha256",
+        "89744904b52dba728758d21bf4bdf8b21755e98155226c0dbc0686c2d5e4c2a5",
+        "--mapping",
+        "operations/config/retired-packaging/20261113/locations-v2.json",
+        "--prep-package",
+        "docs/project-layout/20261113-cleanup-prep-v2/PACKAGE.json",
+        "--independent-review-verdict",
+        "docs/project-layout/20261113-cleanup-prep-thirdparty-r2/verdict.json",
+        "--run-id",
+        "cleanup-20261114-0ae961a99b48",
+        "--approval",
+        "operations/records/retired-packaging-rehome/20261113/cleanup-20261114-0ae961a99b48/post-approval.json",
+        "--journal",
+        "operations/records/retired-packaging-rehome/20261113/cleanup-20261114-0ae961a99b48/post-journal.json",
+        "--receipt",
+        "operations/records/retired-packaging-rehome/20261113/cleanup-20261114-0ae961a99b48/post-receipt.json",
+        "--states",
+        "operations/records/retired-packaging-rehome/20261113/cleanup-20261114-0ae961a99b48/link-states.json",
+        "--target-receipt",
+        "operations/records/retired-packaging-rehome/20261113/cleanup-20261114-0ae961a99b48/target-receipt.json"
+      ],
+      "exit_code": 0,
+      "evidence": "operations\\records\\cleanup-retirement\\20261114-execution-r1\\post-execution.json"
+    },
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-E",
+        "-s",
+        "-B",
+        "-X",
+        "utf8",
+        "scripts\\skill_reader_preview\\reference_source_route.py",
+        "--reference",
+        "cards/cid10001受命の追憶 エル/unpack.html#article[1]"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"path\": \"E:\\\\代码项目\\\\锁链战记数据解包\\\\projects\\\\reader\\\\data\\\\reference_sources\\\\cc_20261027\\\\cards\\\\cid10001受命の追憶 エル\\\\unpack.html\", \"fragment\": \"#article[1]\", \"sha256\": \"84002b429a53efbfd0707266cb1cf9d10c23a87a3fd2e51c24fb6f0e79fdd258\", \"mapping_sha256\": \"66c2f22e7777cc0fe402cc9646d7e1b05574a94cfde77676ad8d5b022e5fcc7b\"}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "work\\20261114-cleanup-execution-r1\\audit-stage3\\verify_stage3.py"
+      ],
+      "exit_code": 1,
+      "cwd": "E:\\代码项目\\锁链战记数据解包"
+    },
+    {
+      "argv": [
+        "E:\\代码项目\\锁链战记数据解包\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "work\\20261114-cleanup-execution-r1\\audit-stage3\\verify_stage3.py",
+        "--junction-only"
+      ],
+      "exit_code": 0,
+      "cwd": "E:\\代码项目\\锁链战记数据解包"
+    }
+  ]
+}

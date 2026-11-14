@@ -1,0 +1,173 @@
+{
+  "status": "PASS_SOURCE_SYNC_VALIDATION",
+  "format_checks": 24,
+  "format_paths": [
+    "operations/config/retired-packaging/20261113/locations-v2.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/PACKAGE.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage1-copy/verification.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage2-consumers-target/verification.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage3-old-sources-post/verification.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/audits/stage4-final/verification.json",
+    "operations/records/cleanup-retirement/20261114-execution-r1/final-status.json",
+    "operations/records/git-sync/20261114-cleanup/local-materials.json",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/census.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/collect.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/prepare.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/report.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_scale/summarize.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_trial/compare.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_trial/prepare.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_mechanism_trial/report.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_route_experiments/run.py",
+    "projects/skill-research/evidence/retired-experiments/20261113/scripts/skill_route_experiments/verify_and_report.py",
+    "scripts/project_layout/check_retirement_rehome_v2.py",
+    "scripts/skill_reader_preview/assemble_reviewed_reader.py",
+    "scripts/skill_reader_preview/build.py",
+    "scripts/skill_reader_preview/reference_copy.py",
+    "scripts/skill_reader_preview/reference_source_route.py",
+    "scripts/skill_reader_preview/reference_sources_v2.py"
+  ],
+  "credential_pattern_matches": [],
+  "exact_delete_review": "Independent Sol read-only scope audit:49/49 match actual cleanup events;39 DELETE and10 REHOME.10 new source bytes match original HEAD.",
+  "source_scope": "Six current Reader/S7 sources match reviewed prep/R4/execution raw-byte bindings; unchanged implementation, no fresh business generation.",
+  "ignored_probes": [
+    {
+      "path": "work/20261114-cleanup-execution-r1/delete.log",
+      "rule": ".gitignore:9:/work/\twork/20261114-cleanup-execution-r1/delete.log",
+      "exit_code": 0
+    },
+    {
+      "path": "output/character_skills/profiles/rules.json",
+      "rule": ".gitignore:10:/output/\toutput/character_skills/profiles/rules.json",
+      "exit_code": 0
+    },
+    {
+      "path": ".venv/Scripts/python.exe",
+      "rule": ".gitignore:16:.venv/\t.venv/Scripts/python.exe",
+      "exit_code": 0
+    },
+    {
+      "path": "raw/.git-sync-probe",
+      "rule": ".gitignore:6:/raw/\traw/.git-sync-probe",
+      "exit_code": 0
+    },
+    {
+      "path": "tools/.git-sync-probe",
+      "rule": ".gitignore:15:/tools/\ttools/.git-sync-probe",
+      "exit_code": 0
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/delete-events.jsonl",
+      "rule": ".gitignore:71:/operations/records/cleanup-retirement/20261114-execution-r1/*\toperations/records/cleanup-retirement/20261114-execution-r1/delete-events.jsonl",
+      "exit_code": 0
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261114-execution-r1/user-authorization.json",
+      "rule": ".gitignore:71:/operations/records/cleanup-retirement/20261114-execution-r1/*\toperations/records/cleanup-retirement/20261114-execution-r1/user-authorization.json",
+      "exit_code": 0
+    },
+    {
+      "path": "operations/records/cleanup-retirement/20261113-v2/reference-source-map.json",
+      "rule": ".gitignore:69:/operations/records/cleanup-retirement/*\toperations/records/cleanup-retirement/20261113-v2/reference-source-map.json",
+      "exit_code": 0
+    },
+    {
+      "path": "projects/reader/data/reference_sources/cc_20261027/index_unpack.html",
+      "rule": ".gitignore:43:/projects/reader/data/reference_sources/\tprojects/reader/data/reference_sources/cc_20261027/index_unpack.html",
+      "exit_code": 0
+    },
+    {
+      "path": "projects/skill-research/evidence/mechanism-first-handoff/20261104/README.md",
+      "rule": ".gitignore:44:/projects/skill-research/evidence/mechanism-first-handoff/\tprojects/skill-research/evidence/mechanism-first-handoff/20261104/README.md",
+      "exit_code": 0
+    },
+    {
+      "path": "projects/skill-research/evidence/retired-experiments/20261113/projects/skill-research/experiments/skill_mechanism_trial/20261104/accepted_candidates.json",
+      "rule": ".gitignore:50:/projects/skill-research/evidence/retired-experiments/20261113/*\tprojects/skill-research/evidence/retired-experiments/20261113/projects/skill-research/experiments/skill_mechanism_trial/20261104/accepted_candidates.json",
+      "exit_code": 0
+    },
+    {
+      "path": "projects/unpack/research/retained-native-inputs/20261113/.probe",
+      "rule": ".gitignore:45:/projects/unpack/research/retained-native-inputs/\tprojects/unpack/research/retained-native-inputs/20261113/.probe",
+      "exit_code": 0
+    },
+    {
+      "path": "operations/records/retired-packaging-identities/20261113/.probe",
+      "rule": ".gitignore:46:/operations/records/retired-packaging-identities/\toperations/records/retired-packaging-identities/20261113/.probe",
+      "exit_code": 0
+    },
+    {
+      "path": "operations/records/retired-packaging-rehome/20261113/.probe",
+      "rule": ".gitignore:47:/operations/records/retired-packaging-rehome/\toperations/records/retired-packaging-rehome/20261113/.probe",
+      "exit_code": 0
+    },
+    {
+      "path": "docs/tasks/20261113-cleanup-levels.md",
+      "rule": ".gitignore:95:/docs/tasks/20261113-cleanup-levels.md\tdocs/tasks/20261113-cleanup-levels.md",
+      "exit_code": 0
+    },
+    {
+      "path": "docs/tasks/20261113-cleanup-prep-v2.md",
+      "rule": ".gitignore:96:/docs/tasks/20261113-cleanup-prep-v2.md\tdocs/tasks/20261113-cleanup-prep-v2.md",
+      "exit_code": 0
+    },
+    {
+      "path": "docs/tasks/20261113-cleanup-prep.md",
+      "rule": ".gitignore:97:/docs/tasks/20261113-cleanup-prep.md\tdocs/tasks/20261113-cleanup-prep.md",
+      "exit_code": 0
+    },
+    {
+      "path": "docs/tasks/20261113-cleanup-review-v2.md",
+      "rule": ".gitignore:98:/docs/tasks/20261113-cleanup-review-v2.md\tdocs/tasks/20261113-cleanup-review-v2.md",
+      "exit_code": 0
+    },
+    {
+      "path": "docs/tasks/20261113-cleanup-review.md",
+      "rule": ".gitignore:99:/docs/tasks/20261113-cleanup-review.md\tdocs/tasks/20261113-cleanup-review.md",
+      "exit_code": 0
+    },
+    {
+      "path": "docs/tasks/20261114-cleanup-coordination-v2.md",
+      "rule": ".gitignore:100:/docs/tasks/20261114-cleanup-coordination-v2.md\tdocs/tasks/20261114-cleanup-coordination-v2.md",
+      "exit_code": 0
+    },
+    {
+      "path": "docs/tasks/20261114-cleanup-coordination-v3.md",
+      "rule": ".gitignore:101:/docs/tasks/20261114-cleanup-coordination-v3.md\tdocs/tasks/20261114-cleanup-coordination-v3.md",
+      "exit_code": 0
+    },
+    {
+      "path": "docs/tasks/20261114-cleanup-final-preflight.md",
+      "rule": ".gitignore:102:/docs/tasks/20261114-cleanup-final-preflight.md\tdocs/tasks/20261114-cleanup-final-preflight.md",
+      "exit_code": 0
+    },
+    {
+      "path": "docs/tasks/20261114-reader-cleanup-coordination.md",
+      "rule": ".gitignore:103:/docs/tasks/20261114-reader-cleanup-coordination.md\tdocs/tasks/20261114-reader-cleanup-coordination.md",
+      "exit_code": 0
+    }
+  ],
+  "smoke_results": [
+    {
+      "name": "installed map index read",
+      "exit_code": 0
+    },
+    {
+      "name": "path escape rejection",
+      "exit_code": 1
+    },
+    {
+      "name": "S7 CLI help",
+      "exit_code": 0
+    }
+  ],
+  "no_generated_site_or_data_rebuild": true,
+  "staged_index_verification": "PASS",
+  "local_evidence": "work/20261114-cleanup-git-sync/; includes actual commands/stdout/stderr and index verification",
+  "reviewed_byte_paths": 37,
+  "isolated_checkout_paths": 37,
+  "staged_present_file_limit_bytes": 1048576,
+  "largest_selected_blob_bytes": 45507,
+  "forbidden_prefix_matches": [],
+  "index_evidence": "work/20261114-cleanup-git-sync/index-verification.json; validation.json itself restaged and whole index rechecked after this record"
+}

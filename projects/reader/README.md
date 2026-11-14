@@ -33,3 +33,9 @@
 - 冻结审查目录的 manifest、rows、units、[packets](../../output/character_skills/reader_semantic_20261107/packets/)和[results](../../output/character_skills/reader_semantic_20261107/results/)保留输入与结论对应；不重新准备、不覆盖或去重删除，不把分片数量当审查完成证据。历史样稿及 before 材料保持原位，详见[23条索引](../../docs/project-layout/20261107-b00-v1/reader.md)。
 
 任务当前状态以[项目交接](../../HANDOFF.md)和对应任务卡为准。
+
+## 2026-11-14 来源迁址入口
+
+参考原页现由[版本化来源映射](../../operations/records/cleanup-retirement/20261113-v2/reference-source-map.json)限定到2,234个成员；冻结句对中的旧根保留，使用[实际迁址验收](reports/reference-source-rehome-20261113-v2/verification.json)追溯2,231个引用页。
+
+当前C21来源重建使用 `scripts/skill_reader_preview/reference_source_route.py --output <新的独立输出目录>`；该入口实际读取已安装映射，再调用已审定组装器。`--reference <相对原页#片段>` 可逐页定位。旧 build.py 的默认旧根/C19从零重建不是当前迁址入口；历史输出不覆盖。新址验读候选[页面](site/c21-r01-source-rehome-20261114-r1/index.html)保留原组装器的“模拟”界面标签，仅作验读成果。

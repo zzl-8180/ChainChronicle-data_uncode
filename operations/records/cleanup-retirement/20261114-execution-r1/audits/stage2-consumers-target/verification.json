@@ -1,0 +1,158 @@
+{
+  "status": "PASS",
+  "run_id": "cleanup-20261114-0ae961a99b48",
+  "stage": "stage2-consumers-target",
+  "findings": [
+    {
+      "id": "S2-01",
+      "status": "CLOSED",
+      "detail": "Initial Python reporting adapter raised IndexError in the unchanged S5 check finish function. Resume used the approved S5/S6 implementations with a reporting adapter and reused the earlier successful Reader run."
+    },
+    {
+      "id": "S2-02",
+      "status": "CLOSED",
+      "detail": "Installed S4 mapping inherited current_installed=false. Original bytes were preserved and the actual file changed only that field. The active mapping passed a fresh read through the real route."
+    },
+    {
+      "id": "S2-03",
+      "status": "RECORDED_SCOPE",
+      "detail": "Original stdout path encoding is lossy in the earlier receipts; original argv, full result input paths and fresh UTF-8 read establish the Unicode path and fragment. The assembler output/UI simulation labels are preserved, and the independent Reader is not a formal replacement."
+    }
+  ],
+  "commands": [
+    {
+      "command": "stage2.py",
+      "exit_code": 1,
+      "evidence": "work/20261114-cleanup-execution-r1/stage2.log",
+      "provenance": "Parent observed outer PowerShell process exit; traceback preserved."
+    },
+    {
+      "command": "stage2_resume.py",
+      "exit_code": 0,
+      "evidence": "work/20261114-cleanup-execution-r1/stage2-resume.log",
+      "provenance": "Parent observed outer PowerShell process exit; original S5 and S6 function result receipts linked in checks."
+    },
+    {
+      "command": "reference_source_route.py --output",
+      "exit_code": 0,
+      "evidence": "operations/records/cleanup-retirement/20261114-execution-r1/reader-new-source-execution.json"
+    },
+    {
+      "command": "reference_source_route.py --reference before metadata amendment",
+      "exit_code": 0,
+      "evidence": "operations/records/cleanup-retirement/20261114-execution-r1/installed-map-unicode-execution.json"
+    },
+    {
+      "command": "s7_records.py target",
+      "exit_code": 0,
+      "evidence": "work/20261114-cleanup-execution-r1/target.log",
+      "provenance": "Parent observed outer PowerShell process exit."
+    },
+    {
+      "command": "check_retirement_rehome_v2.py --mode TARGET_VALIDATION",
+      "exit_code": 0,
+      "evidence": "operations/records/cleanup-retirement/20261114-execution-r1/target-execution.json"
+    },
+    {
+      "command": "location_receipt.py",
+      "exit_code": 0,
+      "evidence": "operations/records/cleanup-retirement/20261114-execution-r1/source-locations.json",
+      "provenance": "Parent observed outer PowerShell process exit."
+    },
+    {
+      "command": "map_metadata_amendment.py and recorded reference_source_route.py --reference",
+      "exit_code": 0,
+      "evidence": "operations/records/cleanup-retirement/20261114-execution-r1/source-map-metadata-amendment.json"
+    },
+    {
+      "command": "work\\20261114-cleanup-execution-r1\\audit-stage2\\verify_stage2.py",
+      "exit_code": 0,
+      "provenance": "Independent targeted read-only audit. Nested read-only route probes recorded in checks."
+    }
+  ],
+  "checks": {
+    "approval_and_frozen_prep": {
+      "status": "PASS",
+      "evidence": {
+        "outer_package_sha256": "364646aba25894e65e7cd1cc23a65d4e69cd614463e799f878928fb69f516881",
+        "user_authorization_sha256": "b7017f6b151b006e2a9d88b01214848f86c95155cb596f1b997ce71e12660ad2",
+        "prep_bindings_rehashed": 184,
+        "checker_sha256": "93d585d7f3f83e5801cf7f4959d8fced6a8be00e4f72e49b77da62cf5eb884f2",
+        "target_approval_sha256": "e9905dc8ec79392c3913c6e3a7a2e62eea3cfd83bded785f97fce6491dd51f49",
+        "target_journal_sha256": "65de0b62a0cf8f129cc683e1e6a45e8fc83ebb184b7c06e465ebbe4b32fd68af",
+        "target_receipt_sha256": "20039d514a065bbfa9c8768b89e2ee2d15b60ae47c4c8bf56cf81d7ca584effc"
+      }
+    },
+    "target_physical_and_s7_bundle": {
+      "status": "PASS",
+      "evidence": {
+        "old_sources_current_identity_and_bytes": 148,
+        "new_targets_current_identity_and_bytes": 148,
+        "old_junctions_current_identity_and_raw_target": 5,
+        "bundle_files": 139,
+        "manifest_members": 135
+      }
+    },
+    "s6_and_location_receipt": {
+      "status": "PASS",
+      "evidence": {
+        "all_location_entries": 2635,
+        "s6_duplicate_survivors_read": 169,
+        "s6_s7_references": 168,
+        "s6_s7_distinct_dependencies": 121,
+        "s6_unique_targets_read": 84,
+        "s6_answers": 51,
+        "historical_manifest_queries_reproduced": 2
+      }
+    },
+    "actual_reader_and_navigation": {
+      "status": "PASS",
+      "evidence": {
+        "source_allowlist_and_real_inputs": 2234,
+        "new_location_sample_hashes": 4,
+        "frozen_file_identities": 44,
+        "reference_pages": 2231,
+        "names": 2233,
+        "pairs": 5164,
+        "reference_occurrences": 29206,
+        "card_bytes": 2236,
+        "C21_R01_condition_answers": 89,
+        "other_C21_answers": 811,
+        "reader_navigation_links": 3,
+        "reader_execution_receipt_sha256": "00bea9d1ad8c69e32ef40ad8dcd4ab236a5dadf22dd8083cdea31c9ad4e38da8"
+      }
+    },
+    "map_metadata_and_real_route": {
+      "status": "PASS",
+      "evidence": {
+        "map_build_sha256": "82a73730e7e67edfa598d6eea0ad958100f46d1072316033ef10840a672e1543",
+        "map_current_sha256": "66c2f22e7777cc0fe402cc9646d7e1b05574a94cfde77676ad8d5b022e5fcc7b",
+        "map_consumer_sha256": "2b50986f94dd28542166b6f7e13810e840895f307104475c5fdc6472656ba870",
+        "independent_real_route_exit": 0,
+        "negative_route_exits": {
+          "真实算法.md": 1,
+          "cards/unknown/unpack.html": 1,
+          "../index_unpack.html": 1,
+          "cards/%2e%2e/unpack.html": 1,
+          "index_unpack.html#x%23y": 1
+        }
+      }
+    },
+    "resumed_s5_s6_execution": {
+      "status": "PASS",
+      "evidence": {
+        "s5": {
+          "status": "PASS",
+          "exit": 0,
+          "receipt_sha256": "b2a48c44093c79be69f78fffefc2fb1d3ebd5178879f4b975e40a5f31bfc531d"
+        },
+        "s6": {
+          "status": "PASS",
+          "exit": 0,
+          "receipt_sha256": "28e15ebdeb47834141319d3ab59df9d51c6d8a13079abbbd46c2625a11aeb76a"
+        }
+      }
+    }
+  },
+  "scope": "No formal TARGET rerun, Reader rebuild, audio execution, 68217-item rescanning or deletion."
+}

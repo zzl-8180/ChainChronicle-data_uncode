@@ -2,11 +2,11 @@
 
 ## 正式成果与研究证据
 
-[正式规则](../../output/character_skills/profiles/rules.json)、[逐卡答案](../../output/character_skills/pages/)、[效果账本](../../output/character_skills/effect_ledger/)和 campaign 继续在 `output/character_skills/` 使用同一套版本。研究材料位于本项目的 [Boss 证据](evidence/boss_chain/)、[治疗证据](evidence/boss_heal/)、[普通效果](evidence/ordinary_effects/)、[30236 对照](evidence/card_comparison_cid30236/)、[名册](data/char_roster/)、[结构化数据](data/structured/)、[字段指南](reports/field_guide/)及[规模实验](experiments/skill_mechanism_scale/)、[机制试验](experiments/skill_mechanism_trial/)、[路线实验](experiments/skill_route_experiments/)。
+[正式规则](../../output/character_skills/profiles/rules.json)、[逐卡答案](../../output/character_skills/pages/)、[效果账本](../../output/character_skills/effect_ledger/)和 campaign 继续在 `output/character_skills/` 使用同一套版本。研究材料位于本项目的 [Boss 证据](evidence/boss_chain/)、[治疗证据](evidence/boss_heal/)、[普通效果](evidence/ordinary_effects/)、[30236 对照](evidence/card_comparison_cid30236/)、[名册](data/char_roster/)、[结构化数据](data/structured/)、[字段指南](reports/field_guide/)及[退役实验独有证据](evidence/retired-experiments/20261113/)。S6停止独立维护；84项独有证据及169项替代关系见[精确来源映射](../../operations/records/cleanup-retirement/20261114-execution-r1/source-locations.json)。
 
 ## 退役打包支线的研究归档
 
-139 份保留材料已迁至[研究交接归档](../../operations/history/retired-packaging/20261108/share_bundle/20261104-mechanism-first-handoff-r1/)，C14—C18 的五个正式 `share_bundle` 历史入口已切到归档根并验收。历史维护使用 [retirement_runtime.py](../../scripts/project_layout/retirement_runtime.py) 和 [archive 位置映射](../../docs/project-layout/20261108-packaging-runtime-ready-v1/runtime/locations.json)。实际迁移、清理和保留范围见[迁移回执](../../docs/project-layout/20261108-packaging-physical-v1/REPORT.md)及[清理回执](../../docs/project-layout/20261108-packaging-empty-cleanup-v1/REPORT.md)。
+139份机制交接材料现位于[机制交接证据](evidence/mechanism-first-handoff/20261104/)。C14—C18的五个旧share_bundle联接已退役，旧retirement_runtime及六个历史工具不作现行入口。冻结manifest、计划和历史报告不改；新旧路径、真实TARGET/POST及阶段审查见[本次清理回执](../../operations/records/cleanup-retirement/20261114-execution-r1/REPORT.md)。
 
 历史版本索引：[B00 总览](../../docs/project-layout/20261107-b00-v1/README.md) · [本项目全部900条映射](../../docs/project-layout/20261107-b00-v1/skill-research.md) · [全1140条机器索引](../../docs/project-layout/20261107-b00-v1/index.json)。基线为[20261106 path-map](../../docs/project-layout/20261106/path-map.json)，更具体子行优先于父目录；归属不授予迁移或写入权限。
 

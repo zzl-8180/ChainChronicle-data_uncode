@@ -71,8 +71,15 @@ def legacy_copy(root):
         item['textZh']=description(item['original'],item['textZh'])
     return result
 
-def reference_names(root):
-    p = read_path(root/'其他人的参考/CC解包数据_给GPT_20261027/claude_cc_site_pages/index_unpack.html', root=root)
+def reference_names(root, reference_root=None, source_map_manifest=None):
+    if (reference_root is None) != (source_map_manifest is None):
+        raise ValueError('Explicit reference root and source map manifest must be supplied together')
+    if source_map_manifest is not None:
+        from reference_sources_v2 import ReferenceSourceMap
+        mapping = ReferenceSourceMap.from_manifest(source_map_manifest, reference_root)
+        p, _ = mapping.resolve('index_unpack.html')
+    else:
+        p = read_path(root/'其他人的参考/CC解包数据_给GPT_20261027/claude_cc_site_pages/index_unpack.html', root=root)
     names = {}
     for attrs, inside in re.findall(r'<a\s+([^>]*class="cc(?: [^"]*)?"[^>]*)>(.*?)</a>', p.read_text(encoding='utf-8'), re.S):
         m, b = re.search(r'data-c="(\d+)"', attrs), re.search(r'<b>(.*?)</b>', inside, re.S)
@@ -95,7 +102,8 @@ def require_stage(root, out):
         raise ValueError('Reader stage is sealed. Use a new stage.')
 
 
-def build(root, out, sample=False, semantic_migration=None, data_only=False):
+def build(root, out, sample=False, semantic_migration=None, data_only=False,
+          reference_root=None, source_map_manifest=None):
     require_stage(root, out)
     if not data_only:
         require_new_files(out/'build_receipt.json', out/'index.html',
@@ -135,7 +143,7 @@ def build(root, out, sample=False, semantic_migration=None, data_only=False):
                 if sha256((pages/cid/'card.json').read_bytes()).hexdigest()!=digest:
                     raise ValueError('主线原文在语义复核后已变化：'+cid)
         copy = {}
-    names = reference_names(root)
+    names = reference_names(root, reference_root, source_map_manifest)
     descriptions, effects = {}, defaultdict(list)
     stats = defaultdict(lambda: {'descriptions': Counter(), 'effects': Counter()})
     row_count, effect_count = Counter(), Counter()
@@ -383,11 +391,17 @@ if __name__=='__main__':
     ap=argparse.ArgumentParser()
     ap.add_argument('--root',type=Path,default=HERE.parents[1])
     ap.add_argument('--output',type=Path)
+    ap.add_argument('--reference-root',type=Path,help='Explicit isolated reference source root; requires --source-map-manifest')
+    ap.add_argument('--source-map-manifest',type=Path,help='Reviewed S5 allowlist; does not activate a global route')
     ap.add_argument('--sample',action='store_true',help='Build the original six-card scope in an explicit output directory')
     ap.add_argument('--frontend-only',action='store_true',help='Refresh web files without reading or regenerating mainline data')
     ap.add_argument('--semantic-migration',type=Path,help='Exact C19 migration receipt; retains whole-card source guard')
     ap.add_argument('--data-only',action='store_true',help='Build base data only; keep existing sidecars and historical evidence audits untouched. Validate sidecars then refresh frontend separately.')
     args=ap.parse_args()
+    if (args.reference_root is None) != (args.source_map_manifest is None):
+        ap.error('--reference-root and --source-map-manifest must be supplied together')
+    if args.frontend_only and args.reference_root is not None:
+        ap.error('Reference mapping is unused in --frontend-only mode')
     if args.output is None:
         ap.error('Use --output to select a separate Reader stage.')
     destination=write_path(args.output, root=args.root).absolute()
@@ -395,4 +409,5 @@ if __name__=='__main__':
         require_stage(args.root.resolve(), destination)
         refresh_frontend(destination)
     else:
-        build(args.root.resolve(),destination,sample=args.sample,semantic_migration=args.semantic_migration,data_only=args.data_only)
+        build(args.root.resolve(),destination,sample=args.sample,semantic_migration=args.semantic_migration,data_only=args.data_only,
+              reference_root=args.reference_root,source_map_manifest=args.source_map_manifest)

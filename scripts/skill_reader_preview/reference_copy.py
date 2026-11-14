@@ -128,23 +128,24 @@ class _ArticleParser(HTMLParser):
             self.jp_chunks.append(data)
 
 
-def _source_articles(root: Path):
+def _source_articles(root: Path, source_map=None):
     cards = root / "cards"
     if not cards.exists():
         raise FileNotFoundError(f"reference cards directory not found: {cards}")
-    for card_dir in sorted(cards.iterdir()):
-        if not card_dir.is_dir():
-            continue
-        path = card_dir / "unpack.html"
-        if not path.exists():
-            continue
+    if source_map is not None:
+        paths = (source_map.resolve(member)[0] for member in sorted(source_map.members)
+                 if member.startswith('cards/'))
+    else:
+        paths = (card_dir / 'unpack.html' for card_dir in sorted(cards.iterdir())
+                 if card_dir.is_dir() and (card_dir / 'unpack.html').exists())
+    for path in paths:
         parser = _ArticleParser()
         parser.feed(path.read_text(encoding="utf-8"))
         for index, article in enumerate(parser.articles):
             yield path, index, article
 
 
-def _audit(root: Path):
+def _audit(root: Path, source_map=None):
     candidates: dict[str, list[dict[str, str]]] = defaultdict(list)
     audit: dict[str, Any] = {
         "version": 1,
@@ -157,7 +158,7 @@ def _audit(root: Path):
         "method": "article data-copy + first details div.jp; strict ordered pairing after ◆/line/semicolon/full-stop splits; conservative Chinese comma retry before fixed clause starters; strip Chinese numeric/？/ATK parentheticals; reject unsupported Chinese body numbers",
     }
     normalize = lambda t: unicodedata.normalize("NFKC", t)
-    for path, index, item in _source_articles(root):
+    for path, index, item in _source_articles(root, source_map):
         audit["articles_seen"] += 1
         zh = _clean_zh(item["zh"])
         jp = _clean_jp(item["jp"])
@@ -223,9 +224,15 @@ def _audit(root: Path):
     return resolved, audit
 
 
-def load_reference(root: str | Path) -> dict[str, dict[str, str]]:
+def load_reference(root: str | Path, source_map_manifest=None) -> dict[str, dict[str, str]]:
     """Return unreviewed sentence candidates keyed by exact Japanese sentence."""
-    resolved, audit = _audit(Path(root))
+    root = Path(root)
+    source_map = None
+    if source_map_manifest is not None:
+        from reference_sources_v2 import ReferenceSourceMap
+        root = root.absolute()
+        source_map = ReferenceSourceMap.from_manifest(source_map_manifest, root)
+    resolved, audit = _audit(root, source_map)
     load_reference.last_audit = audit
     return resolved
 
@@ -237,11 +244,13 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2] / "其他人的参考" / "CC解包数据_给GPT_20261027" / "claude_cc_site_pages")
     ap.add_argument("--audit", type=Path, help="Path to a new report file")
+    ap.add_argument("--source-map-manifest", type=Path, help="Explicit reviewed S5 allowlist; no global route activation")
     args = ap.parse_args()
-    args.root = read_path(args.root, root=Path(__file__).resolve().parents[2])
+    if args.source_map_manifest is None:
+        args.root = read_path(args.root, root=Path(__file__).resolve().parents[2])
     args.audit = write_path(args.audit) if args.audit else review_output("reference-pairs") / "reference_pairs.json"
     require_new_files(args.audit)
-    resolved = load_reference(args.root)
+    resolved = load_reference(args.root, args.source_map_manifest)
     audit = load_reference.last_audit
     write_new_text(args.audit, json.dumps(audit, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps({"resolved_sentences": len(resolved), "candidate_sentences": audit["candidate_japanese_sentences"], "articles_seen": audit["articles_seen"], "paired": audit["paired_sentences"], "conflicts": audit["conflict_count"], "unpaired_articles": audit["unpaired_article_count"], "number_mismatches": audit["number_mismatch_count"], "audit": str(args.audit)}, ensure_ascii=False))
